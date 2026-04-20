@@ -1,10 +1,10 @@
 # TP-188: Project Registry, Recent, and Archive State — Status
 
-**Current Step:** Step 1: Project registry model
+**Current Step:** Step 2: Storage proposal
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -19,16 +19,16 @@
 ---
 
 ### Step 1: Project registry model
-**Status:** 🟨 In Progress
-- [ ] Define project record fields
-- [ ] Define canonical vs derived fields
-- [ ] Define active/archived/recent grouping rules
-- [ ] Define duplicate-root, rename, and missing-path rules
+**Status:** ✅ Complete
+- [x] Define project record fields
+- [x] Define canonical vs derived fields
+- [x] Define active/archived/recent grouping rules
+- [x] Define duplicate-root, rename, and missing-path rules
 
 ---
 
 ### Step 2: Storage proposal
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define registry file location
 - [ ] Explain coexistence with config/workspace mode
 - [ ] Define safe local-first update semantics
@@ -57,6 +57,7 @@
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
 | R001 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
+| R002 | Plan | 1 | APPROVE | n/a |
 
 ---
 
@@ -78,6 +79,9 @@
 | 2026-04-20 16:38 | Step 0 started | Preflight |
 | 2026-04-20 16:44 | Step 0 completed | Preflight notes captured in STATUS.md |
 | 2026-04-20 16:44 | Step 1 started | Project registry model |
+| 2026-04-20 16:46 | Step 1 plan reviewed | R001 revise, then R002 approve after adding edge-case coverage |
+| 2026-04-20 16:48 | Step 1 completed | `project-registry.md` drafted |
+| 2026-04-20 16:48 | Step 2 started | Storage proposal |
 
 ---
 
@@ -103,3 +107,4 @@ Minimum registry requirements:
 - The registry must stay inspectable and local-first, with one canonical record store and only reproducible derived views/caches around it.
 - Reviewer suggestion noted: tie identity rules back to current root-based CLI/dashboard behavior and make “recent” explicitly derived from timestamps on the canonical project record.
 | 2026-04-20 16:41 | Review R001 | plan Step 1: REVISE |
+| 2026-04-20 16:42 | Review R002 | plan Step 1: APPROVE |
