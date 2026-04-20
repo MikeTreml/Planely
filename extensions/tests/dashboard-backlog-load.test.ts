@@ -182,6 +182,60 @@ describe("TP-182 dashboard backlog loading", () => {
 		}
 	});
 
+	it("prefers taskplane-config.json over stale legacy YAML when both exist", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-182-backlog-precedence-"));
+		try {
+			mkdirSync(join(root, ".pi"), { recursive: true });
+			writeFileSync(join(root, ".pi", "taskplane-config.json"), JSON.stringify({
+				taskRunner: { taskAreas: {} },
+			}, null, 2));
+			writeFileSync(join(root, ".pi", "task-runner.yaml"), [
+				"task_areas:",
+				"  legacy:",
+				"    path: taskplane-tasks",
+				"    prefix: TP",
+			].join("\n"));
+
+			writeTaskPacket(
+				root,
+				"TP-260-should-stay-hidden",
+				"# Task: TP-260 - Hidden task\n\n## Mission\nJSON config is authoritative.\n",
+				"**Status:** ⬜ Not Started\n",
+			);
+
+			const context = {
+				fs,
+				path,
+				REPO_ROOT: root,
+				parseStatusMd(taskFolder: string) {
+					const statusPath = join(taskFolder, "STATUS.md");
+					if (!existsSync(statusPath)) return null;
+					const content = readFileSync(statusPath, "utf-8");
+					const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
+					return {
+						status: statusMatch ? statusMatch[1].trim() : "Unknown",
+						reviews: 0,
+						updatedAt: statSync(statusPath).mtimeMs,
+					};
+				},
+				checkDoneFile(taskFolder: string) {
+					return existsSync(join(taskFolder, ".DONE"));
+				},
+			};
+
+			const { loadBacklogData } = vm.runInNewContext(
+				`${helperBlock}; ({ loadBacklogData });`,
+				context,
+			) as { loadBacklogData: (state: any, history: any[]) => any };
+
+			const backlog = loadBacklogData(null, []);
+			expect(backlog.items).toHaveLength(0);
+			expect(backlog.loadState.kind).toBe("empty");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
 	it("exposes backlog data from buildDashboardState even when no batch is active", () => {
 		const buildStateBlock = extractBlock(
 			source,

@@ -1398,18 +1398,16 @@ function parseLegacyTaskAreasYaml(raw) {
 }
 
 function loadTaskplaneTaskAreas() {
-  try {
-    const configPath = resolveDashboardConfigPath("taskplane-config.json");
-    if (configPath) {
+  const configPath = resolveDashboardConfigPath("taskplane-config.json");
+  if (configPath) {
+    try {
       const raw = fs.readFileSync(configPath, "utf-8");
       const config = JSON.parse(raw);
       const areas = config?.taskRunner?.taskAreas;
-      if (areas && typeof areas === "object" && Object.keys(areas).length > 0) {
-        return areas;
-      }
+      return areas && typeof areas === "object" ? areas : {};
+    } catch {
+      return {};
     }
-  } catch {
-    // fall through to legacy YAML support
   }
 
   for (const fileName of ["task-runner.yaml", "task-orchestrator.yaml"]) {
