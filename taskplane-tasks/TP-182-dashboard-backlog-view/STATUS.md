@@ -1,10 +1,10 @@
 # TP-182: Dashboard Backlog View — Status
 
-**Current Step:** Step 3: Frontend implementation
+**Current Step:** Step 2: Server implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 4
+**Review Counter:** 5
 **Iteration:** 1
 **Size:** L
 
@@ -30,15 +30,16 @@
 ---
 
 ### Step 2: Server implementation
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Add backlog loading/shaping
 - [x] Expose backlog payload to frontend
 - [x] Handle workspace and malformed-task cases
+- [ ] Support legacy YAML config fallback for backlog task-area discovery
 
 ---
 
 ### Step 3: Frontend implementation
-**Status:** 🟨 In Progress
+**Status:** ⬜ Not Started
 - [ ] Add backlog panel/view
 - [ ] Render rows/cards and selection behavior
 - [ ] Preserve existing dashboard usability
@@ -60,6 +61,9 @@
 |---|------|------|---------|------|
 | R001 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
 | R002 | code | 1 | REVISE | `.reviews/R002-code-step1.md` |
+| R003 | code | 1 | APPROVE | `.reviews/R003-code-step1.md` |
+| R004 | plan | 2 | APPROVE | `.reviews/R004-plan-step2.md` |
+| R005 | code | 2 | REVISE | `.reviews/R005-code-step2.md` |
 
 ---
 
@@ -112,3 +116,4 @@ Preflight decisions:
 | 2026-04-20 16:48 | Review R002 | code Step 1: REVISE |
 | 2026-04-20 16:50 | Review R003 | code Step 1: APPROVE |
 | 2026-04-20 16:52 | Review R004 | plan Step 2: APPROVE |
+| 2026-04-20 16:57 | Review R005 | code Step 2: REVISE |
