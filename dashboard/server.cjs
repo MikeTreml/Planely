@@ -1328,17 +1328,103 @@ function broadcastState() {
 
 // BATCH_HISTORY_PATH is initialized in main() alongside REPO_ROOT.
 
+function resolveDashboardConfigPath(fileName) {
+  const candidates = [
+    path.join(REPO_ROOT, ".pi", fileName),
+    path.join(REPO_ROOT, fileName),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function parseLegacyTaskAreasYaml(raw) {
+  const areas = {};
+  const lines = String(raw || "").split(/\r?\n/);
+  let inTaskAreas = false;
+  let taskAreasIndent = 0;
+  let currentArea = null;
+
+  function cleanScalar(value) {
+    const trimmed = String(value || "").trim();
+    const withoutComment = trimmed.replace(/\s+#.*$/, "").trim();
+    if ((withoutComment.startsWith('"') && withoutComment.endsWith('"'))
+      || (withoutComment.startsWith("'") && withoutComment.endsWith("'"))) {
+      return withoutComment.slice(1, -1);
+    }
+    return withoutComment;
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\t/g, "    ");
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const indent = line.match(/^\s*/)?.[0]?.length || 0;
+
+    if (!inTaskAreas) {
+      if (/^task_areas\s*:\s*$/.test(trimmed)) {
+        inTaskAreas = true;
+        taskAreasIndent = indent;
+      }
+      continue;
+    }
+
+    if (indent <= taskAreasIndent) break;
+
+    const areaMatch = line.match(/^\s{2,}([A-Za-z0-9._-]+)\s*:\s*$/);
+    if (areaMatch && indent === taskAreasIndent + 2) {
+      currentArea = areaMatch[1];
+      areas[currentArea] = {};
+      continue;
+    }
+
+    if (!currentArea) continue;
+    const fieldMatch = line.match(/^\s+([A-Za-z0-9_-]+)\s*:\s*(.+?)\s*$/);
+    if (!fieldMatch || indent < taskAreasIndent + 4) continue;
+    const key = fieldMatch[1];
+    const value = cleanScalar(fieldMatch[2]);
+    if (!value) continue;
+    if (key === "path") areas[currentArea].path = value;
+    else if (key === "prefix") areas[currentArea].prefix = value;
+    else if (key === "context") areas[currentArea].context = value;
+    else if (key === "repo_id" || key === "repoId") areas[currentArea].repoId = value;
+  }
+
+  for (const [name, area] of Object.entries(areas)) {
+    if (!area || !area.path) delete areas[name];
+  }
+  return areas;
+}
+
 function loadTaskplaneTaskAreas() {
   try {
-    const configPath = path.join(REPO_ROOT, ".pi", "taskplane-config.json");
-    if (!fs.existsSync(configPath)) return {};
-    const raw = fs.readFileSync(configPath, "utf-8");
-    const config = JSON.parse(raw);
-    const areas = config?.taskRunner?.taskAreas;
-    return areas && typeof areas === "object" ? areas : {};
+    const configPath = resolveDashboardConfigPath("taskplane-config.json");
+    if (configPath) {
+      const raw = fs.readFileSync(configPath, "utf-8");
+      const config = JSON.parse(raw);
+      const areas = config?.taskRunner?.taskAreas;
+      if (areas && typeof areas === "object" && Object.keys(areas).length > 0) {
+        return areas;
+      }
+    }
   } catch {
-    return {};
+    // fall through to legacy YAML support
   }
+
+  for (const fileName of ["task-runner.yaml", "task-orchestrator.yaml"]) {
+    try {
+      const yamlPath = resolveDashboardConfigPath(fileName);
+      if (!yamlPath) continue;
+      const raw = fs.readFileSync(yamlPath, "utf-8");
+      const areas = parseLegacyTaskAreasYaml(raw);
+      if (Object.keys(areas).length > 0) return areas;
+    } catch {
+      continue;
+    }
+  }
+
+  return {};
 }
 
 function normalizeBacklogDependencyRef(raw) {

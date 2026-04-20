@@ -1,6 +1,6 @@
 # TP-182: Dashboard Backlog View — Status
 
-**Current Step:** Step 2: Server implementation
+**Current Step:** Step 3: Frontend implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
@@ -30,16 +30,16 @@
 ---
 
 ### Step 2: Server implementation
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Add backlog loading/shaping
 - [x] Expose backlog payload to frontend
 - [x] Handle workspace and malformed-task cases
-- [ ] Support legacy YAML config fallback for backlog task-area discovery
+- [x] Support legacy YAML config fallback for backlog task-area discovery
 
 ---
 
 ### Step 3: Frontend implementation
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Add backlog panel/view
 - [ ] Render rows/cards and selection behavior
 - [ ] Preserve existing dashboard usability
@@ -93,6 +93,7 @@
 | 2026-04-20 17:32 | Backlog loading added | Added task-area config loading, PROMPT/STATUS packet parsing, dependency resolution, summary computation, and `loadBacklogData()` server shaping over file-backed task folders. |
 | 2026-04-20 17:33 | Backlog payload exposed | Wired backlog projection into `buildDashboardState()` so `/api/state` and SSE snapshots now carry additive `backlog` data even when no active batch exists. |
 | 2026-04-20 17:34 | Workspace/malformed handling covered | Backlog scope now reports repo-aware workspace context and partial/error load states while malformed or unreadable task packets are surfaced as non-fatal backlog errors. |
+| 2026-04-20 17:48 | Review fix 3 applied | Added legacy `task-runner.yaml` / `task-orchestrator.yaml` fallback parsing for task-area discovery and covered the regression with a YAML-backed backlog loader test. |
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 

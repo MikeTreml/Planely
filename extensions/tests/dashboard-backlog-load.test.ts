@@ -36,7 +36,7 @@ describe("TP-182 dashboard backlog loading", () => {
 
 	const helperBlock = extractBlock(
 		source,
-		"function loadTaskplaneTaskAreas()",
+		"function resolveDashboardConfigPath(fileName)",
 		"function loadHistory()",
 	);
 
@@ -123,6 +123,60 @@ describe("TP-182 dashboard backlog loading", () => {
 			const runningItem = backlog.items.find((item: any) => item.taskId === "TP-201");
 			expect(runningItem.status.key).toBe("running");
 			expect(runningItem.execution.batchId).toBe("batch-1");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
+	it("falls back to legacy task-runner.yaml when JSON config is absent", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-182-backlog-yaml-"));
+		try {
+			mkdirSync(join(root, ".pi"), { recursive: true });
+			writeFileSync(join(root, ".pi", "task-runner.yaml"), [
+				"task_areas:",
+				"  general:",
+				"    path: taskplane-tasks",
+				"    prefix: TP",
+				"    repo_id: planely",
+			].join("\n"));
+
+			writeTaskPacket(
+				root,
+				"TP-250-yaml-task",
+				"# Task: TP-250 - YAML task\n\n## Mission\nLegacy config fallback.\n",
+				"**Status:** ⬜ Not Started\n",
+			);
+
+			const context = {
+				fs,
+				path,
+				REPO_ROOT: root,
+				parseStatusMd(taskFolder: string) {
+					const statusPath = join(taskFolder, "STATUS.md");
+					if (!existsSync(statusPath)) return null;
+					const content = readFileSync(statusPath, "utf-8");
+					const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
+					return {
+						status: statusMatch ? statusMatch[1].trim() : "Unknown",
+						reviews: 0,
+						updatedAt: statSync(statusPath).mtimeMs,
+					};
+				},
+				checkDoneFile(taskFolder: string) {
+					return existsSync(join(taskFolder, ".DONE"));
+				},
+			};
+
+			const { loadBacklogData } = vm.runInNewContext(
+				`${helperBlock}; ({ loadBacklogData });`,
+				context,
+			) as { loadBacklogData: (state: any, history: any[]) => any };
+
+			const backlog = loadBacklogData(null, []);
+			expect(backlog.items).toHaveLength(1);
+			expect(backlog.items[0].taskId).toBe("TP-250");
+			expect(backlog.scope.repoIds).toContain("planely");
+			expect(backlog.loadState.kind).toBe("ready");
 		} finally {
 			rmSync(root, { recursive: true, force: true });
 		}
