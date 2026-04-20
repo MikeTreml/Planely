@@ -377,6 +377,65 @@ describe("TP-182 dashboard backlog loading", () => {
 		}
 	});
 
+	it("re-reads task packet status changes on subsequent backlog loads", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-189-backlog-refresh-"));
+		try {
+			mkdirSync(join(root, ".pi"), { recursive: true });
+			writeFileSync(join(root, ".pi", "taskplane-config.json"), JSON.stringify({
+				taskRunner: {
+					taskAreas: {
+						general: { path: "taskplane-tasks", repoId: "planely" },
+					},
+				},
+			}, null, 2));
+
+			const taskFolder = writeTaskPacket(
+				root,
+				"TP-310-refresh-task",
+				"# Task: TP-310 - Refresh task\n\n## Mission\nRefresh after edits.\n",
+				"**Status:** ⬜ Not Started\n",
+			);
+
+			const context = {
+				fs,
+				path,
+				REPO_ROOT: root,
+				getActiveProjectRoot: () => root,
+				parseStatusMd(taskFolderPath: string) {
+					const statusPath = join(taskFolderPath, "STATUS.md");
+					if (!existsSync(statusPath)) return null;
+					const content = readFileSync(statusPath, "utf-8");
+					const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
+					return {
+						status: statusMatch ? statusMatch[1].trim() : "Unknown",
+						reviews: 0,
+						updatedAt: statSync(statusPath).mtimeMs,
+					};
+				},
+				checkDoneFile(taskFolderPath: string) {
+					return existsSync(join(taskFolderPath, ".DONE"));
+				},
+			};
+
+			const { loadBacklogData } = vm.runInNewContext(
+				`${helperBlock}; ({ loadBacklogData });`,
+				context,
+			) as { loadBacklogData: (state: any, history: any[]) => any };
+
+			const initial = loadBacklogData(null, []);
+			expect(initial.items[0].status.key).toBe("ready");
+
+			writeFileSync(join(taskFolder, "STATUS.md"), "**Status:** ✅ Complete\n");
+			writeFileSync(join(taskFolder, ".DONE"), "");
+
+			const refreshed = loadBacklogData(null, []);
+			expect(refreshed.items[0].status.key).toBe("succeeded");
+			expect(refreshed.summary.succeeded).toBe(1);
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
 	it("exposes backlog data from buildDashboardState even when no batch is active", () => {
 		const buildStateBlock = extractBlock(
 			source,

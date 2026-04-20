@@ -74,6 +74,12 @@
             <div class="backlog-scope-line" id="backlog-scope-line">Loading backlog…</div>
           </div>
           <div class="backlog-header-controls">
+            <div class="backlog-query-toggle" role="group" aria-label="Backlog query mode">
+              <button class="backlog-query-btn" id="backlog-query-pending" type="button" aria-pressed="false">Pending</button>
+              <button class="backlog-query-btn active" id="backlog-query-all" type="button" aria-pressed="true">All</button>
+            </div>
+            <button class="backlog-refresh-btn" id="backlog-refresh-button" type="button">Refresh now</button>
+            <span class="backlog-refresh-status" id="backlog-refresh-status" aria-live="polite">Live updates on</span>
             <input class="backlog-search" id="backlog-search" type="search" placeholder="Search tasks" aria-label="Search backlog tasks">
             <select class="backlog-filter-select" id="backlog-status-filter" aria-label="Filter backlog by status">
               <option value="">All statuses</option>
@@ -86,6 +92,125 @@
               <option value="stalled">Stalled</option>
             </select>
             <button class="backlog-clear-btn" id="backlog-clear-filters" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="task-authoring-shell" id="task-authoring-shell">
+          <div class="task-authoring-grid">
+            <section class="task-authoring-card">
+              <div class="task-authoring-card-header">
+                <div>
+                  <div>Create task</div>
+                  <div class="task-authoring-subtitle" id="task-authoring-subtitle">Loading task authoring defaults…</div>
+                </div>
+                <button class="backlog-clear-btn" id="task-authoring-reset" type="button">Reset</button>
+              </div>
+              <form class="task-authoring-form" id="task-authoring-form">
+                <div class="task-authoring-field-row">
+                  <label class="task-authoring-field">
+                    <span>Area</span>
+                    <select id="task-authoring-area"></select>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>Size</span>
+                    <select id="task-authoring-size">
+                      <option value="S">S</option>
+                      <option value="M">M</option>
+                      <option value="L">L</option>
+                    </select>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>Review level</span>
+                    <select id="task-authoring-review-level">
+                      <option value="0">0 · None</option>
+                      <option value="1">1 · Plan Only</option>
+                      <option value="2">2 · Plan + Code</option>
+                      <option value="3">3 · Full</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="task-authoring-field">
+                  <span>Title</span>
+                  <input id="task-authoring-title" type="text" placeholder="Task title">
+                </label>
+                <label class="task-authoring-field">
+                  <span>Mission</span>
+                  <textarea id="task-authoring-mission" rows="4" placeholder="What should this task achieve, and why does it matter?"></textarea>
+                </label>
+                <div class="task-authoring-score-grid">
+                  <label class="task-authoring-field">
+                    <span>Blast radius</span>
+                    <select id="task-authoring-score-blast-radius">
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                    </select>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>Pattern novelty</span>
+                    <select id="task-authoring-score-pattern-novelty">
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                    </select>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>Security</span>
+                    <select id="task-authoring-score-security">
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                    </select>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>Reversibility</span>
+                    <select id="task-authoring-score-reversibility">
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="task-authoring-field-row task-authoring-field-row-stacked">
+                  <label class="task-authoring-field">
+                    <span>Dependencies</span>
+                    <textarea id="task-authoring-dependencies" rows="3" placeholder="One dependency per line, e.g. TP-180 or External: dashboard running"></textarea>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>Context refs</span>
+                    <textarea id="task-authoring-context-refs" rows="3" placeholder="One doc per line, optionally with — note"></textarea>
+                  </label>
+                  <label class="task-authoring-field">
+                    <span>File scope</span>
+                    <textarea id="task-authoring-file-scope" rows="3" placeholder="One path per line"></textarea>
+                  </label>
+                </div>
+                <div class="task-authoring-actions">
+                  <button class="session-view-btn" id="task-authoring-preview-button" type="button">Preview packet</button>
+                  <button class="session-view-btn" id="task-authoring-create-button" type="submit">Write task packet</button>
+                </div>
+              </form>
+            </section>
+            <section class="task-authoring-card">
+              <div class="task-authoring-card-header">
+                <div>
+                  <div>Packet preview</div>
+                  <div class="task-authoring-subtitle">Preview before write; create stays disabled until the preview matches the current form.</div>
+                </div>
+              </div>
+              <div class="task-authoring-feedback" id="task-authoring-feedback">Preview a task packet to inspect generated files.</div>
+              <div class="task-authoring-errors" id="task-authoring-errors"></div>
+              <div class="task-authoring-meta" id="task-authoring-meta"></div>
+              <div class="task-authoring-preview-grid">
+                <div class="task-authoring-preview-card">
+                  <div class="task-authoring-preview-title">PROMPT.md</div>
+                  <pre class="task-authoring-code" id="task-authoring-prompt-preview">Preview a packet to inspect generated PROMPT.md.</pre>
+                </div>
+                <div class="task-authoring-preview-card">
+                  <div class="task-authoring-preview-title">STATUS.md</div>
+                  <pre class="task-authoring-code" id="task-authoring-status-preview">Preview a packet to inspect generated STATUS.md.</pre>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
         <div class="panel-body backlog-panel-body" id="backlog-body"></div>

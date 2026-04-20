@@ -1782,6 +1782,694 @@ function loadTaskplaneTaskAreas(root = getActiveProjectRoot()) {
   return {};
 }
 
+function formatTaskAuthoringDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeTaskAuthoringList(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry || "").trim()).filter(Boolean);
+  }
+  return String(value || "")
+    .split(/\r?\n|,/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function normalizeTaskAuthoringScore(value) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= 2 ? parsed : null;
+}
+
+function deriveTaskReviewLevel(scoreTotal) {
+  if (scoreTotal <= 1) return 0;
+  if (scoreTotal <= 3) return 1;
+  if (scoreTotal <= 5) return 2;
+  return 3;
+}
+
+function taskReviewLevelLabel(level) {
+  return ({
+    0: "None",
+    1: "Plan Only",
+    2: "Plan + Code",
+    3: "Full",
+  })[level] || "Unknown";
+}
+
+function taskScoreDimensionLabel(name, score) {
+  const scale = {
+    0: "low",
+    1: "moderate",
+    2: "high",
+  };
+  return `${scale[score] || "unknown"} ${name}`;
+}
+
+function slugifyTaskAuthoringTitle(title) {
+  const normalized = String(title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+  return normalized || "untitled-task";
+}
+
+function formatTaskAuthoringDependencyLine(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^[-*+]\s+\*\*(Task|External|None)\*\*:/i.test(text) || /^[-*+]\s+\*\*None\*\*/i.test(text)) {
+    return text;
+  }
+  const withoutMarker = text.replace(/^[-*+]\s+/, "").trim();
+  if (/^\*\*None\*\*$/i.test(withoutMarker) || /^None$/i.test(withoutMarker)) {
+    return "- **None**";
+  }
+  const externalMatch = withoutMarker.match(/^External\s*:\s*(.+)$/i);
+  if (externalMatch) return `- **External:** ${externalMatch[1].trim()}`;
+  const taskMatch = withoutMarker.match(/^(?:Task\s*:\s*)?((?:[a-z0-9-]+\/)?[A-Z]+-\d+)(.*)$/i);
+  if (taskMatch) {
+    const suffix = taskMatch[2] ? taskMatch[2].trim() : "";
+    return `- **Task:** ${taskMatch[1]}${suffix ? ` ${suffix}` : ""}`;
+  }
+  return `- **External:** ${withoutMarker}`;
+}
+
+function formatTaskAuthoringContextLine(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^[-*+]\s+/.test(text)) return text;
+  const [pathPart, notePart] = text.split(/\s+—\s+|\s+-\s+/, 2);
+  if (notePart) return `- \`${pathPart.trim()}\` — ${notePart.trim()}`;
+  return `- \`${text}\``;
+}
+
+function inferTaskAuthoringWorkspace(fileScope, fallback) {
+  const roots = [...new Set(fileScope
+    .map((entry) => String(entry || "").trim().replace(/\\/g, "/"))
+    .filter(Boolean)
+    .map((entry) => entry.split("/")[0])
+    .filter((entry) => entry && entry !== "."))];
+  if (roots.length === 0) return fallback || "Project root";
+  if (roots.length === 1) return `\`${roots[0]}/\``;
+  return roots.slice(0, 3).map((entry) => `\`${entry}/\``).join(", ");
+}
+
+function readTaskAuthoringAreaContext(areaName, area, root = getActiveProjectRoot()) {
+  const taskAreaBaseRoot = resolveDashboardTaskAreaBaseRoot(root);
+  const areaPath = area?.path ? path.resolve(taskAreaBaseRoot, area.path) : null;
+  const configuredContextPath = typeof area?.context === "string" && area.context.trim()
+    ? path.resolve(taskAreaBaseRoot, area.context.trim())
+    : null;
+  const contextPath = configuredContextPath || (areaPath ? path.join(areaPath, "CONTEXT.md") : null);
+  let nextTaskId = "";
+  if (contextPath && fs.existsSync(contextPath)) {
+    try {
+      const raw = fs.readFileSync(contextPath, "utf-8");
+      nextTaskId = raw.match(/^\*\*Next Task ID:\*\*\s*([A-Z]+-\d+)/m)?.[1] || "";
+    } catch {
+      nextTaskId = "";
+    }
+  }
+  const prefix = String(area?.prefix || nextTaskId.split("-")[0] || areaName || "TP").trim().toUpperCase() || "TP";
+  const relativeContextPath = contextPath ? path.relative(root, contextPath).replace(/\\/g, "/") : null;
+  return {
+    areaPath,
+    contextPath,
+    relativeContextPath,
+    nextTaskId,
+    prefix,
+  };
+}
+
+function loadTaskAuthoringMetadata(root = getActiveProjectRoot()) {
+  const taskAreas = loadTaskplaneTaskAreas(root);
+  const areas = Object.entries(taskAreas).map(([areaId, area]) => {
+    const contextInfo = readTaskAuthoringAreaContext(areaId, area, root);
+    return {
+      id: areaId,
+      label: String(area?.label || areaId),
+      path: area?.path || null,
+      prefix: contextInfo.prefix,
+      repoId: area?.repoId || null,
+      contextPath: contextInfo.relativeContextPath,
+      nextTaskId: contextInfo.nextTaskId || null,
+    };
+  }).filter((area) => area.path);
+
+  return {
+    areas,
+    defaultAreaId: areas[0]?.id || null,
+    defaults: {
+      size: "M",
+      reviewLevel: 1,
+      complexity: {
+        blastRadius: 1,
+        patternNovelty: 1,
+        security: 0,
+        reversibility: 0,
+      },
+    },
+  };
+}
+
+function buildTaskAuthoringPreview(payload, root = getActiveProjectRoot()) {
+  const metadata = loadTaskAuthoringMetadata(root);
+  const normalized = {
+    areaId: typeof payload?.areaId === "string" ? payload.areaId.trim() : "",
+    title: typeof payload?.title === "string" ? payload.title.trim() : "",
+    mission: typeof payload?.mission === "string" ? payload.mission.trim() : "",
+    size: typeof payload?.size === "string" ? payload.size.trim().toUpperCase() : "",
+    reviewLevel: payload?.reviewLevel == null || payload?.reviewLevel === "" ? null : Number.parseInt(String(payload.reviewLevel), 10),
+    complexity: {
+      blastRadius: normalizeTaskAuthoringScore(payload?.complexity?.blastRadius),
+      patternNovelty: normalizeTaskAuthoringScore(payload?.complexity?.patternNovelty),
+      security: normalizeTaskAuthoringScore(payload?.complexity?.security),
+      reversibility: normalizeTaskAuthoringScore(payload?.complexity?.reversibility),
+    },
+    dependencies: normalizeTaskAuthoringList(payload?.dependencies),
+    contextRefs: normalizeTaskAuthoringList(payload?.contextRefs),
+    fileScope: normalizeTaskAuthoringList(payload?.fileScope),
+  };
+
+  const errors = [];
+  const areaMeta = metadata.areas.find((area) => area.id === normalized.areaId) || null;
+  if (!areaMeta) {
+    errors.push({ kind: "field", field: "areaId", message: "Choose a task area." });
+  }
+  if (!normalized.title) {
+    errors.push({ kind: "field", field: "title", message: "Title is required." });
+  }
+  if (!normalized.mission) {
+    errors.push({ kind: "field", field: "mission", message: "Mission is required." });
+  }
+  if (!["S", "M", "L"].includes(normalized.size)) {
+    errors.push({ kind: "field", field: "size", message: "Size must be S, M, or L. Split XL work before packet creation." });
+  }
+
+  for (const [field, value] of Object.entries(normalized.complexity)) {
+    if (value == null) {
+      errors.push({ kind: "field", field: `complexity.${field}`, message: "Complexity scores must be integers between 0 and 2." });
+    }
+  }
+
+  const hasComplexityScores = Object.values(normalized.complexity).every((value) => value != null);
+  const scoreTotal = hasComplexityScores
+    ? normalized.complexity.blastRadius + normalized.complexity.patternNovelty + normalized.complexity.security + normalized.complexity.reversibility
+    : null;
+  const derivedReviewLevel = scoreTotal == null ? null : deriveTaskReviewLevel(scoreTotal);
+  if (normalized.reviewLevel != null && ![0, 1, 2, 3].includes(normalized.reviewLevel)) {
+    errors.push({ kind: "field", field: "reviewLevel", message: "Review level must be between 0 and 3." });
+  }
+  if (normalized.reviewLevel != null && derivedReviewLevel != null && normalized.reviewLevel !== derivedReviewLevel) {
+    errors.push({
+      kind: "field",
+      field: "reviewLevel",
+      message: `Review level ${normalized.reviewLevel} does not match rubric-derived level ${derivedReviewLevel}.`,
+    });
+  }
+
+  const taskAreas = loadTaskplaneTaskAreas(root);
+  const rawArea = normalized.areaId ? taskAreas[normalized.areaId] : null;
+  const contextInfo = areaMeta ? readTaskAuthoringAreaContext(normalized.areaId, rawArea, root) : null;
+  if (areaMeta && !contextInfo?.nextTaskId) {
+    errors.push({ kind: "server", field: "areaId", message: "Could not read Next Task ID from the selected area CONTEXT.md." });
+  }
+
+  const taskId = contextInfo?.nextTaskId || null;
+  const slug = normalized.title ? slugifyTaskAuthoringTitle(normalized.title) : null;
+  const folderName = taskId && slug ? `${taskId}-${slug}` : null;
+  const relativeFolderPath = areaMeta?.path && folderName ? `${String(areaMeta.path).replace(/\\/g, "/")}/${folderName}` : null;
+  const reviewLevel = normalized.reviewLevel != null ? normalized.reviewLevel : derivedReviewLevel;
+  const reviewLabel = reviewLevel != null ? taskReviewLevelLabel(reviewLevel) : null;
+  const assessment = scoreTotal == null ? null : [
+    `Task authoring rubric indicates ${taskScoreDimensionLabel("blast radius", normalized.complexity.blastRadius)}`,
+    taskScoreDimensionLabel("pattern novelty", normalized.complexity.patternNovelty),
+    taskScoreDimensionLabel("security", normalized.complexity.security),
+    `and ${taskScoreDimensionLabel("reversibility", normalized.complexity.reversibility)}.`,
+  ].join(", ");
+  const createdDate = formatTaskAuthoringDate();
+  const dependencyLines = normalized.dependencies.length > 0
+    ? normalized.dependencies.map(formatTaskAuthoringDependencyLine).filter(Boolean)
+    : ["- **None**"];
+  const contextLines = normalized.contextRefs.map(formatTaskAuthoringContextLine).filter(Boolean);
+  const fileScopeLines = normalized.fileScope.length > 0
+    ? normalized.fileScope.map((entry) => `- \`${entry}\``)
+    : ["- `None declared yet`"];
+  const workspaceLabel = inferTaskAuthoringWorkspace(normalized.fileScope, areaMeta?.path ? `\`${areaMeta.path}/\`` : "Project root");
+  const promptMarkdown = taskId && folderName && scoreTotal != null && reviewLevel != null
+    ? [
+      `# Task: ${taskId} - ${normalized.title}`,
+      "",
+      `**Created:** ${createdDate}`,
+      `**Size:** ${normalized.size}`,
+      "",
+      `## Review Level: ${reviewLevel} (${reviewLabel})`,
+      "",
+      `**Assessment:** ${assessment}`,
+      `**Score:** ${scoreTotal}/8 — Blast radius: ${normalized.complexity.blastRadius}, Pattern novelty: ${normalized.complexity.patternNovelty}, Security: ${normalized.complexity.security}, Reversibility: ${normalized.complexity.reversibility}`,
+      "",
+      "## Canonical Task Folder",
+      "",
+      "```text",
+      `${relativeFolderPath}/`,
+      "├── PROMPT.md",
+      "├── STATUS.md",
+      "├── .reviews/",
+      "└── .DONE",
+      "```",
+      "",
+      "## Mission",
+      "",
+      normalized.mission,
+      "",
+      "## Dependencies",
+      "",
+      ...dependencyLines,
+      "",
+      "## Context to Read First",
+      "",
+      "**Tier 2 (area context):**",
+      ...(contextInfo?.relativeContextPath ? [`- \`${contextInfo.relativeContextPath}\``] : ["- `CONTEXT.md`"]),
+      "",
+      "**Tier 3 (load only if needed):**",
+      ...(contextLines.length > 0 ? contextLines : ["- None beyond Tier 2."]),
+      "",
+      "## Environment",
+      "",
+      `- **Workspace:** ${workspaceLabel}`,
+      "- **Services required:** None",
+      "",
+      "## File Scope",
+      "",
+      ...fileScopeLines,
+      "",
+      "## Steps",
+      "",
+      "### Step 0: Preflight",
+      "",
+      "- [ ] Read area context and referenced docs",
+      `- [ ] Confirm dependencies and file scope for ${taskId}`,
+      "",
+      `### Step 1: Implement ${normalized.title}`,
+      "",
+      `- [ ] Implement ${normalized.title} in the declared file scope`,
+      "- [ ] Keep behavior aligned with existing Taskplane conventions",
+      "- [ ] Run targeted tests for the touched area",
+      "",
+      "**Artifacts:**",
+      ...fileScopeLines,
+      "",
+      "### Step 2: Testing & Verification",
+      "",
+      "- [ ] Run FULL test suite: `[test command from project config]`",
+      "- [ ] Run integration tests (if applicable)",
+      "- [ ] Fix all failures",
+      "- [ ] Build passes: `[build command]`",
+      "",
+      "### Step 3: Documentation & Delivery",
+      "",
+      "- [ ] \"Must Update\" docs modified",
+      "- [ ] \"Check If Affected\" docs reviewed",
+      "- [ ] Discoveries logged in STATUS.md",
+      "",
+      "## Documentation Requirements",
+      "",
+      "**Must Update:**",
+      "- None",
+      "",
+      "**Check If Affected:**",
+      "- None",
+      "",
+      "## Completion Criteria",
+      "",
+      "- [ ] All steps complete",
+      "- [ ] All tests passing",
+      "- [ ] Documentation updated",
+      "",
+      "## Git Commit Convention",
+      "",
+      `- **Step completion:** \`feat(${taskId}): complete Step N — description\``,
+      `- **Bug fixes:** \`fix(${taskId}): description\``,
+      `- **Tests:** \`test(${taskId}): description\``,
+      `- **Hydration:** \`hydrate: ${taskId} expand Step N checkboxes\``,
+      "",
+      "## Do NOT",
+      "",
+      "- Expand task scope — add tech debt to CONTEXT.md instead",
+      "- Skip tests",
+      "- Modify framework/standards docs without explicit user approval",
+      "- Load docs not listed in \"Context to Read First\"",
+      `- Commit without the ${taskId} prefix in the commit message`,
+      "",
+      "---",
+      "",
+      "## Amendments (Added During Execution)",
+      "",
+    ].join("\n")
+    : "";
+
+  const statusMarkdown = taskId && reviewLevel != null
+    ? [
+      `# ${taskId}: ${normalized.title} — Status`,
+      "",
+      "**Current Step:** Step 0: Preflight",
+      "**Status:** 🔵 Ready for Execution",
+      `**Last Updated:** ${createdDate}`,
+      `**Review Level:** ${reviewLevel}`,
+      "**Review Counter:** 0",
+      "**Iteration:** 0",
+      `**Size:** ${normalized.size}`,
+      "",
+      "> **Hydration:** Checkboxes represent meaningful outcomes, not individual code changes. Workers expand steps when runtime discoveries warrant it — aim for 2-5 outcome-level items per step, not exhaustive implementation scripts.",
+      "",
+      "---",
+      "",
+      "### Step 0: Preflight",
+      "**Status:** ⬜ Not Started",
+      "- [ ] Read area context and referenced docs",
+      `- [ ] Confirm dependencies and file scope for ${taskId}`,
+      "",
+      "---",
+      "",
+      `### Step 1: Implement ${normalized.title}`,
+      "**Status:** ⬜ Not Started",
+      `- [ ] Implement ${normalized.title} in the declared file scope`,
+      "- [ ] Keep behavior aligned with existing Taskplane conventions",
+      "- [ ] Run targeted tests for the touched area",
+      "",
+      "---",
+      "",
+      "### Step 2: Testing & Verification",
+      "**Status:** ⬜ Not Started",
+      "- [ ] FULL test suite passing",
+      "- [ ] Integration tests (if applicable)",
+      "- [ ] All failures fixed",
+      "- [ ] Build passes",
+      "",
+      "---",
+      "",
+      "### Step 3: Documentation & Delivery",
+      "**Status:** ⬜ Not Started",
+      "- [ ] \"Must Update\" docs modified",
+      "- [ ] \"Check If Affected\" docs reviewed",
+      "- [ ] Discoveries logged in STATUS.md",
+      "",
+      "---",
+      "",
+      "## Reviews",
+      "",
+      "| # | Type | Step | Verdict | File |",
+      "|---|------|------|---------|------|",
+      "",
+      "---",
+      "",
+      "## Discoveries",
+      "",
+      "| Discovery | Disposition | Location |",
+      "|-----------|-------------|----------|",
+      "",
+      "---",
+      "",
+      "## Execution Log",
+      "",
+      "| Timestamp | Action | Outcome |",
+      "|-----------|--------|---------|",
+      `| ${createdDate} | Task staged | PROMPT.md and STATUS.md created |`,
+      "",
+      "---",
+      "",
+      "## Blockers",
+      "",
+      "*None*",
+      "",
+      "---",
+      "",
+      "## Notes",
+      "",
+      "Generated from the dashboard task authoring preview.",
+    ].join("\n")
+    : "";
+
+  return {
+    ok: errors.length === 0,
+    metadata,
+    errors,
+    normalized,
+    derived: {
+      areaId: areaMeta?.id || null,
+      taskId,
+      slug,
+      folderName,
+      relativeFolderPath,
+      contextPath: contextInfo?.relativeContextPath || areaMeta?.contextPath || null,
+      reviewLevel,
+      reviewLabel,
+      scoreTotal,
+      scoreBreakdown: scoreTotal == null ? null : {
+        blastRadius: normalized.complexity.blastRadius,
+        patternNovelty: normalized.complexity.patternNovelty,
+        security: normalized.complexity.security,
+        reversibility: normalized.complexity.reversibility,
+      },
+      assessment,
+      createdDate,
+      workspace: workspaceLabel,
+    },
+    preview: {
+      promptMarkdown,
+      statusMarkdown,
+    },
+  };
+}
+
+function incrementTaskAuthoringId(taskId) {
+  const match = String(taskId || "").trim().match(/^([A-Z]+)-(\d+)$/);
+  if (!match) return null;
+  const width = match[2].length;
+  const nextValue = Number.parseInt(match[2], 10) + 1;
+  return `${match[1]}-${String(nextValue).padStart(width, "0")}`;
+}
+
+function makeTaskAuthoringError(statusCode, code, message, extra = {}) {
+  return {
+    ok: false,
+    statusCode,
+    error: { code, message, ...extra },
+  };
+}
+
+function cleanupTaskAuthoringFolder(folderPath) {
+  try {
+    if (folderPath && fs.existsSync(folderPath)) {
+      fs.rmSync(folderPath, { recursive: true, force: true });
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function createTaskAuthoringPacket(payload, root = getActiveProjectRoot()) {
+  const preview = buildTaskAuthoringPreview(payload, root);
+  if (!preview.ok) {
+    return {
+      statusCode: 422,
+      ...preview,
+    };
+  }
+
+  const taskAreas = loadTaskplaneTaskAreas(root);
+  const areaId = preview.derived?.areaId;
+  const area = areaId ? taskAreas[areaId] : null;
+  const contextInfo = areaId ? readTaskAuthoringAreaContext(areaId, area, root) : null;
+  const areaPath = contextInfo?.areaPath || null;
+  const taskId = preview.derived?.taskId || null;
+  const folderName = preview.derived?.folderName || null;
+  if (!areaPath || !taskId || !folderName) {
+    return makeTaskAuthoringError(500, "AUTHORING_CONFIG_INVALID", "Task authoring paths could not be resolved.", {
+      recoverable: true,
+      preview: {
+        derived: preview.derived,
+      },
+    });
+  }
+
+  if (!fs.existsSync(areaPath)) {
+    return makeTaskAuthoringError(500, "AUTHORING_AREA_MISSING", `Task area path does not exist: ${areaPath}`, {
+      recoverable: true,
+    });
+  }
+
+  const finalFolderPath = path.join(areaPath, folderName);
+  if (fs.existsSync(finalFolderPath)) {
+    return makeTaskAuthoringError(409, "TASK_FOLDER_EXISTS", `Task folder already exists: ${preview.derived.relativeFolderPath}`, {
+      recoverable: true,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+      preview: {
+        derived: preview.derived,
+      },
+    });
+  }
+
+  try {
+    const siblings = fs.readdirSync(areaPath, { withFileTypes: true });
+    const conflicting = siblings.find((entry) => entry?.isDirectory?.() && entry.name !== folderName && entry.name.startsWith(`${taskId}-`));
+    if (conflicting) {
+      return makeTaskAuthoringError(409, "TASK_ID_CONFLICT", `Task ID ${taskId} is already present in ${conflicting.name}.`, {
+        recoverable: true,
+        taskId,
+        folderPath: preview.derived.relativeFolderPath,
+        preview: {
+          derived: preview.derived,
+        },
+      });
+    }
+  } catch (error) {
+    return makeTaskAuthoringError(500, "AUTHORING_AREA_UNREADABLE", `Could not inspect task area: ${error.message}`, {
+      recoverable: true,
+    });
+  }
+
+  const nextTaskId = incrementTaskAuthoringId(taskId);
+  if (!nextTaskId) {
+    return makeTaskAuthoringError(500, "NEXT_TASK_ID_INVALID", `Could not increment task ID ${taskId}.`, {
+      recoverable: true,
+    });
+  }
+
+  const tempFolderPath = path.join(areaPath, `.${folderName}.tmp-${Date.now()}-${process.pid}`);
+  cleanupTaskAuthoringFolder(tempFolderPath);
+
+  try {
+    fs.mkdirSync(path.join(tempFolderPath, ".reviews"), { recursive: true });
+    fs.writeFileSync(path.join(tempFolderPath, "PROMPT.md"), `${preview.preview.promptMarkdown.trimEnd()}\n`, "utf-8");
+    fs.writeFileSync(path.join(tempFolderPath, "STATUS.md"), `${preview.preview.statusMarkdown.trimEnd()}\n`, "utf-8");
+    fs.renameSync(tempFolderPath, finalFolderPath);
+  } catch (error) {
+    cleanupTaskAuthoringFolder(tempFolderPath);
+    if (fs.existsSync(finalFolderPath)) {
+      return makeTaskAuthoringError(409, "TASK_FOLDER_CLAIMED", `Task folder was claimed concurrently: ${preview.derived.relativeFolderPath}`, {
+        recoverable: true,
+        taskId,
+        folderPath: preview.derived.relativeFolderPath,
+        preview: {
+          derived: preview.derived,
+        },
+      });
+    }
+    return makeTaskAuthoringError(500, "TASK_WRITE_FAILED", `Could not create task packet files: ${error.message}`, {
+      recoverable: true,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+      preview: {
+        derived: preview.derived,
+      },
+    });
+  }
+
+  let contextRaw = "";
+  try {
+    if (!contextInfo?.contextPath || !fs.existsSync(contextInfo.contextPath)) {
+      throw new Error("Area CONTEXT.md is missing");
+    }
+    contextRaw = fs.readFileSync(contextInfo.contextPath, "utf-8");
+  } catch (error) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "CONTEXT_READ_FAILED", `Could not read area CONTEXT.md: ${error.message}`, {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  const currentTaskId = contextRaw.match(/^\*\*Next Task ID:\*\*\s*([A-Z]+-\d+)/m)?.[1] || "";
+  if (currentTaskId !== taskId) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(409, "NEXT_TASK_ID_STALE", `Next Task ID changed from ${taskId} to ${currentTaskId || "unknown"} before commit.`, {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      nextTaskId: currentTaskId || null,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  const updatedContext = contextRaw.replace(/^\*\*Next Task ID:\*\*\s*[A-Z]+-\d+/m, `**Next Task ID:** ${nextTaskId}`);
+  if (updatedContext === contextRaw) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "NEXT_TASK_ID_UPDATE_FAILED", "Could not update Next Task ID in CONTEXT.md.", {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  try {
+    fs.writeFileSync(contextInfo.contextPath, updatedContext, "utf-8");
+  } catch (error) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "CONTEXT_WRITE_FAILED", `Could not update CONTEXT.md: ${error.message}`, {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  return {
+    ok: true,
+    statusCode: 201,
+    created: {
+      taskId,
+      nextTaskId,
+      folderPath: preview.derived.relativeFolderPath,
+      promptPath: `${preview.derived.relativeFolderPath}/PROMPT.md`,
+      statusPath: `${preview.derived.relativeFolderPath}/STATUS.md`,
+      contextPath: preview.derived.contextPath,
+    },
+    preview,
+  };
+}
+
+function handleTaskAuthoringPreview(req, res) {
+  readJsonRequestBody(req, (err, payload) => {
+    if (err) {
+      sendJson(res, 400, { ok: false, errors: [{ kind: "field", field: "body", message: "Invalid JSON" }] });
+      return;
+    }
+
+    const preview = buildTaskAuthoringPreview(payload, getActiveProjectRoot());
+    sendJson(res, preview.ok ? 200 : 422, preview);
+  });
+}
+
+function handleTaskAuthoringCreate(req, res) {
+  readJsonRequestBody(req, (err, payload) => {
+    if (err) {
+      sendJson(res, 400, makeTaskAuthoringError(400, "INVALID_JSON", "Invalid JSON", { recoverable: true }));
+      return;
+    }
+
+    const result = createTaskAuthoringPacket(payload, getActiveProjectRoot());
+    sendJson(res, result.statusCode || (result.ok ? 201 : 500), result);
+  });
+}
+
+function handleTaskAuthoringMetadata(req, res) {
+  sendJson(res, 200, loadTaskAuthoringMetadata(getActiveProjectRoot()));
+}
+
 function extractBacklogSection(content, heading) {
   if (!content || !heading) return "";
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -2726,6 +3414,7 @@ function createServer() {
       const state = buildDashboardState();
       res.writeHead(200, {
         "Content-Type": "application/json",
+        "Cache-Control": "no-store",
         "Access-Control-Allow-Origin": "*",
       });
       res.end(JSON.stringify(state));
@@ -2743,6 +3432,12 @@ function createServer() {
       handlePostPreferences(req, res);
     } else if (pathname === "/api/projects/select" && req.method === "POST") {
       handleProjectSelection(req, res);
+    } else if (pathname === "/api/task-authoring" && req.method === "GET") {
+      handleTaskAuthoringMetadata(req, res);
+    } else if (pathname === "/api/task-authoring/preview" && req.method === "POST") {
+      handleTaskAuthoringPreview(req, res);
+    } else if (pathname === "/api/task-authoring/create" && req.method === "POST") {
+      handleTaskAuthoringCreate(req, res);
     } else if (pathname === "/api/actions" && req.method === "POST") {
       handleDashboardAction(req, res);
     } else if (req.method === "OPTIONS") {
