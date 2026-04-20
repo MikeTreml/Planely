@@ -1,10 +1,10 @@
 # TP-193: Failure Taxonomy and Decision Matrix — Status
 
-**Current Step:** Step 1: Failure taxonomy
+**Current Step:** Step 2: Decision matrix
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -27,10 +27,12 @@
 ---
 
 ### Step 2: Decision matrix
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define action choices by class
-- [ ] Define retry vs redirect vs replan conditions
+- [ ] Define retry vs retry-after-fix vs redirect vs replan conditions
+- [ ] Define skip and split-task conditions
 - [ ] Cover doc-drift and planning-mismatch cases
+- [ ] Define batch-level pause vs abort vs restart triggers
 
 ---
 
@@ -53,6 +55,8 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
+| R002 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 
 ---
 
@@ -76,6 +80,8 @@
 | 2026-04-20 19:22 | Taxonomy categories drafted | Created `recovery-failure-taxonomy.md` with nine evidence-oriented recovery classes covering implementation, flaky behavior, testing, merge verification, repo state, config, stale docs/specs, planning mismatch, and runtime/orchestrator faults. |
 | 2026-04-20 19:26 | Taxonomy evidence model added | Added per-category typical symptoms and required evidence so classification can be grounded in diffs, tests, merge logs, packet references, config sources, and supervisor/runtime artifacts. |
 | 2026-04-20 19:29 | Taxonomy overlap guidance added | Added false-positive guidance for missing-file, flaky, test-vs-implementation, merge-vs-repo-state, stale-spec-vs-planning, and config-vs-runtime overlaps plus evidence quality rules. |
+| 2026-04-20 19:30 | Step 2 started | Decision matrix |
+| 2026-04-20 19:31 | Review R002 | plan Step 2: REVISE |
 
 ---
 
@@ -90,4 +96,4 @@
 Defines the evidence-driven recovery classification system for future helpdesk behavior.
 - Preflight distinction: implementation failures should be separated from repo-state/worktree integrity, config/environment mismatches, stale documentation/spec grounding, planning mismatch, and orchestrator/runtime faults because the same symptom (missing file, failed verification, task stall) implies different owners and actions.
 - Concrete evidence examples gathered for the taxonomy: `.pi/supervisor/treml-20260419T215723-summary.md` documents blocked workers caused by prompt-scoped files absent from the repo snapshot; `.pi/diagnostics/treml-20260420T094622-report.md` shows a failed task within an otherwise successful batch; TP-192 notes cite post-merge verification mismatches such as `extensions dir not found` and stale docs/spec assumptions.
-| 2026-04-20 19:13 | Review R001 | plan Step 1: APPROVE |
+- R002 suggestion: keep Step 2 matrix branches keyed to observable signals and include escalation thresholds where repeated task-level failures should trigger batch-level intervention.
