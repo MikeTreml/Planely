@@ -1,6 +1,6 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 1: Creation data model and preview contract
+**Current Step:** Step 2: Write path and safety semantics
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
@@ -19,14 +19,14 @@
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Define form and preview shapes
 - [x] Define validation rules
 - [x] Define complexity assessment contract
 - [x] Preserve packet compatibility
 - [x] Align generated PROMPT/STATUS preview with canonical template sections
 - [x] Update preview contract tests to enforce canonical packet invariants
-- [ ] Add remaining canonical template invariants (targeted tests, artifacts, commit conventions, guardrails, STATUS hydration note)
+- [x] Add remaining canonical template invariants (targeted tests, artifacts, commit conventions, guardrails, STATUS hydration note)
 
 ---
 
@@ -86,6 +86,7 @@
 | 2026-04-20 20:46 | Step 1 revise | Added canonical Testing & Verification plus Documentation & Delivery preview sections |
 | 2026-04-20 20:46 | Step 1 review fixes complete | Preview contract tests now enforce canonical packet invariants |
 | 2026-04-20 20:48 | Review R004 | code Step 1 returned REVISE; additional template invariants still missing |
+| 2026-04-20 20:52 | Step 1 revise | Added targeted-test/artifact blocks, canonical commit guardrails, and STATUS hydration/testing wording |
 
 ---
 
