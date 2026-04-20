@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 3: UI implementation
+**Current Step:** Step 2: Write path and safety semantics
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 7
+**Review Counter:** 8
 **Iteration:** 1
 **Size:** L
 
@@ -31,11 +31,12 @@
 ---
 
 ### Step 2: Write path and safety semantics
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Implement safe packet write flow
 - [x] Update Next Task ID safely
 - [x] Block duplicates/overwrites
 - [x] Make failure states explicit and recoverable
+- [ ] Handle rename-race conflicts without deleting existing task folders
 
 ---
 
@@ -90,6 +91,7 @@
 | 2026-04-20 20:52 | Step 1 revise | Added targeted-test/artifact blocks, canonical commit guardrails, and STATUS hydration/testing wording |
 | 2026-04-20 20:54 | Review R006 | plan Step 2 returned REVISE; failure handling outcome added to plan |
 | 2026-04-20 21:04 | Step 2 progress | Added create endpoint, counter update safeguards, duplicate blocking, and rollback/error handling tests |
+| 2026-04-20 21:06 | Review R008 | code Step 2 returned REVISE; rename-race cleanup must not delete concurrent writes |
 
 ---
 
@@ -113,4 +115,4 @@ Preflight findings:
 - Additional review follow-up: preview output still needs Step 1 targeted-test/artifact content, fuller testing/build wording, canonical `test(...)` commit entry, standard Do NOT bullets, and STATUS hydration/testing language.
 - Step 2 review follow-up: write flow must surface duplicate/conflict/partial-write failures explicitly and keep preview/write output byte-aligned from the shared generator.
 - Step 2 implementation now exposes `/api/task-authoring/create`, writes packet files from the shared preview generator, stages files in a temp folder before final placement, and seeds an empty `.reviews/` directory in the created packet.
-| 2026-04-20 20:39 | Review R007 | plan Step 2: APPROVE |
+- Code review follow-up for Step 2: rename collisions must return a recoverable conflict and must never delete a folder this request did not create.
