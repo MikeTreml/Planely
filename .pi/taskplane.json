@@ -1,0 +1,9 @@
+{
+  "version": "0.28.2",
+  "installedAt": "2026-04-20T01:36:04.255Z",
+  "lastUpgraded": "2026-04-20T01:36:04.255Z",
+  "components": {
+    "agents": "0.28.2",
+    "config": "0.28.2"
+  }
+}
