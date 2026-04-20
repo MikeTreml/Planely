@@ -177,3 +177,83 @@ Typical outputs:
 The goal is to convert repeated operator pain into durable process, documentation, or product improvements.
 
 Both output types are important. A single incident may need an immediate local recovery recommendation and a separate recurring-fix recommendation for maintainers.
+
+## Example Incident Classes and Expected Outcomes
+
+### 1. Worker implementation defect
+**Incident:** A task completes with failing targeted tests because the worker changed the wrong code path.
+
+**Helpdesk outcome:**
+- classify as implementation-quality failure,
+- recommend targeted fix then retry,
+- avoid escalating to packet rewrite unless repeated failures show the task itself is underspecified.
+
+### 2. Missing file in a lane snapshot
+**Incident:** A worker reports that a referenced file is absent in the lane worktree, but the source repo indicates the file should exist.
+
+**Helpdesk outcome:**
+- classify as probable checkout or snapshot integrity issue rather than immediate worker failure,
+- recommend repairing or refreshing the lane/worktree before retry,
+- advise against inventing replacement content for the missing file.
+
+### 3. Post-merge verification mismatch
+**Incident:** Merge succeeds but post-merge verification fails because expected directories or artifacts are not present in the merged environment.
+
+**Helpdesk outcome:**
+- classify as merge-environment or verification-assumption mismatch,
+- recommend investigating verification inputs or repo structure before rerunning the same merge,
+- create a recurring-fix follow-up if merge validation rules are too brittle.
+
+### 4. Stale doc or spec grounding
+**Incident:** A task packet references architecture or command docs that no longer exist in the execution snapshot or are no longer accurate.
+
+**Helpdesk outcome:**
+- classify as stale packet grounding or stale documentation,
+- recommend updating the packet, redirecting to documentation repair, or splitting the task,
+- explicitly advise that execution should not continue unchanged when the packet’s cited truth is broken.
+
+### 5. Repeated ambiguous failures across tasks
+**Incident:** Several packets in a batch fail for similar reasons tied to repo hygiene, config drift, or missing guardrails.
+
+**Helpdesk outcome:**
+- classify as recurring systemic issue,
+- recommend pausing local retries and opening a follow-up policy or infrastructure task,
+- suggest batch-level redirect or replan rather than repeated per-task retries.
+
+## Example Recommendations
+
+The helpdesk’s recommendation vocabulary should stay concrete and bounded. Examples include:
+- **Retry** — when evidence points to a transient failure with unchanged packet validity.
+- **Retry after fix** — when a local code, doc, config, or packet correction is clearly needed first.
+- **Replan** — when the task packet is no longer valid, grounded, or scoped correctly.
+- **Split task** — when the packet bundles diagnosis, repo repair, and implementation into one unsafe unit.
+- **Redirect to docs or repo hygiene work** — when the main problem is stale reference material or broken execution assumptions.
+- **Commit missing tree then restart** — only as an operator-directed recovery when the diagnosis shows local uncommitted or unstaged repository state is the blocker and the action should be explicit, reviewable, and not silent.
+- **Do not proceed with current packet** — when continuing would likely produce fabricated work, repeated failure, or misleading output.
+
+## Redirect and Replan Guidance
+
+A key product requirement is that the helpdesk may recommend *not proceeding* with the current task packet.
+
+That recommendation should be explicit when:
+- the packet depends on stale or contradictory source material,
+- the lane or repo state is too suspect to trust current evidence,
+- the task should be decomposed into separate repair and implementation tasks,
+- the right owner is a maintainer or operator rather than the currently assigned worker,
+- repeated retries would consume time without increasing confidence.
+
+This is the main difference between a recovery specialist and a retry button. The helpdesk adds value by identifying when the correct action is redirect, re-scope, or stop.
+
+## Safety and Boundedness Rules for Recommendations
+
+Recommendations should remain conservative, auditable, and easy for operators to evaluate.
+
+They should therefore:
+- cite the evidence they rely on,
+- distinguish observed facts from hypotheses,
+- name the owner of the recommended next action,
+- prefer the smallest safe intervention that restores clarity,
+- avoid silent repository mutation, hidden commits, or remote-side actions,
+- avoid turning every incident into a broad autonomy expansion request.
+
+The product should optimize for better recovery decisions, not for making the helpdesk look maximally powerful.
