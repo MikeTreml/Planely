@@ -1,10 +1,10 @@
 # TP-188: Project Registry, Recent, and Archive State — Status
 
-**Current Step:** Step 2: Storage proposal
+**Current Step:** Step 3: Adoption and behavior notes
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -28,16 +28,16 @@
 ---
 
 ### Step 2: Storage proposal
-**Status:** 🟨 In Progress
-- [ ] Define registry file location
-- [ ] Define canonical-vs-derived storage boundaries and local scope
-- [ ] Explain coexistence with config/workspace mode
-- [ ] Define safe local-first update semantics, including recovery from missing/corrupt/partial files
+**Status:** ✅ Complete
+- [x] Define registry file location
+- [x] Define canonical-vs-derived storage boundaries and local scope
+- [x] Explain coexistence with config/workspace mode
+- [x] Define safe local-first update semantics, including recovery from missing/corrupt/partial files
 
 ---
 
 ### Step 3: Adoption and behavior notes
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define existing-project discovery/addition path
 - [ ] Define archive/unarchive behavior
 - [ ] Define recent tracking/pruning
@@ -60,6 +60,7 @@
 | R001 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 | R002 | Plan | 1 | APPROVE | n/a |
 | R003 | Plan | 2 | REVISE | `.reviews/R003-plan-step2.md` |
+| R004 | Plan | 2 | APPROVE | n/a |
 
 ---
 
@@ -84,6 +85,9 @@
 | 2026-04-20 16:46 | Step 1 plan reviewed | R001 revise, then R002 approve after adding edge-case coverage |
 | 2026-04-20 16:48 | Step 1 completed | `project-registry.md` drafted |
 | 2026-04-20 16:48 | Step 2 started | Storage proposal |
+| 2026-04-20 16:49 | Step 2 plan reviewed | R003 revise, then R004 approve after adding storage-scope and recovery outcomes |
+| 2026-04-20 16:52 | Step 2 completed | `project-registry-storage.md` drafted |
+| 2026-04-20 16:52 | Step 3 started | Adoption and behavior notes |
 
 ---
 
@@ -112,3 +116,4 @@ Minimum registry requirements:
 | 2026-04-20 16:41 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 16:42 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 16:45 | Review R003 | plan Step 2: REVISE |
+| 2026-04-20 16:46 | Review R004 | plan Step 2: APPROVE |
