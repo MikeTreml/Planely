@@ -257,3 +257,38 @@ They should therefore:
 - avoid turning every incident into a broad autonomy expansion request.
 
 The product should optimize for better recovery decisions, not for making the helpdesk look maximally powerful.
+
+## Follow-On Implementation and Policy Tasks
+
+This brief implies several follow-on tasks that should be planned separately from the brief itself:
+
+1. **Incident intake and evidence model**
+   - Define what artifacts the helpdesk can inspect by default, such as STATUS, review files, supervisor summaries, merge diagnostics, and packet metadata.
+
+2. **Recovery recommendation contract**
+   - Define a structured output format for diagnosis, confidence, owner, recommended action, and “do not proceed” outcomes.
+
+3. **Supervisor and operator workflow integration**
+   - Decide where helpdesk recommendations appear in the Operator Console, approvals flows, and supervisor recovery timeline.
+
+4. **Escalation and redirect policy**
+   - Define when helpdesk advice should route to supervisor, maintainer, or packet-author follow-up instead of worker retry.
+
+5. **Recurring-incident capture**
+   - Define how repeated helpdesk findings become policy updates, template hardening, repo hygiene tasks, or documentation fixes.
+
+## Open Questions
+
+- Should the helpdesk be invoked manually by the operator/supervisor first, or automatically on selected failure classes with human-visible output?
+- What minimum evidence bundle is required before the helpdesk is allowed to make a redirect or replan recommendation?
+- Which recommendations, if any, should be directly actionable in the Operator Console versus remaining advisory only?
+- How should recurring failure classes be normalized so the system can distinguish one-off incidents from policy-level problems?
+- What guardrails are required if future tasks allow tightly scoped operator-approved fixes after diagnosis?
+
+## Acceptance Signal
+
+This brief is successful if future implementation tasks can use it to build a recovery specialist that:
+- improves operator decision quality after failures,
+- distinguishes retry, fix, redirect, and replan paths clearly,
+- preserves the supervisor as runtime authority,
+- keeps autonomy conservative and explicit.
