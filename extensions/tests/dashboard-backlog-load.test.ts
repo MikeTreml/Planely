@@ -37,7 +37,7 @@ describe("TP-182 dashboard backlog loading", () => {
 	const helperBlock = extractBlock(
 		source,
 		"function readDashboardJsonConfig(root)",
-		"function loadHistory()",
+		"function loadHistory(root = getActiveProjectRoot())",
 	);
 
 	it("loads backlog packets from task areas and reports malformed packets as partial", () => {
@@ -81,6 +81,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				fs,
 				path,
 				REPO_ROOT: root,
+				getActiveProjectRoot: () => root,
 				parseStatusMd(taskFolder: string) {
 					const statusPath = join(taskFolder, "STATUS.md");
 					if (!existsSync(statusPath)) return null;
@@ -151,6 +152,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				fs,
 				path,
 				REPO_ROOT: root,
+				getActiveProjectRoot: () => root,
 				parseStatusMd(taskFolder: string) {
 					const statusPath = join(taskFolder, "STATUS.md");
 					if (!existsSync(statusPath)) return null;
@@ -207,6 +209,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				fs,
 				path,
 				REPO_ROOT: root,
+				getActiveProjectRoot: () => root,
 				parseStatusMd(taskFolder: string) {
 					const statusPath = join(taskFolder, "STATUS.md");
 					if (!existsSync(statusPath)) return null;
@@ -273,6 +276,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				fs,
 				path,
 				REPO_ROOT: root,
+				getActiveProjectRoot: () => root,
 				parseStatusMd(taskFolder: string) {
 					const statusPath = join(taskFolder, "STATUS.md");
 					if (!existsSync(statusPath)) return null;
@@ -343,6 +347,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				fs,
 				path,
 				REPO_ROOT: root,
+				getActiveProjectRoot: () => root,
 				parseStatusMd(taskFolder: string) {
 					const statusPath = join(taskFolder, "STATUS.md");
 					if (!existsSync(statusPath)) return null;
@@ -375,13 +380,14 @@ describe("TP-182 dashboard backlog loading", () => {
 	it("exposes backlog data from buildDashboardState even when no batch is active", () => {
 		const buildStateBlock = extractBlock(
 			source,
-			"function buildDashboardState()",
+			"function buildDashboardState(root = getActiveProjectRoot())",
 			"// ─── Static File Serving",
 		);
 
 		const buildDashboardState = vm.runInNewContext(
 			`${buildStateBlock}; buildDashboardState;`,
 			{
+				getActiveProjectRoot: () => "/tmp/project",
 				loadBatchState: () => null,
 				getActiveSessions: () => [],
 				loadLaneStates: () => ({}),
@@ -390,6 +396,10 @@ describe("TP-182 dashboard backlog loading", () => {
 				loadSupervisorData: () => null,
 				loadHistory: () => [],
 				loadBacklogData: () => ({ items: [{ taskId: "TP-300" }], summary: { total: 1 }, loadState: { kind: "ready" } }),
+				buildBatchActionContract: () => ({ integrate: { enabled: false } }),
+				buildProjectSidebar: () => ({ selectedProjectId: null, sections: [] }),
+				projectDisplayNameFromRoot: () => "Project",
+				SELECTED_PROJECT_ID: "current:demo",
 				Date,
 			},
 		) as () => any;

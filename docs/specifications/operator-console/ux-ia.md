@@ -136,8 +136,10 @@ These should remain the basis of the **Live Batch** view in Operator Console v1.
 ## Top-level navigation
 The minimum viable navigation should be:
 
-1. **Workspace switcher / project context**
-   - selects the workspace or execution root being viewed
+1. **Project sidebar / workspace switcher**
+   - selects the known project or execution root being viewed
+   - groups projects into **Active**, **Recent**, and **Archived** sections when timestamps/registry data exist
+   - may defer the visible **Recent** section in the first shipped iteration if only active/archived registry fields are available; in that fallback the sidebar still preserves the same canonical record shape and simply omits the derived Recent grouping
 2. **Primary nav tabs**
    - **Backlog**
    - **Live Batch**
@@ -149,6 +151,63 @@ The minimum viable navigation should be:
    - retains the current terminal/STATUS drill-in pattern for evidence-heavy inspection
 
 This model keeps the existing single-page dashboard shell while clarifying where each kind of operator work lives.
+
+## Project sidebar contract
+
+### Sidebar sections
+- **Active** is the default visible list for non-archived projects.
+- **Recent** is a derived convenience section ordered by descending `lastActivityAt = max(lastOpenedAt, lastBatchAt)` when those timestamps are available.
+- **Archived** is always accessible but visually de-emphasized and collapsed or lower-priority by default.
+- If registry timestamps are unavailable, the console should still render **Active** and **Archived** using the same project records rather than inventing a parallel lightweight project list.
+
+### Project row content
+Each project row should stay grounded in the project-registry record and a small set of derived decorations.
+
+**Canonical fields surfaced directly:**
+- display `name`
+- stable `id` for selection and routing
+- reopenable `rootPath` or `configPath` as inspectable metadata when needed
+- explicit `archived` state
+- `mode` when the distinction between repo and workspace matters
+- activity timestamps (`lastOpenedAt`, `lastBatchAt`) used for ordering and relative-time copy
+
+**Derived/optional decorations:**
+- current/open project highlight
+- relative last-activity label
+- running batch or attention badge when safe runtime evidence exists
+- missing-path warning when the project record exists but the root is unavailable
+
+Rows should remain compact by default: name first, lightweight secondary metadata second, badges only when grounded in real data.
+
+### Project switching behavior
+Project switching changes the entire workspace scope, so project-scoped UI state must reset deterministically.
+
+**Always clear on project change:**
+- selected repo filter
+- selected backlog task
+- open task detail that belongs to the previous project
+- viewer state for STATUS/conversation
+- selected history entry tied to the previous project
+
+**May persist only when still valid in the next project:**
+- the top-level primary view choice (**Backlog**, **Live Batch**, **Approvals**, **History**)
+
+**Fallback rules:**
+- if the prior view was **Live Batch** and the newly selected project has no active batch, fall back to **Backlog**
+- if the project has no backlog items but does have history, **Backlog** may show its empty state while **History** remains one click away; do not silently force a history jump unless no other meaningful project data exists
+- if the project record is missing/stale, keep the selection visible with a warning state rather than leaving stale content from the previously selected project on screen
+
+### Sidebar empty states
+- **No known projects:** explain that the console can only switch between projects that Taskplane has opened or registered.
+- **No active projects:** show archived and/or recent sections if they exist and explain that active list emptiness may be due to archiving.
+- **No archived projects:** omit or collapse the archived section quietly.
+- **Missing project path:** keep the row visible with warning styling and a message that the local path is unavailable.
+
+### Archive visibility behavior
+- Archived projects must never be deleted as a side effect of decluttering the sidebar.
+- Archived projects leave the default active list but remain discoverable in a separate section.
+- Archived rows should keep enough identity context to reopen or unarchive safely, while using muted styling so they do not compete with active destinations.
+- Recent should prefer non-archived projects by default; archived items may appear in recent only if the UI intentionally distinguishes that state.
 
 ## Entry points
 

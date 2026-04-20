@@ -2,11 +2,16 @@
 
 Taskplane includes a web dashboard for monitoring orchestration in real time.
 It now opens with a backlog-first operator view when no batch is active, while
-preserving the existing live batch workspace during execution.
+preserving the existing live batch workspace during execution. The dashboard
+also includes a project sidebar so you can switch between active, recent, and
+archived Taskplane roots without losing the main operator-console layout.
 
 ## What it shows
 
+- project sidebar navigation across active, recent, and archived Taskplane projects (when a local project registry exists)
 - backlog discovery outside active batches, with readiness/status cards and lightweight filters
+- task detail inspection (mission, dependencies, file scope, current step, latest execution log)
+- operator actions from the task detail panel, including direct start/integrate triggers plus copyable recovery commands when direct execution is not yet supported
 - batch phase and summary counters
 - wave/lane progress
 - task-level status and checkbox progress (from `STATUS.md`)
@@ -66,6 +71,28 @@ When no batch is active, the dashboard lands on **Backlog** and keeps batch
 history available as secondary context. When a batch is active, it defaults to
 **Live Batch** with one-click switching back to Backlog.
 
+Use the **Projects** sidebar to switch roots. The current project stays pinned
+at the top of the active list, recent projects are ordered by the latest known
+open/batch activity, and archived projects stay available in a muted section.
+Switching projects clears stale repo/task/history/viewer selection before the
+new project snapshot renders, so the main content never shows task detail or
+history from the previous root.
+
+Select a task from **Backlog**, **Live Batch**, or **Batch Summary** to open the
+shared **Task Detail** panel. The panel surfaces the task mission, dependency
+state, file scope, current step, and most recent execution log entry without
+opening raw `PROMPT.md` or `STATUS.md` files.
+
+The same detail panel now hosts the first operator controls:
+
+- **Start task** — launches a batch for the selected ready task when no batch is actively running
+- **Integrate batch** — runs `/orch-integrate` when the current batch is completed
+- **Retry/Skip task** — shown as copyable recovery commands today, with inline reasons when the dashboard cannot execute them directly yet
+
+Direct actions always ask for confirmation. Disabled actions explain why they
+are unavailable so the operator can tell whether they need to wait, resume, or
+switch back to the console.
+
 ---
 
 ## Supervisor panel
@@ -88,6 +115,7 @@ hidden — no extra clutter.
 
 Dashboard server reads:
 
+- `~/.pi/agent/taskplane/project-registry.json` (known projects for the sidebar, when present)
 - `.pi/batch-state.json`
 - `.pi/lane-state-*.json`
 - task `STATUS.md` files

@@ -49,8 +49,22 @@
       <button class="view-tab" id="view-tab-live" data-view="live" type="button">Live Batch</button>
     </nav>
 
-    <!-- Content -->
-    <div class="content" id="content">
+    <!-- Workspace Layout -->
+    <div class="workspace-layout" id="workspace-layout">
+      <aside class="project-sidebar panel" id="project-sidebar" aria-label="Projects">
+        <div class="panel-header project-sidebar-header">
+          <div>
+            <div>Projects</div>
+            <div class="project-sidebar-subtitle" id="project-sidebar-subtitle">Current workspace</div>
+          </div>
+        </div>
+        <div class="panel-body project-sidebar-body" id="project-sidebar-body">
+          <div class="empty-state">Loading projects…</div>
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <div class="content" id="content">
 
       <!-- Backlog -->
       <div class="panel backlog-panel" id="backlog-panel">
@@ -83,6 +97,17 @@
         <div class="panel-body" id="history-body">
           <div class="empty-state">No batch history</div>
         </div>
+      </div>
+
+      <!-- Task Detail -->
+      <div class="panel task-detail-panel" id="task-detail-panel" style="display:none;">
+        <div class="panel-header task-detail-panel-header">
+          <div>
+            <div id="task-detail-title">Task detail</div>
+            <div class="task-detail-subtitle" id="task-detail-subtitle">Select a task from backlog, live batch, or history.</div>
+          </div>
+        </div>
+        <div class="panel-body task-detail-panel-body" id="task-detail-body"></div>
       </div>
 
       <!-- Supervisor Panel (hidden when no supervisor data) -->
@@ -155,6 +180,7 @@
         <div class="panel-body" id="errors-body"></div>
       </div>
 
+      </div>
     </div>
 
     <!-- Footer -->

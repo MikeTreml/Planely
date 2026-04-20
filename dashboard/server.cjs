@@ -12,7 +12,8 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
+const { tmpdir, homedir } = require("os");
 // url module not needed — we parse with new URL() below
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -32,6 +33,28 @@ const POLL_INTERVAL = 2000; // ms between state checks
 let REPO_ROOT;
 let BATCH_STATE_PATH;
 let BATCH_HISTORY_PATH;
+let SELECTED_PROJECT_ID = null;
+let SELECTED_PROJECT_ROOT = null;
+
+function getActiveProjectRoot() {
+  return SELECTED_PROJECT_ROOT || REPO_ROOT;
+}
+
+function batchStatePathForRoot(root) {
+  return path.join(root, ".pi", "batch-state.json");
+}
+
+function batchHistoryPathForRoot(root) {
+  return path.join(root, ".pi", "batch-history.json");
+}
+
+function dashboardPreferencesPathForRoot(root) {
+  return path.join(root, ".pi", "dashboard-preferences.json");
+}
+
+function userProjectRegistryPath() {
+  return path.join(homedir(), ".pi", "agent", "taskplane", "project-registry.json");
+}
 
 // ─── CLI Args ───────────────────────────────────────────────────────────────
 
@@ -91,16 +114,16 @@ function normalizeBatchStateIngress(state) {
   return state;
 }
 
-function loadBatchState() {
+function loadBatchState(root = getActiveProjectRoot()) {
   try {
-    const raw = fs.readFileSync(BATCH_STATE_PATH, "utf-8");
+    const raw = fs.readFileSync(batchStatePathForRoot(root), "utf-8");
     return normalizeBatchStateIngress(JSON.parse(raw));
   } catch {
     return null;
   }
 }
 
-function resolveTaskFolder(task, state) {
+function resolveTaskFolder(task, state, root = getActiveProjectRoot()) {
   if (!task || !task.taskFolder) return null;
   const laneNum = task.laneNumber;
   const lane = (state?.lanes || []).find((l) => l.laneNumber === laneNum);
@@ -116,7 +139,7 @@ function resolveTaskFolder(task, state) {
   // ancestor is a prefix of the task folder. The worktree is at <repoRoot>/.worktrees/<name>
   // or a sibling, so the repo root is typically 2 levels up from a subdirectory worktree.
   // Heuristic: find the longest common ancestor between taskFolder and worktree's repo root.
-  const repoRootAbs = path.resolve(REPO_ROOT);
+  const repoRootAbs = path.resolve(root);
 
   // First try: relative to workspace root (works in repo mode where workspace = repo)
   let rel = path.relative(repoRootAbs, taskFolderAbs);
@@ -160,6 +183,38 @@ function resolveTaskFolder(task, state) {
   return task.taskFolder;
 }
 
+function extractMarkdownSection(content, heading) {
+  if (!content || !heading) return "";
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = content.match(new RegExp(`^##\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|\\n---|\\n$)`, "m"));
+  return match ? match[1].trim() : "";
+}
+
+function parseMarkdownBulletLines(sectionText) {
+  if (!sectionText) return [];
+  return sectionText
+    .split("\n")
+    .map((line) => line.match(/^\s*[-*+]\s+(.*)$/)?.[1]?.trim() || "")
+    .filter(Boolean);
+}
+
+function parseStatusExecutionLog(content) {
+  const executionSection = extractMarkdownSection(content, "Execution Log");
+  if (!executionSection) return null;
+
+  const lines = executionSection.split("\n").map((line) => line.trim()).filter(Boolean);
+  const rows = [];
+  for (const line of lines) {
+    if (!line.startsWith("|")) continue;
+    const parts = line.split("|").slice(1, -1).map((part) => part.trim());
+    if (parts.length < 3) continue;
+    if (/^-+$/.test(parts[0].replace(/\s+/g, ""))) continue;
+    if (parts[0] === "Timestamp" && parts[1] === "Action") continue;
+    rows.push({ timestamp: parts[0], action: parts[1], outcome: parts[2] });
+  }
+  return rows.length > 0 ? rows[rows.length - 1] : null;
+}
+
 function parseStatusMd(taskFolder) {
   const candidates = [taskFolder];
   const taskId = path.basename(taskFolder);
@@ -174,6 +229,7 @@ function parseStatusMd(taskFolder) {
       const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
       const iterMatch = content.match(/\*\*Iteration:\*\*\s*(\d+)/);
       const reviewMatch = content.match(/\*\*Review Counter:\*\*\s*(\d+)/);
+      const reviewLevelMatch = content.match(/\*\*Review Level:\*\*\s*(\d+)/);
       const checked = (content.match(/- \[x\]/gi) || []).length;
       const unchecked = (content.match(/- \[ \]/g) || []).length;
       const total = checked + unchecked;
@@ -188,10 +244,12 @@ function parseStatusMd(taskFolder) {
         status: statusMatch ? statusMatch[1].trim() : "Unknown",
         iteration: iterMatch ? parseInt(iterMatch[1]) : 0,
         reviews: reviewMatch ? parseInt(reviewMatch[1]) : 0,
+        reviewLevel: reviewLevelMatch ? parseInt(reviewLevelMatch[1]) : 0,
         checked,
         total,
         progress: total > 0 ? Math.round((checked / total) * 100) : 0,
         updatedAt,
+        latestExecution: parseStatusExecutionLog(content),
       };
     } catch {
       continue;
@@ -200,15 +258,15 @@ function parseStatusMd(taskFolder) {
   return null;
 }
 
-function getActiveSessions() {
+function getActiveSessions(root = getActiveProjectRoot()) {
   // Runtime V2: return active merger session names from the runtime registry
   // so the dashboard merge pane can display live telemetry for running agents.
   // Terminal statuses indicate the agent is no longer alive.
   const TERMINAL_STATUSES = new Set(["exited", "killed", "crashed", "timed_out"]);
   try {
-    const state = loadBatchState();
+    const state = loadBatchState(root);
     if (!state || !state.batchId) return [];
-    const registry = loadRuntimeRegistry(state.batchId);
+    const registry = loadRuntimeRegistry(state.batchId, root);
     if (!registry || !registry.agents) return [];
     return Object.values(registry.agents)
       .filter(a => a.role === "merger" && !TERMINAL_STATUSES.has(a.status))
@@ -230,8 +288,8 @@ function checkDoneFile(taskFolder) {
 }
 
 /** Read lane state sidecar JSON files written by the task-runner. */
-function loadLaneStates() {
-  const piDir = path.join(REPO_ROOT, ".pi");
+function loadLaneStates(root = getActiveProjectRoot()) {
+  const piDir = path.join(root, ".pi");
   const states = {};
   try {
     const files = fs.readdirSync(piDir).filter(f => f.startsWith("lane-state-") && f.endsWith(".json"));
@@ -393,9 +451,9 @@ function tailJsonlFile(filePath) {
  * Load the Runtime V2 process registry for the current batch.
  * Returns null if no registry exists (legacy batch).
  */
-function loadRuntimeRegistry(batchId) {
+function loadRuntimeRegistry(batchId, root = getActiveProjectRoot()) {
   if (!batchId) return null;
-  const registryPath = path.join(REPO_ROOT, ".pi", "runtime", batchId, "registry.json");
+  const registryPath = path.join(root, ".pi", "runtime", batchId, "registry.json");
   try {
     if (!fs.existsSync(registryPath)) return null;
     return JSON.parse(fs.readFileSync(registryPath, "utf-8"));
@@ -408,9 +466,9 @@ function loadRuntimeRegistry(batchId) {
  * Load Runtime V2 lane snapshots for the current batch.
  * Returns a map of laneNumber → snapshot data.
  */
-function loadRuntimeLaneSnapshots(batchId) {
+function loadRuntimeLaneSnapshots(batchId, root = getActiveProjectRoot()) {
   if (!batchId) return {};
-  const lanesDir = path.join(REPO_ROOT, ".pi", "runtime", batchId, "lanes");
+  const lanesDir = path.join(root, ".pi", "runtime", batchId, "lanes");
   const snapshots = {};
   try {
     if (!fs.existsSync(lanesDir)) return snapshots;
@@ -435,9 +493,9 @@ function loadRuntimeLaneSnapshots(batchId) {
  *
  * @since TP-164
  */
-function loadRuntimeMergeSnapshots(batchId) {
+function loadRuntimeMergeSnapshots(batchId, root = getActiveProjectRoot()) {
   if (!batchId) return {};
-  const lanesDir = path.join(REPO_ROOT, ".pi", "runtime", batchId, "lanes");
+  const lanesDir = path.join(root, ".pi", "runtime", batchId, "lanes");
   const snapshots = {};
   try {
     if (!fs.existsSync(lanesDir)) return snapshots;
@@ -456,10 +514,10 @@ function loadRuntimeMergeSnapshots(batchId) {
  * Load Runtime V2 agent events for a specific agent.
  * Returns the last N events from the agent's events.jsonl.
  */
-function loadRuntimeAgentEvents(batchId, agentId, maxEvents) {
+function loadRuntimeAgentEvents(batchId, agentId, maxEvents, root = getActiveProjectRoot()) {
   if (!batchId || !agentId) return [];
   maxEvents = maxEvents || 200;
-  const eventsPath = path.join(REPO_ROOT, ".pi", "runtime", batchId, "agents", agentId, "events.jsonl");
+  const eventsPath = path.join(root, ".pi", "runtime", batchId, "agents", agentId, "events.jsonl");
   try {
     if (!fs.existsSync(eventsPath)) return [];
     const raw = fs.readFileSync(eventsPath, "utf-8");
@@ -488,9 +546,9 @@ function loadRuntimeAgentEvents(batchId, agentId, maxEvents) {
  * - Per-recipient broadcast delivery state from ack markers
  * - Rate-limited events in the timeline
  */
-function loadMailboxData(batchId) {
+function loadMailboxData(batchId, root = getActiveProjectRoot()) {
   if (!batchId) return { messages: [], agentIds: [], auditEvents: [] };
-  const mbRoot = path.join(REPO_ROOT, ".pi", "mailbox", batchId);
+  const mbRoot = path.join(root, ".pi", "mailbox", batchId);
   if (!fs.existsSync(mbRoot)) return { messages: [], agentIds: [], auditEvents: [] };
 
   // ── Primary: events.jsonl audit trail ──
@@ -574,8 +632,8 @@ function loadMailboxAuditEvents(mbRoot) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-function loadTelemetryData(batchState) {
-  const telemetryDir = path.join(REPO_ROOT, ".pi", "telemetry");
+function loadTelemetryData(batchState, root = getActiveProjectRoot()) {
+  const telemetryDir = path.join(root, ".pi", "telemetry");
   const result = {};
 
   // Build lane number → session prefix mapping from batch state
@@ -891,9 +949,9 @@ function tailSupervisorJsonl(filePath, tailState, batchId) {
  *
  * @returns {string} Autonomy level: "interactive" | "supervised" | "autonomous"
  */
-function loadSupervisorAutonomy() {
+function loadSupervisorAutonomy(root = getActiveProjectRoot()) {
   try {
-    const configPath = path.join(REPO_ROOT, ".pi", "taskplane-config.json");
+    const configPath = path.join(root, ".pi", "taskplane-config.json");
     const raw = fs.readFileSync(configPath, "utf-8");
     const config = JSON.parse(raw);
     const autonomy = config?.orchestrator?.supervisor?.autonomy;
@@ -921,8 +979,8 @@ function loadSupervisorAutonomy() {
  * @param {object|null} batchState - The batch state from batch-state.json
  * @returns {object|null} Supervisor data object or null
  */
-function loadSupervisorData(batchState) {
-  const supervisorDir = path.join(REPO_ROOT, ".pi", "supervisor");
+function loadSupervisorData(batchState, root = getActiveProjectRoot()) {
+  const supervisorDir = path.join(root, ".pi", "supervisor");
   const batchId = batchState ? (batchState.batchId || "") : "";
 
   // Detect batch change — reset tail state accumulators
@@ -956,7 +1014,7 @@ function loadSupervisorData(batchState) {
         startedAt: parsed.startedAt || "",
         heartbeat: parsed.heartbeat || "",
         // Autonomy is NOT in the lockfile — derive from project config
-        autonomy: loadSupervisorAutonomy(),
+        autonomy: loadSupervisorAutonomy(root),
       };
     }
   } catch {
@@ -1075,10 +1133,10 @@ function synthesizeLaneStateFromSnapshot(key, snap, fallbackBatchId) {
 }
 
 /** Build full dashboard state object for the frontend. */
-function buildDashboardState() {
-  const state = loadBatchState();
-  const sessions = getActiveSessions();
-  const rawLaneStates = loadLaneStates();
+function buildDashboardState(root = getActiveProjectRoot()) {
+  const state = loadBatchState(root);
+  const sessions = getActiveSessions(root);
+  const rawLaneStates = loadLaneStates(root);
   // Filter stale lane states from previous batches.
   // Lane state files persist across batches (same filename), so without
   // filtering the dashboard shows telemetry from old runs.
@@ -1089,14 +1147,20 @@ function buildDashboardState() {
       laneStates[key] = ls;
     }
   }
-  const telemetry = loadTelemetryData(state);
+  const telemetry = loadTelemetryData(state, root);
   const batchTotalCost = computeBatchTotalCost(laneStates, telemetry);
-  const supervisor = loadSupervisorData(state);
-  const history = loadHistory();
-  const backlog = loadBacklogData(state, history);
+  const supervisor = loadSupervisorData(state, root);
+  const history = loadHistory(root);
+  const backlog = loadBacklogData(state, history, root);
 
   if (!state) {
     return {
+      projectSidebar: buildProjectSidebar(root, null),
+      currentProject: {
+        id: SELECTED_PROJECT_ID,
+        rootPath: root,
+        name: projectDisplayNameFromRoot(root),
+      },
       batch: null,
       sessions,
       tmuxSessions: sessions, // Legacy compatibility field for older dashboard clients
@@ -1105,12 +1169,13 @@ function buildDashboardState() {
       batchTotalCost: 0,
       supervisor: null,
       backlog,
+      batchActions: buildBatchActionContract(null),
       timestamp: Date.now(),
     };
   }
 
   const tasks = (state.tasks || []).map((task) => {
-    const effectiveFolder = resolveTaskFolder(task, state);
+    const effectiveFolder = resolveTaskFolder(task, state, root);
     let statusData = null;
     if (effectiveFolder) {
       statusData = parseStatusMd(effectiveFolder);
@@ -1122,12 +1187,12 @@ function buildDashboardState() {
   });
 
   // TP-107: Load Runtime V2 data when available
-  const runtimeRegistry = loadRuntimeRegistry(state.batchId);
-  const runtimeLaneSnapshots = loadRuntimeLaneSnapshots(state.batchId);
-  const mailboxData = loadMailboxData(state.batchId);
+  const runtimeRegistry = loadRuntimeRegistry(state.batchId, root);
+  const runtimeLaneSnapshots = loadRuntimeLaneSnapshots(state.batchId, root);
+  const mailboxData = loadMailboxData(state.batchId, root);
 
   // TP-164: Load merge agent snapshots for live dashboard telemetry.
-  const runtimeMergeSnapshots = loadRuntimeMergeSnapshots(state.batchId);
+  const runtimeMergeSnapshots = loadRuntimeMergeSnapshots(state.batchId, root);
 
   // TP-164: Inject merge snapshot telemetry into the telemetry map so
   // `telemetry[sessionName]` resolves for the merge pane.
@@ -1184,6 +1249,12 @@ function buildDashboardState() {
   }
 
   return {
+    projectSidebar: buildProjectSidebar(root, { batch: { batchId: state.batchId, phase: state.phase, updatedAt: state.updatedAt } }),
+    currentProject: {
+      id: SELECTED_PROJECT_ID,
+      rootPath: root,
+      name: projectDisplayNameFromRoot(root),
+    },
     laneStates,
     telemetry,
     batchTotalCost,
@@ -1195,6 +1266,7 @@ function buildDashboardState() {
     runtimeMergeSnapshots,
     mailbox: mailboxData,
     backlog,
+    batchActions: buildBatchActionContract(state),
     batch: {
       batchId: state.batchId,
       phase: state.phase,
@@ -1270,13 +1342,14 @@ const sseClients = new Set();
 // ─── Conversation JSONL ─────────────────────────────────────────────────
 
 function serveConversation(req, res, prefix) {
+  const activeRoot = getActiveProjectRoot();
   if (!/^[\w-]+$/.test(prefix)) {
     res.writeHead(400, { "Content-Type": "text/plain" });
     res.end("Invalid prefix");
     return;
   }
 
-  const filePath = path.join(REPO_ROOT, ".pi", `worker-conversation-${prefix}.jsonl`);
+  const filePath = path.join(activeRoot, ".pi", `worker-conversation-${prefix}.jsonl`);
   try {
     const content = fs.readFileSync(filePath, "utf-8");
     res.writeHead(200, {
@@ -1359,7 +1432,7 @@ function hasDashboardConfigFiles(root) {
   return false;
 }
 
-function parseWorkspaceReposYaml(raw) {
+function parseWorkspaceReposYaml(raw, root = getActiveProjectRoot()) {
   const repos = {};
   const lines = String(raw || "").split(/\r?\n/);
   let inRepos = false;
@@ -1394,46 +1467,46 @@ function parseWorkspaceReposYaml(raw) {
     if (fieldMatch[1] !== "path") continue;
     const value = fieldMatch[2].trim().replace(/\s+#.*$/, "").replace(/^['"]|['"]$/g, "");
     if (!value) continue;
-    repos[currentRepo].path = path.resolve(REPO_ROOT, value);
+    repos[currentRepo].path = path.resolve(root, value);
   }
   return repos;
 }
 
-function loadDashboardWorkspaceRepos() {
+function loadDashboardWorkspaceRepos(root = getActiveProjectRoot()) {
   const repos = {};
-  const workspaceJson = readDashboardJsonConfig(REPO_ROOT);
+  const workspaceJson = readDashboardJsonConfig(root);
   if (workspaceJson) {
     const rawJsonRepos = workspaceJson?.workspace?.repos;
     if (rawJsonRepos && typeof rawJsonRepos === "object") {
       for (const [repoId, repo] of Object.entries(rawJsonRepos)) {
         if (!repo || typeof repo !== "object") continue;
         if (typeof repo.path !== "string" || !repo.path.trim()) continue;
-        repos[repoId] = { path: path.resolve(REPO_ROOT, repo.path.trim()) };
+        repos[repoId] = { path: path.resolve(root, repo.path.trim()) };
       }
     }
     return repos;
   }
 
   const workspaceConfigCandidates = [
-    path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),
-    path.join(REPO_ROOT, "taskplane-workspace.yaml"),
+    path.join(root, ".pi", "taskplane-workspace.yaml"),
+    path.join(root, "taskplane-workspace.yaml"),
   ];
   const workspaceConfigPath = workspaceConfigCandidates.find((candidate) => fs.existsSync(candidate));
   if (!workspaceConfigPath) return repos;
   try {
     const workspaceRaw = fs.readFileSync(workspaceConfigPath, "utf-8");
-    return parseWorkspaceReposYaml(workspaceRaw);
+    return parseWorkspaceReposYaml(workspaceRaw, root);
   } catch {
     return repos;
   }
 }
 
-function resolveDashboardPointerConfigRoot() {
-  const pointerPath = path.join(REPO_ROOT, ".pi", "taskplane-pointer.json");
+function resolveDashboardPointerConfigRoot(root = getActiveProjectRoot()) {
+  const pointerPath = path.join(root, ".pi", "taskplane-pointer.json");
   if (!fs.existsSync(pointerPath)) return null;
 
   try {
-    const repos = loadDashboardWorkspaceRepos();
+    const repos = loadDashboardWorkspaceRepos(root);
     const pointer = JSON.parse(fs.readFileSync(pointerPath, "utf-8"));
     const repoId = typeof pointer?.config_repo === "string" ? pointer.config_repo.trim() : "";
     const configPath = typeof pointer?.config_path === "string" ? pointer.config_path.trim() : "";
@@ -1452,26 +1525,26 @@ function resolveDashboardPointerConfigRoot() {
   }
 }
 
-function resolveDashboardConfigRoot() {
-  if (hasDashboardConfigFiles(REPO_ROOT)) return REPO_ROOT;
-  const pointerConfigRoot = resolveDashboardPointerConfigRoot();
+function resolveDashboardConfigRoot(root = getActiveProjectRoot()) {
+  if (hasDashboardConfigFiles(root)) return root;
+  const pointerConfigRoot = resolveDashboardPointerConfigRoot(root);
   if (pointerConfigRoot && hasDashboardConfigFiles(pointerConfigRoot)) return pointerConfigRoot;
-  return REPO_ROOT;
+  return root;
 }
 
-function resolveDashboardTaskAreaBaseRoot() {
-  const configRoot = resolveDashboardConfigRoot();
+function resolveDashboardTaskAreaBaseRoot(root = getActiveProjectRoot()) {
+  const configRoot = resolveDashboardConfigRoot(root);
   const configFiles = ["taskplane-config.json", "task-runner.yaml", "task-orchestrator.yaml"];
   const hasStandardLayout = configFiles.some((fileName) => fs.existsSync(path.join(configRoot, ".pi", fileName)));
   const hasFlatLayout = configFiles.some((fileName) => fs.existsSync(path.join(configRoot, fileName)));
-  if (!hasStandardLayout && hasFlatLayout && configRoot !== REPO_ROOT) {
+  if (!hasStandardLayout && hasFlatLayout && configRoot !== root) {
     return path.dirname(configRoot);
   }
   return configRoot;
 }
 
-function resolveDashboardConfigPath(fileName) {
-  const configRoot = resolveDashboardConfigRoot();
+function resolveDashboardConfigPath(fileName, root = getActiveProjectRoot()) {
+  const configRoot = resolveDashboardConfigRoot(root);
   const candidates = [
     path.join(configRoot, ".pi", fileName),
     path.join(configRoot, fileName),
@@ -1480,6 +1553,147 @@ function resolveDashboardConfigPath(fileName) {
     if (fs.existsSync(candidate)) return candidate;
   }
   return null;
+}
+
+function normalizeProjectRoot(rootPath) {
+  const resolved = path.resolve(String(rootPath || ""));
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+}
+
+function projectDisplayNameFromRoot(rootPath) {
+  const base = path.basename(path.resolve(rootPath || ""));
+  return base || path.resolve(rootPath || "");
+}
+
+function loadProjectRegistry() {
+  const registryPath = userProjectRegistryPath();
+  try {
+    if (!fs.existsSync(registryPath)) return [];
+    const parsed = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
+    const projects = Array.isArray(parsed?.projects) ? parsed.projects : [];
+    return projects.filter((project) => project && typeof project === "object" && typeof project.rootPath === "string");
+  } catch {
+    return [];
+  }
+}
+
+function writeProjectRegistry(projects) {
+  const registryPath = userProjectRegistryPath();
+  const dir = path.dirname(registryPath);
+  const payload = {
+    schemaVersion: 1,
+    updatedAt: new Date().toISOString(),
+    projects,
+  };
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tempPath = `${registryPath}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(payload, null, 2) + "\n", "utf-8");
+  fs.renameSync(tempPath, registryPath);
+}
+
+function refreshProjectRecency(projectId, rootPath) {
+  if (!projectId || !rootPath || !fs.existsSync(rootPath)) return false;
+  const projects = loadProjectRegistry();
+  let changed = false;
+  const now = new Date().toISOString();
+  const updated = projects.map((project) => {
+    if (String(project?.id || "").trim() !== projectId) return project;
+    changed = true;
+    return {
+      ...project,
+      rootPath: path.resolve(project.rootPath || rootPath),
+      lastOpenedAt: now,
+      updatedAt: now,
+    };
+  });
+  if (changed) {
+    writeProjectRegistry(updated);
+  }
+  return changed;
+}
+
+function buildProjectSidebar(root = getActiveProjectRoot(), state = null) {
+  const normalizedRoot = normalizeProjectRoot(root);
+  const registryProjects = loadProjectRegistry();
+  const items = [];
+  const seenRoots = new Set();
+
+  for (const project of registryProjects) {
+    const rootPath = path.resolve(project.rootPath);
+    const normalized = normalizeProjectRoot(rootPath);
+    if (seenRoots.has(normalized)) continue;
+    seenRoots.add(normalized);
+
+    const lastOpenedAt = project.lastOpenedAt || null;
+    const lastBatchAt = project.lastBatchAt || null;
+    const lastActivityAt = [lastOpenedAt, lastBatchAt].filter(Boolean).sort().slice(-1)[0] || null;
+    const selected = normalized === normalizedRoot;
+    const archived = project.archived === true;
+    const missing = !fs.existsSync(rootPath);
+    const badges = [];
+    if (selected) badges.push({ key: "current", label: "Current", tone: "info" });
+    if (archived) badges.push({ key: "archived", label: "Archived", tone: "neutral" });
+    if (selected && state?.batch?.batchId) badges.push({ key: "running-batch", label: state.batch.phase === "completed" ? "Latest batch" : "Live batch", tone: state.batch.phase === "completed" ? "neutral" : "success" });
+    if (missing) badges.push({ key: "missing", label: "Missing path", tone: "warning" });
+
+    items.push({
+      id: typeof project.id === "string" && project.id.trim() ? project.id.trim() : normalized,
+      name: typeof project.name === "string" && project.name.trim() ? project.name.trim() : projectDisplayNameFromRoot(rootPath),
+      rootPath,
+      configPath: typeof project.configPath === "string" && project.configPath.trim() ? project.configPath.trim() : null,
+      mode: project.mode === "workspace" ? "workspace" : "repo",
+      archived,
+      selected,
+      lastOpenedAt,
+      lastBatchAt,
+      lastActivityAt,
+      badges,
+      warnings: missing ? ["Local project path is unavailable."] : [],
+    });
+  }
+
+  if (!seenRoots.has(normalizedRoot)) {
+    const selectedId = SELECTED_PROJECT_ID || `current:${normalizedRoot}`;
+    items.push({
+      id: selectedId,
+      name: projectDisplayNameFromRoot(root),
+      rootPath: path.resolve(root),
+      configPath: resolveDashboardConfigPath("taskplane-config.json", root),
+      mode: resolveDashboardPointerConfigRoot(root) ? "workspace" : "repo",
+      archived: false,
+      selected: true,
+      lastOpenedAt: null,
+      lastBatchAt: state?.batch?.updatedAt || null,
+      lastActivityAt: state?.batch?.updatedAt || null,
+      badges: state?.batch?.batchId ? [{ key: "current", label: "Current", tone: "info" }, { key: "running-batch", label: state.batch.phase === "completed" ? "Latest batch" : "Live batch", tone: state.batch.phase === "completed" ? "neutral" : "success" }] : [{ key: "current", label: "Current", tone: "info" }],
+      warnings: [],
+    });
+  }
+
+  const active = items.filter((item) => !item.archived);
+  const archived = items.filter((item) => item.archived);
+  const recent = active.filter((item) => item.lastActivityAt).sort((a, b) => String(b.lastActivityAt).localeCompare(String(a.lastActivityAt))).slice(0, 5);
+  active.sort((a, b) => {
+    if (a.selected) return -1;
+    if (b.selected) return 1;
+    if (a.lastActivityAt && b.lastActivityAt) return String(b.lastActivityAt).localeCompare(String(a.lastActivityAt));
+    if (a.lastActivityAt) return -1;
+    if (b.lastActivityAt) return 1;
+    return a.name.localeCompare(b.name);
+  });
+  archived.sort((a, b) => a.name.localeCompare(b.name));
+
+  const sections = [
+    { key: "active", label: "Active Projects", collapsed: false, items: active },
+    { key: "recent", label: "Recent", collapsed: false, items: recent },
+    { key: "archived", label: "Archived", collapsed: archived.length > 0, items: archived },
+  ].filter((section) => section.items.length > 0);
+
+  return {
+    selectedProjectId: (active.find((item) => item.selected) || archived.find((item) => item.selected) || recent.find((item) => item.selected) || null)?.id || null,
+    sections,
+    emptyMessage: items.length === 0 ? "No known Taskplane projects yet." : null,
+  };
 }
 
 function parseLegacyTaskAreasYaml(raw) {
@@ -1540,8 +1754,8 @@ function parseLegacyTaskAreasYaml(raw) {
   return areas;
 }
 
-function loadTaskplaneTaskAreas() {
-  const configPath = resolveDashboardConfigPath("taskplane-config.json");
+function loadTaskplaneTaskAreas(root = getActiveProjectRoot()) {
+  const configPath = resolveDashboardConfigPath("taskplane-config.json", root);
   if (configPath) {
     try {
       const raw = fs.readFileSync(configPath, "utf-8");
@@ -1555,7 +1769,7 @@ function loadTaskplaneTaskAreas() {
 
   for (const fileName of ["task-runner.yaml", "task-orchestrator.yaml"]) {
     try {
-      const yamlPath = resolveDashboardConfigPath(fileName);
+      const yamlPath = resolveDashboardConfigPath(fileName, root);
       if (!yamlPath) continue;
       const raw = fs.readFileSync(yamlPath, "utf-8");
       const areas = parseLegacyTaskAreasYaml(raw);
@@ -1566,6 +1780,21 @@ function loadTaskplaneTaskAreas() {
   }
 
   return {};
+}
+
+function extractBacklogSection(content, heading) {
+  if (!content || !heading) return "";
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = content.match(new RegExp(`^##\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|\\n---|\\n$)`, "m"));
+  return match ? match[1].trim() : "";
+}
+
+function parseBacklogBulletLines(sectionText) {
+  if (!sectionText) return [];
+  return sectionText
+    .split("\n")
+    .map((line) => line.match(/^\s*[-*+]\s+(.*)$/)?.[1]?.trim() || "")
+    .filter(Boolean);
 }
 
 function normalizeBacklogDependencyRef(raw) {
@@ -1600,30 +1829,27 @@ function extractBacklogPromptMeta(promptPath, taskFolder, areaName) {
   }
 
   const title = (headingMatch?.[2] || folderName.replace(/^([A-Z]+-\d+)[-_]*/, "")).trim() || taskId;
-  const missionMatch = content.match(/^##\s+Mission\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
-  const summary = missionMatch
-    ? missionMatch[1]
+  const missionSection = extractBacklogSection(content, "Mission");
+  const summary = missionSection
+    ? missionSection
       .split(/\n{2,}/)
       .map((part) => part.replace(/\s+/g, " ").trim())
       .find(Boolean) || null
     : null;
 
   const dependencies = [];
-  const depSectionMatch = content.match(/^##\s+Dependencies\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
-  if (depSectionMatch) {
-    for (const line of depSectionMatch[1].split("\n")) {
-      const bulletMatch = line.match(/^\s*[-*+]\s+(.*)$/);
-      if (!bulletMatch) continue;
-      const depId = normalizeBacklogDependencyRef(bulletMatch[1]);
-      if (!depId || depId === taskId || dependencies.includes(depId)) continue;
-      dependencies.push(depId);
-    }
+  for (const depLine of parseBacklogBulletLines(extractBacklogSection(content, "Dependencies"))) {
+    const depId = normalizeBacklogDependencyRef(depLine);
+    if (!depId || depId === taskId || dependencies.includes(depId)) continue;
+    dependencies.push(depId);
   }
 
+  const fileScope = parseBacklogBulletLines(extractBacklogSection(content, "File Scope"));
+
   let promptRepoId = null;
-  const executionTargetMatch = content.match(/^##\s+Execution Target\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
+  const executionTargetMatch = extractBacklogSection(content, "Execution Target");
   if (executionTargetMatch) {
-    const repoLineMatch = executionTargetMatch[1].match(/^\s*(?:[-*+]\s+)?Repo:\s*(\S+)/im);
+    const repoLineMatch = executionTargetMatch.match(/^\s*(?:[-*+]\s+)?Repo:\s*(\S+)/im);
     if (repoLineMatch) promptRepoId = repoLineMatch[1].trim().toLowerCase();
   }
   if (!promptRepoId) {
@@ -1636,9 +1862,11 @@ function extractBacklogPromptMeta(promptPath, taskFolder, areaName) {
       taskId,
       title,
       summary,
+      mission: missionSection ? missionSection.replace(/\s+/g, " ").trim() : null,
       area: areaName,
       promptRepoId,
       dependencies,
+      fileScope,
       promptPath,
       statusPath: path.join(taskFolder, "STATUS.md"),
       taskFolder,
@@ -1698,9 +1926,9 @@ function computeBacklogSummary(items) {
   return summary;
 }
 
-function loadBacklogData(state, history) {
-  const taskAreas = loadTaskplaneTaskAreas();
-  const taskAreaBaseRoot = resolveDashboardTaskAreaBaseRoot();
+function loadBacklogData(state, history, root = getActiveProjectRoot()) {
+  const taskAreas = loadTaskplaneTaskAreas(root);
+  const taskAreaBaseRoot = resolveDashboardTaskAreaBaseRoot(root);
   const packets = [];
   const errors = [];
   const activeTaskById = new Map();
@@ -1766,13 +1994,14 @@ function loadBacklogData(state, history) {
       blockedDependencies,
       completedDependencies,
       historyEntry: findTaskHistoryEntry(history, packet.taskId),
+      batchState: state,
     });
   }).sort((a, b) => a.taskId.localeCompare(b.taskId));
 
   const repoIds = [...new Set(items.map((item) => item.repoId).filter(Boolean))].sort();
-  const workspaceRepos = loadDashboardWorkspaceRepos();
+  const workspaceRepos = loadDashboardWorkspaceRepos(root);
   const inferredMode = state?.mode
-    || (Object.keys(workspaceRepos).length > 0 || resolveDashboardPointerConfigRoot() ? "workspace" : "repo");
+    || (Object.keys(workspaceRepos).length > 0 || resolveDashboardPointerConfigRoot(root) ? "workspace" : "repo");
   let loadState = { kind: "ready", message: null };
   if (items.length === 0 && errors.length > 0) {
     loadState = { kind: "error", message: "Backlog scan failed" };
@@ -1914,6 +2143,106 @@ function buildBacklogDisplayStatus(packet, context) {
   };
 }
 
+function isDashboardActionBatchBusy(batchState) {
+  const phase = batchState?.phase || "";
+  return ["launching", "planning", "executing", "merging"].includes(phase);
+}
+
+function buildTaskActionContract(item, batchState) {
+  const currentTask = item?.execution || {};
+  const busy = isDashboardActionBatchBusy(batchState);
+  const hasBatch = Boolean(batchState?.batchId);
+  const promptPath = item?.navigation?.promptPath || item?.promptPath || null;
+
+  const startReason = busy
+    ? `Batch ${batchState.batchId} is ${batchState.phase}`
+    : (!item?.readiness?.isReady
+      ? (item?.status?.reason || "Task is not ready")
+      : (!promptPath ? "PROMPT.md path unavailable" : null));
+
+  const retrySupported = false;
+  const retryEnabled = retrySupported
+    && Boolean(hasBatch && currentTask?.status && ["failed", "stalled"].includes(currentTask.status) && !busy);
+  const retryReason = busy
+    ? `Pause or wait for the batch to stop (current phase: ${batchState?.phase || "unknown"})`
+    : (!hasBatch
+      ? "Retry applies to the current batch only"
+      : (!currentTask?.status || !["failed", "stalled"].includes(currentTask.status)
+        ? "Only failed or stalled active-batch tasks can be retried"
+        : (retrySupported ? null : "Dashboard fallback only — copy this recovery tool call into the operator console")));
+
+  const skipSupported = false;
+  const skipEnabled = skipSupported
+    && Boolean(hasBatch && currentTask?.status && ["failed", "stalled", "pending"].includes(currentTask.status) && !busy);
+  const skipReason = busy
+    ? `Pause or wait for the batch to stop (current phase: ${batchState?.phase || "unknown"})`
+    : (!hasBatch
+      ? "Skip applies to the current batch only"
+      : (!currentTask?.status || !["failed", "stalled", "pending"].includes(currentTask.status)
+        ? "Only failed, stalled, or pending active-batch tasks can be skipped"
+        : (skipSupported ? null : "Dashboard fallback only — copy this recovery tool call into the operator console")));
+
+  return {
+    start: {
+      id: "start",
+      label: "Start task",
+      invokeMode: "post",
+      enabled: !startReason,
+      reason: startReason,
+      commandPreview: promptPath ? `/orch ${promptPath}` : null,
+      confirmation: !startReason ? `Start a batch for ${item?.taskId}?` : null,
+    },
+    retry: {
+      id: "retry",
+      label: "Retry task",
+      invokeMode: retrySupported ? "post" : "copy",
+      enabled: retryEnabled,
+      reason: retryReason,
+      commandPreview: item?.taskId ? `orch_retry_task(taskId="${item.taskId}")` : null,
+      confirmation: retryEnabled ? `Retry ${item?.taskId} on the next resume cycle?` : null,
+    },
+    skip: {
+      id: "skip",
+      label: "Skip task",
+      invokeMode: skipSupported ? "post" : "copy",
+      enabled: skipEnabled,
+      reason: skipReason,
+      commandPreview: item?.taskId ? `orch_skip_task(taskId="${item.taskId}")` : null,
+      confirmation: skipEnabled ? `Skip ${item?.taskId} and unblock dependents?` : null,
+    },
+  };
+}
+
+function buildBatchActionContract(batchState) {
+  if (!batchState) {
+    return {
+      integrate: {
+        id: "integrate",
+        label: "Integrate batch",
+        invokeMode: "post",
+        enabled: false,
+        reason: "No active or resumable batch available",
+        commandPreview: "/orch-integrate",
+        confirmation: null,
+      },
+    };
+  }
+
+  const phase = batchState.phase || "unknown";
+  const enabled = phase === "completed";
+  return {
+    integrate: {
+      id: "integrate",
+      label: "Integrate batch",
+      invokeMode: "post",
+      enabled,
+      reason: enabled ? null : `Integration is available only after completion (current phase: ${phase})`,
+      commandPreview: "/orch-integrate",
+      confirmation: enabled ? `Integrate batch ${batchState.batchId}?` : null,
+    },
+  };
+}
+
 function buildBacklogItem(packet, context) {
   const blockedDependencies = Array.isArray(context?.blockedDependencies)
     ? context.blockedDependencies.filter(Boolean)
@@ -1937,7 +2266,7 @@ function buildBacklogItem(packet, context) {
 
   const batchScopedWaiting = Boolean(currentTask) && (status.key === "waiting" || status.key === "running");
 
-  return {
+  const item = {
     taskId: packet.taskId,
     title: packet.title,
     summary: packet.summary || null,
@@ -1968,6 +2297,19 @@ function buildBacklogItem(packet, context) {
       reviewCount: packet?.statusData?.reviews || 0,
       artifactCount: packet?.doneFileFound ? 3 : 2,
     },
+    detail: {
+      mission: packet.mission || packet.summary || null,
+      dependencies: Array.isArray(packet.dependencies) ? packet.dependencies : [],
+      completedDependencies,
+      blockedDependencies,
+      fileScope: Array.isArray(packet.fileScope) ? packet.fileScope : [],
+      currentStep: packet?.statusData?.currentStep || null,
+      statusText: packet?.statusData?.status || null,
+      progress: packet?.statusData?.progress ?? null,
+      iteration: packet?.statusData?.iteration ?? null,
+      reviewLevel: packet?.statusData?.reviewLevel ?? null,
+      latestExecution: packet?.statusData?.latestExecution || null,
+    },
     navigation: {
       kind: "task",
       id: packet.taskId,
@@ -1976,13 +2318,18 @@ function buildBacklogItem(packet, context) {
       statusPath: packet.statusPath || null,
       taskFolder: packet.taskFolder || null,
     },
+    actions: null,
   };
+
+  item.actions = buildTaskActionContract(item, context?.batchState || null);
+  return item;
 }
 
-function loadHistory() {
+function loadHistory(root = getActiveProjectRoot()) {
   try {
-    if (!fs.existsSync(BATCH_HISTORY_PATH)) return [];
-    const raw = fs.readFileSync(BATCH_HISTORY_PATH, "utf-8");
+    const historyPath = batchHistoryPathForRoot(root);
+    if (!fs.existsSync(historyPath)) return [];
+    const raw = fs.readFileSync(historyPath, "utf-8");
     return JSON.parse(raw);
   } catch {
     return [];
@@ -2036,7 +2383,8 @@ function serveStatusMd(req, res, taskId) {
     return;
   }
 
-  const state = loadBatchState();
+  const activeRoot = getActiveProjectRoot();
+  const state = loadBatchState(activeRoot);
   if (!state) {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "No batch state" }));
@@ -2050,7 +2398,7 @@ function serveStatusMd(req, res, taskId) {
     return;
   }
 
-  const effectiveFolder = resolveTaskFolder(task, state);
+  const effectiveFolder = resolveTaskFolder(task, state, activeRoot);
   if (!effectiveFolder) {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Cannot resolve task folder" }));
@@ -2081,8 +2429,8 @@ function serveStatusMd(req, res, taskId) {
 
 // ─── Dashboard Preferences ──────────────────────────────────────────────────
 
-function getPreferencesPath() {
-  return path.join(REPO_ROOT, ".pi", "dashboard-preferences.json");
+function getPreferencesPath(root = getActiveProjectRoot()) {
+  return dashboardPreferencesPathForRoot(root);
 }
 
 function handleGetPreferences(req, res) {
@@ -2132,6 +2480,207 @@ function handlePostPreferences(req, res) {
   });
 }
 
+function readJsonRequestBody(req, callback) {
+  let body = "";
+  req.on("data", (chunk) => { body += chunk; });
+  req.on("end", () => {
+    try {
+      callback(null, body ? JSON.parse(body) : {});
+    } catch (err) {
+      callback(err);
+    }
+  });
+}
+
+function sendJson(res, statusCode, payload) {
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function resolveDashboardActionRequest(payload, root = getActiveProjectRoot()) {
+  const state = loadBatchState(root);
+  const history = loadHistory(root);
+  const backlog = loadBacklogData(state, history, root);
+  const taskId = typeof payload?.taskId === "string" ? payload.taskId : "";
+  const actionId = typeof payload?.action === "string" ? payload.action : "";
+  const backlogItem = taskId
+    ? (Array.isArray(backlog.items) ? backlog.items.find((item) => item.taskId === taskId) || null : null)
+    : null;
+  const contract = backlogItem?.actions?.[actionId]
+    || buildBatchActionContract(state)?.[actionId]
+    || null;
+  return { state, backlogItem, contract, actionId, taskId };
+}
+
+function runDashboardPiPrompt(promptText, callback, root = getActiveProjectRoot()) {
+  const rpcWrapperPath = path.join(root, "bin", "rpc-wrapper.mjs");
+  const extensionPath = path.join(root, "extensions", "taskplane", "extension.ts");
+  if (!fs.existsSync(rpcWrapperPath) || !fs.existsSync(extensionPath)) {
+    callback(new Error("Dashboard action runtime is unavailable in this checkout."));
+    return;
+  }
+
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const promptPath = path.join(tmpdir(), `taskplane-dashboard-action-${stamp}.md`);
+  const sidecarPath = path.join(tmpdir(), `taskplane-dashboard-action-${stamp}.jsonl`);
+  const summaryPath = path.join(tmpdir(), `taskplane-dashboard-action-${stamp}.summary.json`);
+  fs.writeFileSync(promptPath, `${promptText.trim()}\n`, "utf-8");
+
+  execFile(process.execPath, [
+    rpcWrapperPath,
+    "--sidecar-path", sidecarPath,
+    "--exit-summary-path", summaryPath,
+    "--prompt-file", promptPath,
+    "--extensions", extensionPath,
+  ], {
+    cwd: root,
+    env: { ...process.env },
+    timeout: 120000,
+    maxBuffer: 1024 * 1024,
+  }, (error, stdout, stderr) => {
+    let summary = null;
+    try {
+      if (fs.existsSync(summaryPath)) {
+        summary = JSON.parse(fs.readFileSync(summaryPath, "utf-8"));
+      }
+    } catch {
+      summary = null;
+    }
+
+    for (const file of [promptPath, sidecarPath, summaryPath]) {
+      try { fs.unlinkSync(file); } catch {}
+    }
+
+    if (error) {
+      const message = summary?.error || stderr || stdout || error.message;
+      callback(new Error(String(message).trim()));
+      return;
+    }
+
+    callback(null, {
+      ok: summary?.error == null,
+      exitCode: summary?.exitCode ?? 0,
+      stdout: String(stdout || "").trim(),
+      stderr: String(stderr || "").trim(),
+      summary,
+    });
+  });
+}
+
+function handleDashboardAction(req, res) {
+  readJsonRequestBody(req, (err, payload) => {
+    if (err) {
+      sendJson(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+
+    const activeRoot = getActiveProjectRoot();
+    const { contract, backlogItem, actionId, taskId } = resolveDashboardActionRequest(payload, activeRoot);
+    if (!contract) {
+      sendJson(res, 404, { error: "Unknown dashboard action", action: actionId, taskId });
+      return;
+    }
+
+    if (!payload?.confirmed && contract.confirmation) {
+      sendJson(res, 409, {
+        error: "Confirmation required",
+        action: actionId,
+        taskId,
+        confirmation: contract.confirmation,
+        commandPreview: contract.commandPreview || null,
+      });
+      return;
+    }
+
+    if (!contract.enabled) {
+      sendJson(res, 409, {
+        error: contract.reason || "Action is currently disabled",
+        action: actionId,
+        taskId,
+        supported: contract.invokeMode === "post",
+        commandPreview: contract.commandPreview || null,
+      });
+      return;
+    }
+
+    if (contract.invokeMode !== "post") {
+      sendJson(res, 501, {
+        error: contract.reason || "Direct execution is not supported yet",
+        action: actionId,
+        taskId,
+        supported: false,
+        commandPreview: contract.commandPreview || null,
+      });
+      return;
+    }
+
+    const promptText = actionId === "start"
+      ? `/orch ${backlogItem?.navigation?.promptPath || backlogItem?.promptPath || ""}`
+      : (actionId === "integrate" ? "/orch-integrate" : "");
+
+    if (!promptText.trim()) {
+      sendJson(res, 400, { error: "Action is missing a runnable command", action: actionId, taskId });
+      return;
+    }
+
+    runDashboardPiPrompt(promptText, (runErr, result) => {
+      if (runErr) {
+        sendJson(res, 500, {
+          error: runErr.message,
+          action: actionId,
+          taskId,
+          commandPreview: contract.commandPreview || null,
+        });
+        return;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        action: actionId,
+        taskId,
+        commandPreview: contract.commandPreview || null,
+        summary: result?.summary || null,
+        output: result?.stdout || result?.stderr || "Command completed.",
+      });
+    }, activeRoot);
+  });
+}
+
+function handleProjectSelection(req, res) {
+  readJsonRequestBody(req, (err, payload) => {
+    if (err) {
+      sendJson(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+
+    const projectId = typeof payload?.projectId === "string" ? payload.projectId.trim() : "";
+    if (!projectId) {
+      sendJson(res, 400, { error: "projectId is required" });
+      return;
+    }
+
+    const registryProjects = loadProjectRegistry();
+    const project = registryProjects.find((item) => String(item.id || "").trim() === projectId);
+    if (!project || typeof project.rootPath !== "string" || !project.rootPath.trim()) {
+      sendJson(res, 404, { error: "Project not found", projectId });
+      return;
+    }
+
+    SELECTED_PROJECT_ID = projectId;
+    SELECTED_PROJECT_ROOT = path.resolve(project.rootPath);
+    const recencyUpdated = refreshProjectRecency(projectId, SELECTED_PROJECT_ROOT);
+    sendJson(res, 200, {
+      ok: true,
+      projectId,
+      recencyUpdated,
+      state: buildDashboardState(SELECTED_PROJECT_ROOT),
+    });
+  });
+}
+
 // ─── HTTP Server ────────────────────────────────────────────────────────────
 
 function createServer() {
@@ -2152,10 +2701,11 @@ function createServer() {
         res.end("Invalid agent ID");
         return;
       }
-      const batchState = loadBatchState();
+      const activeRoot = getActiveProjectRoot();
+      const batchState = loadBatchState(activeRoot);
       // Path containment: verify resolved path stays inside runtime dir
       if (batchState?.batchId) {
-        const runtimeBase = path.join(REPO_ROOT, ".pi", "runtime", batchState.batchId, "agents");
+        const runtimeBase = path.join(activeRoot, ".pi", "runtime", batchState.batchId, "agents");
         const resolvedAgent = path.resolve(runtimeBase, agentId);
         if (!resolvedAgent.startsWith(path.resolve(runtimeBase))) {
           res.writeHead(403, { "Content-Type": "text/plain" });
@@ -2166,7 +2716,7 @@ function createServer() {
       // Optional: ?sinceTs= to return only events after a timestamp
       const reqUrl = new URL(req.url, "http://localhost");
       const sinceTs = parseInt(reqUrl.searchParams.get("sinceTs") || "0", 10);
-      let events = loadRuntimeAgentEvents(batchState?.batchId, agentId, 300);
+      let events = loadRuntimeAgentEvents(batchState?.batchId, agentId, 300, activeRoot);
       if (sinceTs > 0) {
         events = events.filter(e => (e.ts || 0) > sinceTs);
       }
@@ -2191,6 +2741,10 @@ function createServer() {
       handleGetPreferences(req, res);
     } else if (pathname === "/api/preferences" && req.method === "POST") {
       handlePostPreferences(req, res);
+    } else if (pathname === "/api/projects/select" && req.method === "POST") {
+      handleProjectSelection(req, res);
+    } else if (pathname === "/api/actions" && req.method === "POST") {
+      handleDashboardAction(req, res);
     } else if (req.method === "OPTIONS") {
       // CORS preflight for POST
       res.writeHead(204, {
@@ -2279,6 +2833,9 @@ async function main() {
   REPO_ROOT = path.resolve(opts.root || process.cwd());
   BATCH_STATE_PATH = path.join(REPO_ROOT, ".pi", "batch-state.json");
   BATCH_HISTORY_PATH = path.join(REPO_ROOT, ".pi", "batch-history.json");
+  SELECTED_PROJECT_ROOT = REPO_ROOT;
+  const initialProject = loadProjectRegistry().find((project) => normalizeProjectRoot(project.rootPath) === normalizeProjectRoot(REPO_ROOT));
+  SELECTED_PROJECT_ID = initialProject?.id || `current:${normalizeProjectRoot(REPO_ROOT)}`;
 
   const server = createServer();
   const explicitPort = process.argv.slice(2).includes("--port");

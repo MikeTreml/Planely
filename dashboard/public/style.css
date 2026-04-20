@@ -459,6 +459,147 @@ body {
   cursor: not-allowed;
 }
 
+.workspace-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  align-items: start;
+}
+
+.project-sidebar {
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 160px);
+}
+
+.project-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-sidebar-subtitle {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-faint);
+}
+
+.project-sidebar-body {
+  padding: 12px;
+}
+
+.project-section + .project-section {
+  margin-top: 14px;
+}
+
+.project-section-header {
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.project-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-row {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  color: inherit;
+  cursor: pointer;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.project-row:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface-hover);
+}
+
+.project-row.selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-dim);
+  background: var(--accent-dim);
+}
+
+.project-row.archived {
+  opacity: 0.78;
+}
+
+.project-row.warning {
+  border-color: var(--yellow);
+}
+
+.project-row:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.project-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.project-row-name {
+  font-weight: 600;
+}
+
+.project-row-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-row-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
+
+.project-badge.tone-info {
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.project-badge.tone-success {
+  border-color: var(--green-dim);
+  color: var(--green);
+}
+
+.project-badge.tone-warning {
+  border-color: var(--yellow-dim);
+  color: var(--yellow);
+}
+
 .content {
   display: flex;
   flex-direction: column;
@@ -768,6 +909,179 @@ body {
   display: block;
   color: var(--text-faint);
   margin-bottom: 2px;
+}
+
+.task-detail-panel-header {
+  align-items: flex-start;
+}
+
+.task-detail-subtitle {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.task-detail-panel-body {
+  padding: 16px;
+}
+
+.task-detail-toolbar,
+.task-detail-badges,
+.task-detail-actions,
+.task-detail-kv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-detail-toolbar {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.task-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.task-detail-section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-inset);
+  padding: 12px 14px;
+}
+
+.task-detail-section-wide {
+  grid-column: 1 / -1;
+}
+
+.task-detail-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.task-detail-copy,
+.task-detail-kv,
+.task-detail-empty,
+.task-detail-exec-log,
+.task-detail-list {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.task-detail-muted,
+.task-detail-empty,
+.task-detail-exec-log .label,
+.task-detail-kv .label {
+  color: var(--text-muted);
+}
+
+.task-detail-kv {
+  justify-content: space-between;
+  align-items: flex-start;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.task-detail-kv:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.task-detail-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.task-detail-list li + li {
+  margin-top: 6px;
+}
+
+.task-detail-exec-log {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.task-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.task-action-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--bg-surface);
+}
+
+.task-action-card.is-disabled {
+  opacity: 0.8;
+}
+
+.task-action-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.task-action-reason,
+.task-action-preview,
+.task-action-notice {
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
+.task-action-reason {
+  color: var(--text-muted);
+}
+
+.task-action-preview code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-action-notice {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.task-action-notice.tone-success {
+  color: var(--green);
+  background: var(--badge-succeeded-bg);
+}
+
+.task-action-notice.tone-danger {
+  color: var(--red);
+  background: var(--badge-failed-bg);
+}
+
+.task-action-notice.tone-info {
+  color: var(--accent);
+  background: var(--badge-running-bg);
+}
+
+.history-task-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.history-task-link:hover {
+  text-decoration: underline;
 }
 
 /* ─── Lane Group (lane header + nested task rows) ──────────────────────── */
@@ -1505,12 +1819,26 @@ body {
 
 /* ─── Responsive ───────────────────────────────────────────────────────── */
 
+@media (max-width: 1100px) {
+  .workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .project-sidebar {
+    position: static;
+    max-height: none;
+  }
+}
+
 @media (max-width: 900px) {
   .task-row {
     grid-template-columns: 36px 24px 90px 80px 70px 1fr;
   }
   .task-row .task-step { display: none; }
   .progress-bar-bg { width: 160px; }
+  .project-sidebar-body {
+    padding: 10px;
+  }
 }
 
 /* ─── Repo Filter & Badges ─────────────────────────────────────────────── */
