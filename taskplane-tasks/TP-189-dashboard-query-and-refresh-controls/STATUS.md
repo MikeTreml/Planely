@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -21,10 +21,10 @@
 
 ### Step 1: Query/refresh contract
 **Status:** 🟨 In Progress
-- [ ] Define control set and behaviors
-- [ ] Define operator feedback and states
-- [ ] Define empty/loading/error states
-- [ ] Confirm controls map to real Taskplane behavior
+- [ ] Resolve whether refresh and re-scan are distinct or a single action
+- [ ] Define Pending vs All query semantics and how they compose with repo/search/status filters
+- [ ] Define operator feedback and empty/loading/error states
+- [ ] Confirm final controls map to real Taskplane behavior
 
 ---
 
@@ -91,3 +91,5 @@ Adds UI-side query/refresh affordances for normal operator use.
 - Automatic refresh already covers the main data plane (`batch-state.json`, backlog task folders, status parsing). Missing operator affordances are explicit refresh/re-scan cues and clearer query controls over the already-loaded backlog.
 - Safe first-pass controls should map to existing semantics: refresh the current snapshot, force a backlog re-read/discovery pass, and apply a local `Pending` vs `All` task query without inventing background jobs.
 - New controls should be split into two groups: view-only filters/toggles that never hit the server, and action buttons that explicitly request server work or orchestrator commands.
+- Reviewer note: if v1 defers plan refresh, say so explicitly; operator feedback should describe manual refresh as requesting a fresh snapshot, not starting a persistent background refresh mode.
+| 2026-04-20 21:07 | Review R001 | plan Step 1: REVISE |
