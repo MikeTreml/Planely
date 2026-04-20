@@ -200,3 +200,10 @@ When evidence is split across categories, report:
 - competing class(es),
 - missing evidence needed to resolve the ambiguity,
 - the safest next action that avoids blind retry.
+
+## Open Questions and Data Gaps
+
+- How much evidence should be required before a helpdesk recommendation may move from task-level retry guidance to batch-level pause or abort guidance?
+- Which runtime artifacts should become mandatory inputs for distinguishing flaky implementation from orchestrator/runtime instability?
+- Should stale-doc mismatches be normalized further into separate sub-classes for missing snapshot content vs genuinely obsolete source material, or is that distinction better handled in the evidence bundle?
+- What retry-count or recurrence threshold should trigger automatic recommendation of a systemic follow-up task rather than another local repair?

@@ -214,3 +214,15 @@ Each recommendation should use a consistent structure:
 - Why not plain retry: rerunning unchanged would reuse the same incomplete tree
 - Do not proceed unchanged: yes, until tree integrity is restored
 ```
+
+## Operator Clarity Checklist
+
+A recommendation is not ready to surface to operators unless it answers all of these clearly:
+- what class best explains the failure,
+- what evidence supports that class,
+- what single next action should happen now,
+- who owns that action,
+- what condition would justify retrying afterward,
+- whether the current packet should stop, continue, or be replaced.
+
+If any item cannot be answered, prefer pause, redirect, or replan over another blind retry.

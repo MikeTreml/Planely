@@ -1,6 +1,6 @@
 # TP-193: Failure Taxonomy and Decision Matrix — Status
 
-**Current Step:** Step 3: One-time vs recurring fixes
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
@@ -45,9 +45,9 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
-- [ ] Verify matrix usefulness and clarity
-- [ ] Log open questions
+**Status:** ✅ Complete
+- [x] Verify matrix usefulness and clarity
+- [x] Log open questions
 
 ---
 
@@ -64,6 +64,7 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Distinguishing flaky implementation from runtime-induced instability will likely need stricter artifact requirements (for example repeated run metadata and control-plane logs) once the helpdesk output contract is implemented. | Logged as follow-up design question for future helpdesk implementation tasks. | `docs/specifications/operator-console/recovery-failure-taxonomy.md` |
 
 ---
 
@@ -92,6 +93,9 @@
 | 2026-04-20 19:46 | One-time vs systemic distinction added | Added decision rules distinguishing local run repairs from recurring failure patterns that should trigger policy, template, documentation, or runtime follow-up work. |
 | 2026-04-20 19:48 | Follow-up examples added | Added examples and guidance for when to open a new repair/hardening packet instead of trying to recover the current packet in place. |
 | 2026-04-20 19:49 | Recommendation contract added | Added a consistent output shape with classification, confidence, evidence, action, owner, one-time repair, recurring-fix recommendation, and do-not-proceed signaling. |
+| 2026-04-20 19:51 | Step 4 started | Verification and delivery |
+| 2026-04-20 19:53 | Clarity checklist added | Reviewed the taxonomy/matrix together and added an operator clarity checklist to ensure each recommendation names evidence, owner, next action, retry condition, and whether the packet should stop or continue. |
+| 2026-04-20 19:54 | Open questions logged | Added implementation-facing open questions on batch-level evidence thresholds, flaky-vs-runtime disambiguation, stale-doc subclassing, and when recurring incidents should trigger systemic follow-up tasks. |
 
 ---
 
