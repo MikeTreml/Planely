@@ -24,11 +24,11 @@ const POLL_INTERVAL = 2000; // ms between state checks
 
 // REPO_ROOT is resolved after parseArgs() — see initialization below.
 // In workspace mode, REPO_ROOT is the workspace root (passed via --root).
-// All dashboard state paths (batch-state, lane-state, conversation logs,
-// batch-history) live at <REPO_ROOT>/.pi/ — this is runtime/sidecar state
-// which does NOT follow the taskplane-pointer.json resolution chain.
-// The pointer directs config/agent lookups to a config repo, but the
-// dashboard only reads state files, so no pointer resolution is needed here.
+// Runtime sidecar state (batch-state, lane-state, conversation logs,
+// batch-history) still lives at <REPO_ROOT>/.pi/ and does NOT move with the
+// workspace pointer. Config-backed backlog discovery, however, does follow the
+// pointer-aware config resolution chain so task areas come from the canonical
+// project config location.
 let REPO_ROOT;
 let BATCH_STATE_PATH;
 let BATCH_HISTORY_PATH;
@@ -1328,10 +1328,100 @@ function broadcastState() {
 
 // BATCH_HISTORY_PATH is initialized in main() alongside REPO_ROOT.
 
+function hasDashboardConfigFiles(root) {
+  if (!root) return false;
+  for (const fileName of ["taskplane-config.json", "task-runner.yaml", "task-orchestrator.yaml"]) {
+    if (fs.existsSync(path.join(root, ".pi", fileName)) || fs.existsSync(path.join(root, fileName))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function parseWorkspaceReposYaml(raw) {
+  const repos = {};
+  const lines = String(raw || "").split(/\r?\n/);
+  let inRepos = false;
+  let reposIndent = 0;
+  let currentRepo = null;
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\t/g, "    ");
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const indent = line.match(/^\s*/)?.[0]?.length || 0;
+
+    if (!inRepos) {
+      if (/^repos\s*:\s*$/.test(trimmed)) {
+        inRepos = true;
+        reposIndent = indent;
+      }
+      continue;
+    }
+
+    if (indent <= reposIndent) break;
+
+    const repoMatch = line.match(/^\s{2,}([A-Za-z0-9._-]+)\s*:\s*$/);
+    if (repoMatch && indent === reposIndent + 2) {
+      currentRepo = repoMatch[1];
+      repos[currentRepo] = {};
+      continue;
+    }
+
+    if (!currentRepo) continue;
+    const fieldMatch = line.match(/^\s+([A-Za-z0-9_-]+)\s*:\s*(.+?)\s*$/);
+    if (!fieldMatch || indent < reposIndent + 4) continue;
+    if (fieldMatch[1] !== "path") continue;
+    const value = fieldMatch[2].trim().replace(/\s+#.*$/, "").replace(/^['"]|['"]$/g, "");
+    if (!value) continue;
+    repos[currentRepo].path = path.resolve(REPO_ROOT, value);
+  }
+  return repos;
+}
+
+function resolveDashboardPointerConfigRoot() {
+  const workspaceConfigCandidates = [
+    path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),
+    path.join(REPO_ROOT, "taskplane-workspace.yaml"),
+  ];
+  const workspaceConfigPath = workspaceConfigCandidates.find((candidate) => fs.existsSync(candidate));
+  if (!workspaceConfigPath) return null;
+
+  const pointerPath = path.join(REPO_ROOT, ".pi", "taskplane-pointer.json");
+  if (!fs.existsSync(pointerPath)) return null;
+
+  try {
+    const workspaceRaw = fs.readFileSync(workspaceConfigPath, "utf-8");
+    const repos = parseWorkspaceReposYaml(workspaceRaw);
+    const pointer = JSON.parse(fs.readFileSync(pointerPath, "utf-8"));
+    const repoId = typeof pointer?.config_repo === "string" ? pointer.config_repo.trim() : "";
+    const configPath = typeof pointer?.config_path === "string" ? pointer.config_path.trim() : "";
+    if (!repoId || !configPath) return null;
+    if (path.isAbsolute(configPath)) return null;
+    const normalized = configPath.replace(/\\/g, "/");
+    if (normalized.startsWith("..") || normalized.includes("/../") || normalized.endsWith("/..")) return null;
+    const repoPath = repos[repoId]?.path;
+    if (!repoPath) return null;
+    const resolved = path.resolve(repoPath, configPath);
+    const rel = path.relative(repoPath, resolved);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
+    return resolved;
+  } catch {
+    return null;
+  }
+}
+
+function resolveDashboardConfigRoot() {
+  if (hasDashboardConfigFiles(REPO_ROOT)) return REPO_ROOT;
+  const pointerConfigRoot = resolveDashboardPointerConfigRoot();
+  if (pointerConfigRoot && hasDashboardConfigFiles(pointerConfigRoot)) return pointerConfigRoot;
+  return REPO_ROOT;
+}
+
 function resolveDashboardConfigPath(fileName) {
+  const configRoot = resolveDashboardConfigRoot();
   const candidates = [
-    path.join(REPO_ROOT, ".pi", fileName),
-    path.join(REPO_ROOT, fileName),
+    path.join(configRoot, ".pi", fileName),
+    path.join(configRoot, fileName),
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
@@ -2123,12 +2213,11 @@ async function main() {
   const opts = parseArgs();
 
   // Resolve project root: --root flag > cwd.
-  // In workspace mode this is the workspace root. All state/sidecar files
+  // In workspace mode this is the workspace root. Runtime sidecar files
   // (batch-state, lane-state, conversation logs, batch-history) live at
   // <REPO_ROOT>/.pi/ and are NOT affected by taskplane-pointer.json.
-  // The pointer only redirects config/agent resolution in task-runner and
-  // orchestrator — the dashboard reads only runtime state, so no pointer
-  // resolution is performed here.
+  // Backlog discovery now reads task-area config, so config lookup follows the
+  // pointer-aware resolution chain while runtime state remains rooted here.
   REPO_ROOT = path.resolve(opts.root || process.cwd());
   BATCH_STATE_PATH = path.join(REPO_ROOT, ".pi", "batch-state.json");
   BATCH_HISTORY_PATH = path.join(REPO_ROOT, ".pi", "batch-history.json");

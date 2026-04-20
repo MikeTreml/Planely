@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 6
+**Review Counter:** 7
 **Iteration:** 1
 **Size:** L
 
@@ -36,6 +36,7 @@
 - [x] Handle workspace and malformed-task cases
 - [x] Support legacy YAML config fallback for backlog task-area discovery
 - [x] Make JSON config authoritative over legacy YAML for backlog discovery
+- [x] Follow pointer-resolved config roots for workspace backlog discovery
 
 ---
 
@@ -66,6 +67,7 @@
 | R004 | plan | 2 | APPROVE | `.reviews/R004-plan-step2.md` |
 | R005 | code | 2 | REVISE | `.reviews/R005-code-step2.md` |
 | R006 | code | 2 | REVISE | `.reviews/R006-code-step2.md` |
+| R007 | code | 2 | REVISE | `.reviews/R007-code-step2.md` |
 
 ---
 
@@ -97,6 +99,7 @@
 | 2026-04-20 17:34 | Workspace/malformed handling covered | Backlog scope now reports repo-aware workspace context and partial/error load states while malformed or unreadable task packets are surfaced as non-fatal backlog errors. |
 | 2026-04-20 17:48 | Review fix 3 applied | Added legacy `task-runner.yaml` / `task-orchestrator.yaml` fallback parsing for task-area discovery and covered the regression with a YAML-backed backlog loader test. |
 | 2026-04-20 17:54 | Review fix 4 applied | Made `taskplane-config.json` authoritative when present and added a precedence regression test so stale legacy YAML cannot override JSON-backed backlog discovery. |
+| 2026-04-20 18:04 | Review fix 5 applied | Added pointer-aware dashboard config root resolution plus a workspace pointer regression test so backlog task-area discovery follows the same config chain as the rest of Taskplane. |
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 
@@ -122,3 +125,4 @@ Preflight decisions:
 | 2026-04-20 16:52 | Review R004 | plan Step 2: APPROVE |
 | 2026-04-20 16:57 | Review R005 | code Step 2: REVISE |
 | 2026-04-20 17:01 | Review R006 | code Step 2: REVISE |
+| 2026-04-20 17:04 | Review R007 | code Step 2: REVISE |

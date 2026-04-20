@@ -36,7 +36,7 @@ describe("TP-182 dashboard backlog loading", () => {
 
 	const helperBlock = extractBlock(
 		source,
-		"function resolveDashboardConfigPath(fileName)",
+		"function hasDashboardConfigFiles(root)",
 		"function loadHistory()",
 	);
 
@@ -231,6 +231,72 @@ describe("TP-182 dashboard backlog loading", () => {
 			const backlog = loadBacklogData(null, []);
 			expect(backlog.items).toHaveLength(0);
 			expect(backlog.loadState.kind).toBe("empty");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
+	it("loads backlog config from a pointer-resolved workspace config root", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-182-backlog-pointer-"));
+		try {
+			const configRepo = join(root, "config-repo");
+			mkdirSync(join(root, ".pi"), { recursive: true });
+			mkdirSync(join(configRepo, ".taskplane"), { recursive: true });
+			writeFileSync(join(root, ".pi", "taskplane-workspace.yaml"), [
+				"repos:",
+				"  config:",
+				`    path: ${configRepo.replace(/\\/g, "/")}`,
+				"routing:",
+				"  default_repo: config",
+			].join("\n"));
+			writeFileSync(join(root, ".pi", "taskplane-pointer.json"), JSON.stringify({
+				config_repo: "config",
+				config_path: ".taskplane",
+			}, null, 2));
+			writeFileSync(join(configRepo, ".taskplane", "taskplane-config.json"), JSON.stringify({
+				taskRunner: {
+					taskAreas: {
+						general: { path: "taskplane-tasks", repoId: "planely" },
+					},
+				},
+			}, null, 2));
+
+			writeTaskPacket(
+				root,
+				"TP-270-pointer-task",
+				"# Task: TP-270 - Pointer task\n\n## Mission\nPointer-resolved config.\n",
+				"**Status:** ⬜ Not Started\n",
+			);
+
+			const context = {
+				fs,
+				path,
+				REPO_ROOT: root,
+				parseStatusMd(taskFolder: string) {
+					const statusPath = join(taskFolder, "STATUS.md");
+					if (!existsSync(statusPath)) return null;
+					const content = readFileSync(statusPath, "utf-8");
+					const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
+					return {
+						status: statusMatch ? statusMatch[1].trim() : "Unknown",
+						reviews: 0,
+						updatedAt: statSync(statusPath).mtimeMs,
+					};
+				},
+				checkDoneFile(taskFolder: string) {
+					return existsSync(join(taskFolder, ".DONE"));
+				},
+			};
+
+			const { loadBacklogData } = vm.runInNewContext(
+				`${helperBlock}; ({ loadBacklogData });`,
+				context,
+			) as { loadBacklogData: (state: any, history: any[]) => any };
+
+			const backlog = loadBacklogData(null, []);
+			expect(backlog.items).toHaveLength(1);
+			expect(backlog.items[0].taskId).toBe("TP-270");
+			expect(backlog.loadState.kind).toBe("ready");
 		} finally {
 			rmSync(root, { recursive: true, force: true });
 		}
