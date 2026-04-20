@@ -1,10 +1,10 @@
 # TP-185: Planning Artifact Schema and Storage — Status
 
-**Current Step:** Step 2: Storage layout proposal
+**Current Step:** Step 3: Migration and adoption notes
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -29,17 +29,17 @@
 ---
 
 ### Step 2: Storage layout proposal
-**Status:** 🟨 In Progress
-- [ ] Define on-disk layout
-- [ ] Define naming/ID conventions
-- [ ] Define discovery/indexing/rendering rules for canonical planning files
-- [ ] Define repo-mode vs workspace-mode placement and root resolution
-- [ ] Define coexistence with task/runtime state
+**Status:** ✅ Complete
+- [x] Define on-disk layout
+- [x] Define naming/ID conventions
+- [x] Define discovery/indexing/rendering rules for canonical planning files
+- [x] Define repo-mode vs workspace-mode placement and root resolution
+- [x] Define coexistence with task/runtime state
 
 ---
 
 ### Step 3: Migration and adoption notes
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define incremental adoption path
 - [ ] Explain optionality and no-DB rationale
 - [ ] Capture risks and triggers for future change
@@ -99,3 +99,4 @@ Preflight findings:
 | 2026-04-20 16:26 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 16:27 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 16:30 | Review R003 | plan Step 2: REVISE |
+| 2026-04-20 16:31 | Review R004 | plan Step 2: APPROVE |
