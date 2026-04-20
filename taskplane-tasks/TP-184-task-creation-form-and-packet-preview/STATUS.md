@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 4
+**Review Counter:** 6
 **Iteration:** 1
 **Size:** L
 
@@ -35,6 +35,7 @@
 - [ ] Implement safe packet write flow
 - [ ] Update Next Task ID safely
 - [ ] Block duplicates/overwrites
+- [ ] Make failure states explicit and recoverable
 
 ---
 
@@ -87,6 +88,7 @@
 | 2026-04-20 20:46 | Step 1 review fixes complete | Preview contract tests now enforce canonical packet invariants |
 | 2026-04-20 20:48 | Review R004 | code Step 1 returned REVISE; additional template invariants still missing |
 | 2026-04-20 20:52 | Step 1 revise | Added targeted-test/artifact blocks, canonical commit guardrails, and STATUS hydration/testing wording |
+| 2026-04-20 20:54 | Review R006 | plan Step 2 returned REVISE; failure handling outcome added to plan |
 
 ---
 
@@ -108,3 +110,4 @@ Preflight findings:
 - Step 1 implementation now exposes `/api/task-authoring` metadata and `/api/task-authoring/preview` so the UI can load area defaults and request server-authored PROMPT.md/STATUS.md previews from one shared generator.
 - Code review follow-up: the preview generator must emit canonical `Testing & Verification` plus `Documentation & Delivery` sections and tests must enforce those template invariants.
 - Additional review follow-up: preview output still needs Step 1 targeted-test/artifact content, fuller testing/build wording, canonical `test(...)` commit entry, standard Do NOT bullets, and STATUS hydration/testing language.
+- Step 2 review follow-up: write flow must surface duplicate/conflict/partial-write failures explicitly and keep preview/write output byte-aligned from the shared generator.
