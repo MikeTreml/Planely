@@ -30,8 +30,9 @@
 
 ### Step 2: Server/client implementation
 **Status:** 🟨 In Progress
-- [ ] Add minimal server support if needed
-- [ ] Add frontend control bar and wiring
+- [ ] Add minimal server support for explicit manual refresh if needed
+- [ ] Add frontend control bar and manual refresh wiring
+- [ ] Add Pending vs All query filtering without breaking existing filters
 - [ ] Keep existing live behavior intact
 
 ---
