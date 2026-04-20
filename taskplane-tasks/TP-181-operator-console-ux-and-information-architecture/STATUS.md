@@ -104,6 +104,8 @@
 | 2026-04-20 16:58 | Verified incremental path | Confirmed the spec keeps the current dashboard shell and phases in new views as content states rather than a rewrite. |
 | 2026-04-20 16:58 | Flagged prerequisites | Recorded required API/command gaps for start-batch, retry/skip/integrate, approval aggregation, and deep-link routing. |
 | 2026-04-20 16:59 | Logged discoveries | STATUS discovery table now captures IA baseline, reusable dashboard surfaces, missing operator views, incremental path, and implementation prerequisites. |
+| 2026-04-20 16:36 | Worker iter 1 | done in 783s, tools: 87 |
+| 2026-04-20 16:36 | Task complete | .DONE created |
 
 ---
 
