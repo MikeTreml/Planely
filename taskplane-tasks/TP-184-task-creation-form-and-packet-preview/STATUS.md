@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 1: Creation data model and preview contract
+**Current Step:** Step 2: Write path and safety semantics
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** L
 
@@ -19,16 +19,16 @@
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** 🟨 In Progress
-- [ ] Define form and preview shapes
-- [ ] Define validation rules
-- [ ] Define complexity assessment contract
-- [ ] Preserve packet compatibility
+**Status:** ✅ Complete
+- [x] Define form and preview shapes
+- [x] Define validation rules
+- [x] Define complexity assessment contract
+- [x] Preserve packet compatibility
 
 ---
 
 ### Step 2: Write path and safety semantics
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Implement safe packet write flow
 - [ ] Update Next Task ID safely
 - [ ] Block duplicates/overwrites
@@ -76,6 +76,9 @@
 | 2026-04-20 20:24 | Step 0 completed | Packet inputs, preview/write approach, and safety rules scoped |
 | 2026-04-20 20:24 | Step 1 started | Creation data model and preview contract |
 | 2026-04-20 20:25 | Review R001 | plan Step 1 returned REVISE; complexity rubric contract missing |
+| 2026-04-20 20:39 | Step 1 progress | Added server-authored task authoring metadata/preview contract plus targeted tests |
+| 2026-04-20 20:39 | Step 1 completed | Preview generator now emits canonical packet markdown and validation metadata |
+| 2026-04-20 20:39 | Step 2 started | Write path and safety semantics |
 
 ---
 
@@ -94,3 +97,5 @@ Preflight findings:
 - Preview/write should be server-authored from a shared generator so the dashboard does not fork packet formatting; client submits form data, server returns rendered PROMPT.md/STATUS.md preview plus derived task metadata, then a confirmed write uses the same generation path.
 - Safety rules should include reading area config from `.pi/taskplane-config.json`, reserving the current `Next Task ID` from `CONTEXT.md`, rejecting duplicate task IDs/folder names, creating the new folder only when absent, writing canonical files explicitly, and updating `Next Task ID` only after successful packet creation.
 - Reviewer suggestions to keep in mind: preview payload should return both rendered markdown and structured derived metadata; validation should separate operator-fixable field errors from server-side generation failures.
+- Step 1 implementation now exposes `/api/task-authoring` metadata and `/api/task-authoring/preview` so the UI can load area defaults and request server-authored PROMPT.md/STATUS.md previews from one shared generator.
+| 2026-04-20 20:22 | Review R002 | plan Step 1: APPROVE |
