@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 2: Write path and safety semantics
+**Current Step:** Step 1: Creation data model and preview contract
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** L
 
@@ -19,11 +19,13 @@
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Define form and preview shapes
 - [x] Define validation rules
 - [x] Define complexity assessment contract
 - [x] Preserve packet compatibility
+- [ ] Align generated PROMPT/STATUS preview with canonical template sections
+- [ ] Update preview contract tests to enforce canonical packet invariants
 
 ---
 
@@ -79,6 +81,7 @@
 | 2026-04-20 20:39 | Step 1 progress | Added server-authored task authoring metadata/preview contract plus targeted tests |
 | 2026-04-20 20:39 | Step 1 completed | Preview generator now emits canonical packet markdown and validation metadata |
 | 2026-04-20 20:39 | Step 2 started | Write path and safety semantics |
+| 2026-04-20 20:41 | Review R003 | code Step 1 returned REVISE; preview/template parity incomplete |
 
 ---
 
@@ -98,4 +101,4 @@ Preflight findings:
 - Safety rules should include reading area config from `.pi/taskplane-config.json`, reserving the current `Next Task ID` from `CONTEXT.md`, rejecting duplicate task IDs/folder names, creating the new folder only when absent, writing canonical files explicitly, and updating `Next Task ID` only after successful packet creation.
 - Reviewer suggestions to keep in mind: preview payload should return both rendered markdown and structured derived metadata; validation should separate operator-fixable field errors from server-side generation failures.
 - Step 1 implementation now exposes `/api/task-authoring` metadata and `/api/task-authoring/preview` so the UI can load area defaults and request server-authored PROMPT.md/STATUS.md previews from one shared generator.
-| 2026-04-20 20:22 | Review R002 | plan Step 1: APPROVE |
+- Code review follow-up: the preview generator must emit canonical `Testing & Verification` plus `Documentation & Delivery` sections and tests must enforce those template invariants.
