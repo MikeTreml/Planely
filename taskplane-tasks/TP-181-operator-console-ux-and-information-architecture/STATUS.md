@@ -1,10 +1,10 @@
 # TP-181: Operator Console UX and Information Architecture — Status
 
-**Current Step:** Step 3: Interaction flows
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 4
+**Review Counter:** 5
 **Iteration:** 1
 **Size:** M
 
@@ -36,17 +36,17 @@
 ---
 
 ### Step 3: Interaction flows
-**Status:** 🟨 In Progress
-- [ ] Define start-batch flow
-- [ ] Define inspect-task flow
-- [ ] Define retry/skip/integrate flow
-- [ ] Define notification/history deep-link flow
-- [ ] Define guardrails
+**Status:** ✅ Complete
+- [x] Define start-batch flow
+- [x] Define inspect-task flow
+- [x] Define retry/skip/integrate flow
+- [x] Define notification/history deep-link flow
+- [x] Define guardrails
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify incremental implementation path
 - [ ] Flag required new APIs or commands
 - [ ] Log discoveries
@@ -62,6 +62,7 @@
 | 2 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 | 3 | plan | 2 | APPROVE | `.reviews/R003-plan-step2.md` |
 | 4 | plan | 3 | REVISE | `.reviews/R004-plan-step3.md` |
+| 5 | plan | 3 | APPROVE | `.reviews/R005-plan-step3.md` |
 
 ---
 
@@ -93,6 +94,11 @@
 | 2026-04-20 16:46 | Defined task detail model | Added task-scoped packet, readiness, runtime, approvals, artifact, and relationship shapes in `view-models.md`. |
 | 2026-04-20 16:47 | Defined summary and action models | Captured batch summary, recommended action, approval inbox, and shared action affordance shapes in `view-models.md`. |
 | 2026-04-20 16:47 | Defined state variants | Added explicit empty/loading/partial/error models and fallback rules for backlog, task detail, approvals, and batch summary surfaces. |
+| 2026-04-20 16:54 | Authored interaction flow spec | Defined backlog-to-live-batch launch flow, including readiness checks and no-backend fallback behavior. |
+| 2026-04-20 16:54 | Defined inspect-task flow | Documented drill-in task detail behavior, preserved parent context, and partial-data branches. |
+| 2026-04-20 16:55 | Defined corrective action flows | Specified retry, skip, and integrate confirmations tied to evidence, affordances, and backing-command honesty. |
+| 2026-04-20 16:55 | Defined deep-link flow | Added notification/message and history-entry navigation flows into task, batch, approval, and evidence destinations. |
+| 2026-04-20 16:55 | Defined guardrails | Captured destructive, high-blast-radius, navigation, and partial-data safety patterns plus explicit API prerequisites. |
 
 ---
 
@@ -114,3 +120,4 @@ IA task for the Operator Console v1 UI layer.
 | 2026-04-20 16:28 | Review R002 | plan Step 2: REVISE |
 | 2026-04-20 16:29 | Review R003 | plan Step 2: APPROVE |
 | 2026-04-20 16:32 | Review R004 | plan Step 3: REVISE |
+| 2026-04-20 16:33 | Review R005 | plan Step 3: APPROVE |
