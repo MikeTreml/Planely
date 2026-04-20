@@ -97,6 +97,8 @@
 | 2026-04-20 20:59 | Verified spec coverage | Confirmed required schema, integration, redirect/replan, and autonomy sections are present in both new docs |
 | 2026-04-20 21:00 | Logged prerequisites | Captured open implementation prerequisites for storage, linking, console surfacing, task creation, and validation |
 | 2026-04-20 21:01 | Task complete | Recovery report schema and supervisor integration specs delivered |
+| 2026-04-20 20:27 | Worker iter 1 | done in 579s, tools: 75 |
+| 2026-04-20 20:27 | Task complete | .DONE created |
 
 ---
 
