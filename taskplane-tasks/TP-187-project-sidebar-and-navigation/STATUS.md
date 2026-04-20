@@ -33,6 +33,7 @@
 - [ ] Add sidebar shell/layout
 - [ ] Render sectioned project list
 - [ ] Add project selection behavior
+- [ ] Ensure the main content area responds correctly when switching projects
 - [ ] Preserve narrower-layout usability
 
 ---
@@ -85,6 +86,7 @@
 | 2026-04-20 19:52 | Step 1 plan review | APPROVE after UX contract updates in operator-console docs |
 | 2026-04-20 19:52 | Step 1 completed | Sidebar contract documented in UX IA and view models |
 | 2026-04-20 19:52 | Step 2 started | UI implementation |
+| 2026-04-20 19:53 | Step 2 hydrated | Added explicit main-content switching outcome before UI implementation |
 
 ---
 
