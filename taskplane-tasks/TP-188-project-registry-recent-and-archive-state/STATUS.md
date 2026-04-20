@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -30,8 +30,9 @@
 ### Step 2: Storage proposal
 **Status:** 🟨 In Progress
 - [ ] Define registry file location
+- [ ] Define canonical-vs-derived storage boundaries and local scope
 - [ ] Explain coexistence with config/workspace mode
-- [ ] Define safe local-first update semantics
+- [ ] Define safe local-first update semantics, including recovery from missing/corrupt/partial files
 
 ---
 
@@ -58,6 +59,7 @@
 |---|------|------|---------|------|
 | R001 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 | R002 | Plan | 1 | APPROVE | n/a |
+| R003 | Plan | 2 | REVISE | `.reviews/R003-plan-step2.md` |
 
 ---
 
@@ -106,5 +108,7 @@ Minimum registry requirements:
 - Recent state must be derived from local usage timestamps, pruneable, and secondary to the canonical project record.
 - The registry must stay inspectable and local-first, with one canonical record store and only reproducible derived views/caches around it.
 - Reviewer suggestion noted: tie identity rules back to current root-based CLI/dashboard behavior and make “recent” explicitly derived from timestamps on the canonical project record.
+- Reviewer suggestion noted for Step 2: reuse the canonical-vs-derived storage boundary language from `planning-storage-layout.md` and explicitly layer the registry above current root/pointer behavior.
 | 2026-04-20 16:41 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 16:42 | Review R002 | plan Step 1: APPROVE |
+| 2026-04-20 16:45 | Review R003 | plan Step 2: REVISE |
