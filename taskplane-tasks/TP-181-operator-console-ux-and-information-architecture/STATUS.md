@@ -1,7 +1,7 @@
 # TP-181: Operator Console UX and Information Architecture — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 5
@@ -46,10 +46,10 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify incremental implementation path
-- [ ] Flag required new APIs or commands
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Verify incremental implementation path
+- [x] Flag required new APIs or commands
+- [x] Log discoveries
 
 ---
 
@@ -74,6 +74,8 @@
 | Current dashboard already provides reusable runtime-monitoring surfaces: header batch chrome, summary bar, supervisor panel, lanes/tasks, merge agents, runtime agents, mailbox messages, history summary, repo filter, and terminal/status viewers. | Reuse as the live-batch workspace layer in the IA. | `dashboard/public/index.html`; `dashboard/public/app.js`; `dashboard/public/style.css` |
 | Current dashboard is missing operator-planning views: backlog, task detail workspace, approvals inbox, project/workspace navigation, and explicit next-action summaries. | Specify as new v1 views layered on top of existing runtime panels. | `dashboard/public/index.html`; `docs/specifications/operator-console/*.md` |
 | Minimum v1 navigation can stay lightweight: global workspace selector/filter + primary tabs for Backlog, Live Batch, Approvals, and History, with task detail opening as a scoped drill-in from any list. | Use as the navigation skeleton in `ux-ia.md`; avoids a full frontend rewrite. | `dashboard/public/index.html`; `dashboard/public/app.js`; `docs/specifications/operator-console/ux-ia.md` |
+| The IA and flows are incremental by design: they preserve the current header/summary/live panels, reuse the viewer, and stage new tabs/drill-ins before any full action mutation work. | Verified against the new Step 1 and Step 3 docs; safe input for follow-on implementation tasks. | `docs/specifications/operator-console/ux-ia.md`; `docs/specifications/operator-console/interaction-flows.md` |
+| Follow-on implementation will need explicit dashboard-backed mutation/routing support for backlog batch launch, retry/skip/integrate actions, approval inbox aggregation, and stable notification deep-link targets. | Call out as prerequisites rather than assumed-current behavior. | `docs/specifications/operator-console/interaction-flows.md`; `docs/specifications/operator-console/view-models.md` |
 
 ---
 
@@ -99,6 +101,9 @@
 | 2026-04-20 16:55 | Defined corrective action flows | Specified retry, skip, and integrate confirmations tied to evidence, affordances, and backing-command honesty. |
 | 2026-04-20 16:55 | Defined deep-link flow | Added notification/message and history-entry navigation flows into task, batch, approval, and evidence destinations. |
 | 2026-04-20 16:55 | Defined guardrails | Captured destructive, high-blast-radius, navigation, and partial-data safety patterns plus explicit API prerequisites. |
+| 2026-04-20 16:58 | Verified incremental path | Confirmed the spec keeps the current dashboard shell and phases in new views as content states rather than a rewrite. |
+| 2026-04-20 16:58 | Flagged prerequisites | Recorded required API/command gaps for start-batch, retry/skip/integrate, approval aggregation, and deep-link routing. |
+| 2026-04-20 16:59 | Logged discoveries | STATUS discovery table now captures IA baseline, reusable dashboard surfaces, missing operator views, incremental path, and implementation prerequisites. |
 
 ---
 
