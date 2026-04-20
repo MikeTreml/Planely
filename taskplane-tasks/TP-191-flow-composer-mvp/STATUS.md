@@ -1,10 +1,10 @@
 # TP-191: Flow Composer MVP — Status
 
-**Current Step:** Step 2: Block model
+**Current Step:** Step 3: Compile/execution model
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -27,16 +27,16 @@
 ---
 
 ### Step 2: Block model
-**Status:** 🟨 In Progress
-- [ ] Define primitive blocks
-- [ ] Define control/container blocks
-- [ ] Define metadata and validation rules
-- [ ] Mark v1 vs deferred blocks
+**Status:** ✅ Complete
+- [x] Define primitive blocks
+- [x] Define control/container blocks
+- [x] Define metadata and validation rules
+- [x] Mark v1 vs deferred blocks
 
 ---
 
 ### Step 3: Compile/execution model
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define visual-flow to Taskplane mapping
 - [ ] Define representation/compile format
 - [ ] Define safe loop and parallel semantics
@@ -92,3 +92,4 @@ Preflight fit summary:
 - Clean fit today: template-driven flow setup, bounded block composition, human approvals, and multi-agent execution that compiles down to existing task packets, orchestrator plans, waves/lanes, and review boundaries.
 - Needs deferral: arbitrary canvas automation, runtime-mutating scripts, unconstrained branching, dynamic fan-out loops, and any model where the UI becomes a second execution scheduler or state authority.
 | 2026-04-20 19:14 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 19:16 | Review R002 | plan Step 2: APPROVE |
