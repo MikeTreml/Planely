@@ -143,3 +143,74 @@ Escalate from task-level recovery to batch-level action when one or more of thes
 - repeated retries on different packets fail without changing the underlying evidence,
 - supervisor summaries or diagnostics implicate shared runtime, merge, repo-state, or config conditions,
 - operators can no longer trust whether failures are local or systemic.
+
+## One-Time Repair vs Systemic Fix
+
+### Recommend a **one-time repair** when
+- the evidence is local to one packet, one lane, or one concrete implementation defect,
+- the fix restores progress without changing shared policy, templates, docs, or runtime behavior,
+- similar incidents are not yet appearing across other tasks,
+- the recommendation can be phrased as a bounded action on the current run.
+
+Examples:
+- refresh one stale lane checkout and rerun,
+- fix the incorrect implementation and rerun targeted tests,
+- correct one misresolved config path for the current packet,
+- repair a single stale packet reference and restage the task.
+
+### Recommend a **systemic fix** when
+- the same failure class appears across multiple tasks or batches,
+- the incident exposes weak packet templates, missing guardrails, stale docs, or runtime policy gaps,
+- local repair would restore one task but leave the broader failure mode intact,
+- the correct long-term owner is a maintainer, supervisor policy change, or documentation/process task.
+
+Examples:
+- add preflight checks for incomplete lane snapshots,
+- improve merge verification rules after repeated path-assumption failures,
+- update packet authoring guidance for stale doc grounding,
+- create runtime diagnostics or dashboard affordances for recurring repo-state incidents.
+
+## Follow-Up Guidance and New-Packet Examples
+
+When recommending a systemic fix, include both:
+1. the immediate action for the current incident,
+2. the follow-up work that should exist outside the current packet.
+
+### Propose a new task packet instead of recovering the current one when
+- the current packet assumes missing or stale source material and needs fresh grounding,
+- repo repair, documentation repair, and implementation should be independently reviewable,
+- the failure reveals a durable product or policy gap rather than a local execution miss,
+- continuing the current packet would hide whether the real work is repair, design, or implementation.
+
+### Representative examples
+- **Stale architecture doc cited by packet** → stop current packet, create a documentation repair or packet-refresh task, then restage implementation against corrected references.
+- **Missing snapshot files across multiple lanes** → repair the snapshot/worktree process, then create a follow-up hardening task for preflight validation rather than asking each blocked packet to improvise.
+- **Repeated merge verification path mismatch** → handle the current integration failure, then create a separate task to harden merge verification assumptions and diagnostics.
+- **Packet bundles repo hygiene plus feature delivery** → split into a repo-repair packet and a feature packet so success or failure is attributable and reviewable.
+
+## Expected Recommendation Shape
+
+Each recommendation should use a consistent structure:
+
+1. **Classification** — primary failure class plus competing classes if ambiguity remains.
+2. **Confidence** — high / medium / low with a short reason.
+3. **Observed evidence** — concrete artifacts, logs, tests, packet references, or diagnostics.
+4. **Immediate action** — retry, retry-after-fix, skip, split-task, redirect, replan, pause, abort, or restart.
+5. **Owner** — worker, supervisor, operator, maintainer, or packet author.
+6. **Why not the alternatives** — especially why blind retry is unsafe or low value.
+7. **One-time repair** — optional bounded fix for the current incident.
+8. **Recurring-fix recommendation** — optional follow-up task or policy/doc/runtime hardening item.
+9. **Do-not-proceed flag** — explicit when the current packet should not continue unchanged.
+
+### Example template
+
+```md
+- Classification: repo-state issue (medium confidence; stale-doc mismatch still possible)
+- Observed evidence: supervisor summary shows prompt-scoped files absent from lane snapshot; packet references files expected to pre-exist
+- Immediate action: retry after fix
+- Owner: supervisor/operator
+- One-time repair: refresh lane checkout and verify missing files against canonical repo before rerun
+- Recurring-fix recommendation: create a follow-up task for snapshot integrity preflight checks
+- Why not plain retry: rerunning unchanged would reuse the same incomplete tree
+- Do not proceed unchanged: yes, until tree integrity is restored
+```

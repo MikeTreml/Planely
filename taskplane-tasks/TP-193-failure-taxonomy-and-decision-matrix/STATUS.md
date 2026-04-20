@@ -1,10 +1,10 @@
 # TP-193: Failure Taxonomy and Decision Matrix — Status
 
-**Current Step:** Step 2: Decision matrix
+**Current Step:** Step 3: One-time vs recurring fixes
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -37,10 +37,10 @@
 ---
 
 ### Step 3: One-time vs recurring fixes
-**Status:** ⬜ Not Started
-- [ ] Distinguish temporary vs systemic fixes
-- [ ] Add examples and follow-up guidance
-- [ ] Define expected recommendation shape
+**Status:** ✅ Complete
+- [x] Distinguish temporary vs systemic fixes
+- [x] Add examples and follow-up guidance
+- [x] Define expected recommendation shape
 
 ---
 
@@ -88,6 +88,10 @@
 | 2026-04-20 19:40 | Skip and split guidance added | Added explicit rules for when to skip a packet with justification versus splitting repair/grounding work from later implementation work. |
 | 2026-04-20 19:41 | Doc-drift handling added | Added separate decision rules for archiving/reviewing stale docs/specs versus replanning packets whose scope or ownership is wrong even when the source material is current. |
 | 2026-04-20 19:43 | Batch escalation guidance added | Added pause/abort/restart triggers and escalation thresholds so repeated shared failures do not stay trapped inside task-level retry loops. |
+| 2026-04-20 19:44 | Step 3 started | One-time vs recurring fixes |
+| 2026-04-20 19:46 | One-time vs systemic distinction added | Added decision rules distinguishing local run repairs from recurring failure patterns that should trigger policy, template, documentation, or runtime follow-up work. |
+| 2026-04-20 19:48 | Follow-up examples added | Added examples and guidance for when to open a new repair/hardening packet instead of trying to recover the current packet in place. |
+| 2026-04-20 19:49 | Recommendation contract added | Added a consistent output shape with classification, confidence, evidence, action, owner, one-time repair, recurring-fix recommendation, and do-not-proceed signaling. |
 
 ---
 
@@ -104,3 +108,4 @@ Defines the evidence-driven recovery classification system for future helpdesk b
 - Concrete evidence examples gathered for the taxonomy: `.pi/supervisor/treml-20260419T215723-summary.md` documents blocked workers caused by prompt-scoped files absent from the repo snapshot; `.pi/diagnostics/treml-20260420T094622-report.md` shows a failed task within an otherwise successful batch; TP-192 notes cite post-merge verification mismatches such as `extensions dir not found` and stale docs/spec assumptions.
 - R002 suggestion: keep Step 2 matrix branches keyed to observable signals and include escalation thresholds where repeated task-level failures should trigger batch-level intervention.
 | 2026-04-20 19:17 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 19:20 | Review R004 | plan Step 3: APPROVE |
