@@ -55,7 +55,10 @@
       <!-- Backlog -->
       <div class="panel backlog-panel" id="backlog-panel">
         <div class="panel-header backlog-panel-header">
-          <span>Backlog</span>
+          <div class="backlog-header-copy">
+            <span>Backlog</span>
+            <div class="backlog-scope-line" id="backlog-scope-line">Loading backlog…</div>
+          </div>
           <div class="backlog-header-controls">
             <input class="backlog-search" id="backlog-search" type="search" placeholder="Search tasks" aria-label="Search backlog tasks">
             <select class="backlog-filter-select" id="backlog-status-filter" aria-label="Filter backlog by status">
@@ -68,6 +71,7 @@
               <option value="failed">Failed</option>
               <option value="stalled">Stalled</option>
             </select>
+            <button class="backlog-clear-btn" id="backlog-clear-filters" type="button">Clear</button>
           </div>
         </div>
         <div class="panel-body backlog-panel-body" id="backlog-body"></div>

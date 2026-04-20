@@ -510,20 +510,51 @@ body {
   gap: 12px;
 }
 
+.backlog-header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.backlog-scope-line {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
 .backlog-header-controls {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .backlog-search,
-.backlog-filter-select {
+.backlog-filter-select,
+.backlog-clear-btn {
   background: var(--bg-inset);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 10px;
   padding: 6px 10px;
   font-size: 0.78rem;
+}
+
+.backlog-clear-btn {
+  cursor: pointer;
+}
+
+.backlog-clear-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.backlog-clear-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+  border-color: var(--border);
+  color: var(--text-muted);
 }
 
 .backlog-panel-body {
@@ -544,6 +575,14 @@ body {
   padding: 12px 14px;
   margin-bottom: 12px;
   color: var(--text-muted);
+}
+
+.backlog-state.state-partial {
+  border-color: var(--yellow);
+}
+
+.backlog-state.state-error {
+  border-color: var(--red);
 }
 
 .backlog-state-title {
@@ -571,6 +610,13 @@ body {
   padding: 14px;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.backlog-card:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface-hover);
+  transform: translateY(-1px);
 }
 
 .backlog-card.selected {
@@ -630,6 +676,24 @@ body {
   flex-wrap: wrap;
 }
 
+.backlog-card-pill,
+.backlog-status-chip,
+.backlog-selection-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.backlog-card-pill {
+  background: var(--accent-tint-bg);
+  color: var(--accent);
+}
+
 .backlog-status-chip {
   display: inline-flex;
   align-items: center;
@@ -639,6 +703,11 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.backlog-selection-badge {
+  background: var(--yellow-tint-active);
+  color: var(--yellow);
 }
 
 .backlog-status-chip.status-ready,
@@ -672,17 +741,26 @@ body {
   padding-top: 14px;
 }
 
+.backlog-selection-header,
+.backlog-selection-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .backlog-selection-title {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 10px;
 }
 
 .backlog-selection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px 14px;
+  margin-top: 10px;
 }
 
 .backlog-selection-grid .label {

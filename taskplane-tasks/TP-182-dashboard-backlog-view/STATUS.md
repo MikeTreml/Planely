@@ -1,11 +1,11 @@
 # TP-182: Dashboard Backlog View — Status
 
-**Current Step:** Step 3: Frontend implementation
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
 **Review Counter:** 14
-**Iteration:** 1
+**Iteration:** 2
 **Size:** L
 
 ---
@@ -45,18 +45,18 @@
 ---
 
 ### Step 3: Frontend implementation
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Integrate backlog into dashboard shell/view state
-- [ ] Add backlog panel/view
-- [ ] Render rows/cards and selection behavior
-- [ ] Add lightweight filtering/search affordances
-- [ ] Render backlog empty/partial/error and scope states
-- [ ] Preserve existing dashboard usability
+- [x] Add backlog panel/view
+- [x] Render rows/cards and selection behavior
+- [x] Add lightweight filtering/search affordances
+- [x] Render backlog empty/partial/error and scope states
+- [x] Preserve existing dashboard usability
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Test empty/mixed/workspace states
 - [ ] Perform manual smoke verification
 - [ ] Update docs if shipped
@@ -116,8 +116,11 @@
 | 2026-04-20 18:27 | Review fix 8 applied | Workspace repo discovery now treats JSON config as authoritative over legacy workspace YAML, with a regression test for pointer scope precedence when both files exist. |
 | 2026-04-20 18:35 | Review fix 9 applied | Backlog task-area scanning now resolves relative to the config source root, and pointer tests cover the canonical polyrepo layout where packets live beside the pointed config repo. |
 | 2026-04-20 18:49 | Frontend shell integration added | Added primary Backlog/Live Batch view tabs plus view-state syncing so the dashboard defaults to Backlog without an active batch and supports one-click switching when a batch is running. |
+| 2026-04-20 19:05 | Backlog UI completed | Added backlog scope header, clearable filters, richer empty/partial/error messaging, selectable task detail scaffolding, and no-batch summary bar updates while preserving live-batch panels. |
+| 2026-04-20 19:07 | Targeted backlog tests passed | Passed `dashboard-backlog-ui`, `dashboard-backlog-contract`, and `dashboard-backlog-load` targeted Node tests after the frontend implementation changes. |
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
+| 2026-04-20 17:36 | Worker iter 1 | done in 3461s, tools: 220 |
 
 ---
 
