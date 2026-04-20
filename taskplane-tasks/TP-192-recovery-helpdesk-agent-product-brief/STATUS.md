@@ -1,10 +1,10 @@
 # TP-192: Recovery / Helpdesk Agent Product Brief — Status
 
-**Current Step:** Step 1: Problem framing
+**Current Step:** Step 2: Product shape and boundaries
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -19,10 +19,10 @@
 ---
 
 ### Step 1: Problem framing
-**Status:** ⬜ Not Started
-- [ ] Define the problem statement
-- [ ] Define target users and failure classes
-- [ ] Explain why diagnostic-first behavior is required
+**Status:** ✅ Complete
+- [x] Define the problem statement
+- [x] Define target users and failure classes
+- [x] Explain why diagnostic-first behavior is required
 
 ---
 
@@ -85,3 +85,4 @@ Initial framing task for a bounded Recovery / Helpdesk Agent.
 - Preflight: Operator Console framing establishes Taskplane as execution authority and the supervisor as the runtime oversight layer for live batches, approvals, recovery timeline, and operator-safe actions.
 - Preflight: Proposed helpdesk role should be a consulted diagnostic specialist distinct from workers (implement), reviewers (evaluate), and supervisors (coordinate/orchestrate); it recommends recovery paths but does not replace batch control or task execution.
 - Preflight: Recent failure patterns include stale or incomplete lane checkouts, repo-state mismatches between packet assumptions and worktree reality, post-merge verification mismatches (for example `extensions dir not found`), and stale docs/spec assumptions; these cases often require redirect, packet edits, repo repair, or replanning instead of blind retry.
+| 2026-04-20 16:57 | Review R001 | plan Step 1: APPROVE |
