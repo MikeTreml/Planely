@@ -1,10 +1,10 @@
 # TP-182: Dashboard Backlog View — Status
 
-**Current Step:** Step 2: Server implementation
+**Current Step:** Step 1: Backlog data contract
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** L
 
@@ -19,16 +19,18 @@
 ---
 
 ### Step 1: Backlog data contract
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Define backlog row shape
 - [x] Map canonical states to backlog statuses
 - [x] Include task-detail navigation metadata
 - [x] Add server-side shaping tests
+- [ ] Treat activeTask.status = succeeded as backlog completion
+- [ ] Keep non-batch in-progress packets from claiming active-batch waiting
 
 ---
 
 ### Step 2: Server implementation
-**Status:** 🟨 In Progress
+**Status:** ⬜ Not Started
 - [ ] Add backlog loading/shaping
 - [ ] Expose backlog payload to frontend
 - [ ] Handle workspace and malformed-task cases
@@ -56,6 +58,8 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
+| R002 | code | 1 | REVISE | `.reviews/R002-code-step1.md` |
 
 ---
 
@@ -99,3 +103,4 @@ Preflight decisions:
 - Reuse live batch data for running/in-batch status and batch history for recent completion/activity hints.
 - Prefer additive payload expansion on `/api/state`/SSE so the frontend can switch tabs without stitching multiple independent requests.
 | 2026-04-20 16:42 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 16:48 | Review R002 | code Step 1: REVISE |
