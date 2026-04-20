@@ -1,9 +1,12 @@
 # Use the Dashboard
 
 Taskplane includes a web dashboard for monitoring orchestration in real time.
+It now opens with a backlog-first operator view when no batch is active, while
+preserving the existing live batch workspace during execution.
 
 ## What it shows
 
+- backlog discovery outside active batches, with readiness/status cards and lightweight filters
 - batch phase and summary counters
 - wave/lane progress
 - task-level status and checkbox progress (from `STATUS.md`)
@@ -59,6 +62,10 @@ Inside pi:
 
 Dashboard updates live while orchestration runs.
 
+When no batch is active, the dashboard lands on **Backlog** and keeps batch
+history available as secondary context. When a batch is active, it defaults to
+**Live Batch** with one-click switching back to Backlog.
+
 ---
 
 ## Supervisor panel
@@ -102,12 +109,14 @@ dashboard automatically shows repo-aware features:
 - **Repo filter dropdown** lets you focus on a single repository
 - **Merge outcomes** are grouped per repo, showing individual branch/status details
 
-These features activate when the batch is in workspace mode and involves 2+
-distinct repositories. For single-repo batches, the dashboard looks and
-behaves exactly as before — no extra clutter.
+These features activate when multiple repositories are in scope. The same repo
+filter applies to both **Backlog** and **Live Batch**, so you can narrow cards
+and task rows consistently without changing the underlying workspace scope.
+For single-repo runs, the dashboard looks and behaves exactly as before — no
+extra clutter.
 
-The summary bar and footer always show global batch progress regardless of
-any active repo filter.
+The summary bar and footer always show global batch or backlog totals regardless
+of any active repo filter.
 
 ---
 

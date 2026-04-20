@@ -1,10 +1,10 @@
 # TP-182: Dashboard Backlog View — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 15
+**Review Counter:** 16
 **Iteration:** 2
 **Size:** L
 
@@ -57,11 +57,11 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Test empty/mixed/workspace states
-- [ ] Perform manual smoke verification
-- [ ] Update docs if shipped
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Test empty/mixed/workspace states
+- [x] Perform manual smoke verification
+- [x] Update docs if shipped
+- [x] Log discoveries
 
 ---
 
@@ -81,6 +81,7 @@
 | R010 | code | 2 | REVISE | `.reviews/R010-code-step2.md` |
 | R011 | code | 2 | REVISE | `.reviews/R011-code-step2.md` |
 | R015 | code | 3 | REVISE | `.reviews/R015-code-step3.md` |
+| R016 | code | 3 | APPROVE | `.reviews/R016-code-step3.md` |
 
 ---
 
@@ -88,6 +89,7 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Backlog task inspection currently reuses the live-batch STATUS viewer path, so non-batch tasks need a dedicated backlog-aware detail endpoint before the button can become universally available. | Follow-up gap noted; current UI degrades to a hint outside active batch membership. | `dashboard/public/app.js`, `dashboard/server.cjs` |
 
 ---
 
@@ -121,6 +123,9 @@
 | 2026-04-20 19:05 | Backlog UI completed | Added backlog scope header, clearable filters, richer empty/partial/error messaging, selectable task detail scaffolding, and no-batch summary bar updates while preserving live-batch panels. |
 | 2026-04-20 19:07 | Targeted backlog tests passed | Passed `dashboard-backlog-ui`, `dashboard-backlog-contract`, and `dashboard-backlog-load` targeted Node tests after the frontend implementation changes. |
 | 2026-04-20 19:14 | Review fix 10 applied | Backlog selection now only exposes `View STATUS.md` for tasks present in the active batch and otherwise shows a non-broken hint, with targeted UI/contract/load tests still passing. |
+| 2026-04-20 19:16 | Dashboard smoke verified | Launched `taskplane dashboard --no-open --port 8137`, fetched `/` and `/api/state`, and confirmed the backlog payload rendered without an active batch (`backlogTotal=194`, `loadState=ready`). |
+| 2026-04-20 19:18 | Dashboard docs updated | Documented the backlog-first idle view, Backlog/Live Batch switching, and shared repo-filter behavior in `docs/tutorials/use-the-dashboard.md` and README dashboard copy. |
+| 2026-04-20 19:23 | Full extension suite passed | Ran `cd extensions && npm ci` to restore the declared `yaml` dependency, then passed the full Node test suite (`tests/*.test.ts`). |
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 | 2026-04-20 17:36 | Worker iter 1 | done in 3461s, tools: 220 |
@@ -157,3 +162,4 @@ Preflight decisions:
 | 2026-04-20 17:29 | Review R013 | plan Step 3: REVISE |
 | 2026-04-20 17:30 | Review R014 | plan Step 3: APPROVE |
 | 2026-04-20 17:44 | Review R015 | code Step 3: REVISE |
+| 2026-04-20 17:47 | Review R016 | code Step 3: APPROVE |

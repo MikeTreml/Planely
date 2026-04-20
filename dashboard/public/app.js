@@ -536,26 +536,30 @@ function renderHeader(batch) {
 
 // ─── Render: Summary ────────────────────────────────────────────────────────
 
+function renderBacklogSummary(backlog) {
+  const summary = backlog?.summary || {};
+  const total = summary.total || 0;
+  const ready = summary.ready || 0;
+  const running = summary.running || 0;
+  const blocked = summary.blocked || 0;
+  const done = summary.succeeded || 0;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  $progressBarBg.innerHTML = `<div class="wave-seg wave-seg-current" style="width:100%" title="Backlog completion"><div class="wave-seg-fill ${pct >= 100 ? "pct-hi" : pct > 50 ? "pct-mid" : pct > 0 ? "pct-low" : "pct-0"}" style="width:${pct}%"></div><span class="wave-seg-label">Backlog</span></div>`;
+  $overallPct.textContent = `${pct}%`;
+  $summaryCounts.innerHTML = `
+    <span class="count-chip count-succeeded"><span class="count-num">${ready}</span><span class="count-icon">✓ ready</span></span>
+    <span class="count-chip count-running"><span class="count-num">${running}</span><span class="count-icon">▶ active</span></span>
+    <span class="count-chip count-stalled"><span class="count-num">${blocked}</span><span class="count-icon">⏸ blocked</span></span>
+    <span class="count-chip count-pending"><span class="count-num">${done}</span><span class="count-icon">◎ done</span></span>
+    <span class="count-total">/ ${total}</span>`;
+  const scopeMode = backlog?.scope?.mode === "workspace" ? "workspace" : "repo";
+  $summaryElapsed.textContent = `${scopeMode} view · ${backlog?.scope?.taskAreaCount || 0} task area${(backlog?.scope?.taskAreaCount || 0) === 1 ? "" : "s"}`;
+  $summaryWaves.innerHTML = `<span class="wave-chip">Backlog</span>${historyList.length > 0 ? `<span class="wave-chip">${historyList.length} history</span>` : ""}`;
+}
+
 function renderSummary(batch, backlog) {
   if (!batch) {
-    const summary = backlog?.summary || {};
-    const total = summary.total || 0;
-    const ready = summary.ready || 0;
-    const running = summary.running || 0;
-    const blocked = summary.blocked || 0;
-    const done = summary.succeeded || 0;
-    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-    $progressBarBg.innerHTML = `<div class="wave-seg wave-seg-current" style="width:100%" title="Backlog completion"><div class="wave-seg-fill ${pct >= 100 ? "pct-hi" : pct > 50 ? "pct-mid" : pct > 0 ? "pct-low" : "pct-0"}" style="width:${pct}%"></div><span class="wave-seg-label">Backlog</span></div>`;
-    $overallPct.textContent = `${pct}%`;
-    $summaryCounts.innerHTML = `
-      <span class="count-chip count-succeeded"><span class="count-num">${ready}</span><span class="count-icon">✓ ready</span></span>
-      <span class="count-chip count-running"><span class="count-num">${running}</span><span class="count-icon">▶ active</span></span>
-      <span class="count-chip count-stalled"><span class="count-num">${blocked}</span><span class="count-icon">⏸ blocked</span></span>
-      <span class="count-chip count-pending"><span class="count-num">${done}</span><span class="count-icon">◎ done</span></span>
-      <span class="count-total">/ ${total}</span>`;
-    const scopeMode = backlog?.scope?.mode === "workspace" ? "workspace" : "repo";
-    $summaryElapsed.textContent = `${scopeMode} view · ${backlog?.scope?.taskAreaCount || 0} task area${(backlog?.scope?.taskAreaCount || 0) === 1 ? "" : "s"}`;
-    $summaryWaves.innerHTML = `<span class="wave-chip">Backlog</span>${historyList.length > 0 ? `<span class="wave-chip">${historyList.length} history</span>` : ""}`;
+    renderBacklogSummary(backlog);
     return;
   }
 
