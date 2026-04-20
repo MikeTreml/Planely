@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 13
+**Review Counter:** 14
 **Iteration:** 1
 **Size:** L
 
@@ -46,7 +46,7 @@
 
 ### Step 3: Frontend implementation
 **Status:** 🟨 In Progress
-- [ ] Integrate backlog into dashboard shell/view state
+- [x] Integrate backlog into dashboard shell/view state
 - [ ] Add backlog panel/view
 - [ ] Render rows/cards and selection behavior
 - [ ] Add lightweight filtering/search affordances
@@ -115,6 +115,7 @@
 | 2026-04-20 18:19 | Review fix 7 applied | Backlog scope now infers workspace mode from config-backed repo context when idle, and tests verify workspace mode/repo metadata remain present without an active batch. |
 | 2026-04-20 18:27 | Review fix 8 applied | Workspace repo discovery now treats JSON config as authoritative over legacy workspace YAML, with a regression test for pointer scope precedence when both files exist. |
 | 2026-04-20 18:35 | Review fix 9 applied | Backlog task-area scanning now resolves relative to the config source root, and pointer tests cover the canonical polyrepo layout where packets live beside the pointed config repo. |
+| 2026-04-20 18:49 | Frontend shell integration added | Added primary Backlog/Live Batch view tabs plus view-state syncing so the dashboard defaults to Backlog without an active batch and supports one-click switching when a batch is running. |
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 
@@ -147,3 +148,4 @@ Preflight decisions:
 | 2026-04-20 17:23 | Review R011 | code Step 2: REVISE |
 | 2026-04-20 17:27 | Review R012 | code Step 2: APPROVE |
 | 2026-04-20 17:29 | Review R013 | plan Step 3: REVISE |
+| 2026-04-20 17:30 | Review R014 | plan Step 3: APPROVE |

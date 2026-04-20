@@ -431,6 +431,34 @@ body {
 
 /* ─── Content ──────────────────────────────────────────────────────────── */
 
+.view-nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.view-tab {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-tab.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--bg-inset);
+}
+
+.view-tab:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .content {
   display: flex;
   flex-direction: column;
@@ -471,6 +499,196 @@ body {
   text-align: center;
   color: var(--text-faint);
   font-size: 0.85rem;
+}
+
+/* ─── Backlog ──────────────────────────────────────────────────────────── */
+
+.backlog-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.backlog-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backlog-search,
+.backlog-filter-select {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.backlog-panel-body {
+  padding: 14px;
+}
+
+.backlog-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.backlog-state {
+  border: 1px solid var(--border);
+  background: var(--bg-inset);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+.backlog-state-title {
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.backlog-state-meta {
+  margin-top: 6px;
+  font-size: 0.78rem;
+}
+
+.backlog-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.backlog-card {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: inherit;
+  border-radius: 14px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.backlog-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-tint-subtle) inset;
+}
+
+.backlog-card-top,
+.backlog-card-title-row,
+.backlog-card-footer,
+.backlog-selection-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.backlog-card-top {
+  align-items: flex-start;
+}
+
+.backlog-card-title-row {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.backlog-card-id,
+.backlog-card-area,
+.backlog-selection-grid .mono,
+.backlog-selection-grid .label {
+  font-family: var(--font-mono);
+}
+
+.backlog-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.backlog-card-summary,
+.backlog-card-meta,
+.backlog-card-footer,
+.backlog-selection-note,
+.backlog-selection-grid {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.backlog-card-summary {
+  margin: 10px 0 8px;
+  color: var(--text);
+}
+
+.backlog-card-footer {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.backlog-status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.backlog-status-chip.status-ready,
+.backlog-status-chip.status-succeeded {
+  background: var(--badge-succeeded-bg);
+  color: var(--green);
+}
+
+.backlog-status-chip.status-blocked,
+.backlog-status-chip.status-stalled,
+.backlog-status-chip.status-skipped {
+  background: var(--badge-stalled-bg);
+  color: var(--yellow);
+}
+
+.backlog-status-chip.status-running,
+.backlog-status-chip.status-waiting {
+  background: var(--badge-running-bg);
+  color: var(--accent);
+}
+
+.backlog-status-chip.status-failed,
+.backlog-status-chip.status-unknown {
+  background: var(--badge-failed-bg);
+  color: var(--red);
+}
+
+.backlog-selection-card {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.backlog-selection-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.backlog-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px 14px;
+}
+
+.backlog-selection-grid .label {
+  display: block;
+  color: var(--text-faint);
+  margin-bottom: 2px;
 }
 
 /* ─── Lane Group (lane header + nested task rows) ──────────────────────── */

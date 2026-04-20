@@ -43,8 +43,35 @@
       <div class="summary-waves" id="summary-waves"></div>
     </div>
 
+    <!-- Primary Navigation -->
+    <nav class="view-nav" id="view-nav" aria-label="Primary views">
+      <button class="view-tab active" id="view-tab-backlog" data-view="backlog" type="button">Backlog</button>
+      <button class="view-tab" id="view-tab-live" data-view="live" type="button">Live Batch</button>
+    </nav>
+
     <!-- Content -->
     <div class="content" id="content">
+
+      <!-- Backlog -->
+      <div class="panel backlog-panel" id="backlog-panel">
+        <div class="panel-header backlog-panel-header">
+          <span>Backlog</span>
+          <div class="backlog-header-controls">
+            <input class="backlog-search" id="backlog-search" type="search" placeholder="Search tasks" aria-label="Search backlog tasks">
+            <select class="backlog-filter-select" id="backlog-status-filter" aria-label="Filter backlog by status">
+              <option value="">All statuses</option>
+              <option value="ready">Ready</option>
+              <option value="blocked">Blocked</option>
+              <option value="running">Running</option>
+              <option value="waiting">Waiting</option>
+              <option value="succeeded">Done</option>
+              <option value="failed">Failed</option>
+              <option value="stalled">Stalled</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body backlog-panel-body" id="backlog-body"></div>
+      </div>
 
       <!-- Batch History Summary (shown when no live batch or viewing history) -->
       <div class="panel history-panel" id="history-panel" style="display:none;">
