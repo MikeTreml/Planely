@@ -36,7 +36,7 @@
 
 ### Step 3: Frontend/server implementation
 **Status:** 🟨 In Progress
-- [ ] Align start-action gating with /orch phase semantics and add boundary tests (R004)
+- [x] Align start-action gating with /orch phase semantics and add boundary tests (R004)
 - [ ] Implement action UI affordances
 - [ ] Implement minimal server support
 - [ ] Handle disabled/error/unsupported states
@@ -85,6 +85,7 @@
 | 2026-04-20 20:15 | State-aware availability shipped | Action contracts now disable launch during active batches, gate recovery on paused/stopped phases, and expose integrate only for completed batches |
 | 2026-04-20 20:15 | Step 2 completed | Operator action contract and gating metadata added |
 | 2026-04-20 20:15 | Step 3 started | Frontend/server implementation |
+| 2026-04-20 20:20 | R004 fixed | Start-action gating now mirrors busy-phase rules and tests cover completed/failed/stopped vs launching/executing |
 
 ---
 

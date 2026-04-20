@@ -1977,7 +1977,7 @@ function buildTaskActionContract(item, batchState) {
   const hasBatch = Boolean(batchState?.batchId);
   const promptPath = item?.navigation?.promptPath || item?.promptPath || null;
 
-  const startReason = hasBatch
+  const startReason = busy
     ? `Batch ${batchState.batchId} is ${batchState.phase}`
     : (!item?.readiness?.isReady
       ? (item?.status?.reason || "Task is not ready")

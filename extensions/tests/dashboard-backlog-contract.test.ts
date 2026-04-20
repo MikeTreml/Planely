@@ -150,6 +150,40 @@ describe("TP-182 dashboard backlog contract", () => {
 		expect(item.actions.retry.invokeMode).toBe("copy");
 	});
 
+	it("keeps start enabled for completed/failed/stopped batches but blocks active phases", () => {
+		const packet = {
+			taskId: "TP-104",
+			title: "Runnable task",
+			summary: "Ready to start",
+			area: "general",
+			repoId: "planely",
+			taskFolder: "taskplane-tasks/TP-104-runnable-task",
+			promptPath: "taskplane-tasks/TP-104-runnable-task/PROMPT.md",
+			statusPath: "taskplane-tasks/TP-104-runnable-task/STATUS.md",
+			dependencies: [],
+			statusData: { status: "⬜ Not Started", reviews: 0 },
+		};
+
+		for (const phase of ["completed", "failed", "stopped"]) {
+			const item = buildBacklogItem(packet, {
+				completedDependencies: [],
+				blockedDependencies: [],
+				batchState: { batchId: "batch-10", phase },
+			});
+			expect(item.actions.start.enabled).toBe(true);
+		}
+
+		for (const phase of ["launching", "executing"]) {
+			const item = buildBacklogItem(packet, {
+				completedDependencies: [],
+				blockedDependencies: [],
+				batchState: { batchId: "batch-11", phase },
+			});
+			expect(item.actions.start.enabled).toBe(false);
+			expect(item.actions.start.reason).toContain(phase);
+		}
+	});
+
 	it("disables integrate until the batch is completed", () => {
 		const running = buildBatchActionContract({ batchId: "batch-9", phase: "executing" });
 		const completed = buildBatchActionContract({ batchId: "batch-9", phase: "completed" });
