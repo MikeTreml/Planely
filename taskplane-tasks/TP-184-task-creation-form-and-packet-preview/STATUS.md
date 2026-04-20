@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** L
 
@@ -22,6 +22,7 @@
 **Status:** 🟨 In Progress
 - [ ] Define form and preview shapes
 - [ ] Define validation rules
+- [ ] Define complexity assessment contract
 - [ ] Preserve packet compatibility
 
 ---
@@ -74,6 +75,7 @@
 | 2026-04-20 20:18 | Step 0 started | Preflight |
 | 2026-04-20 20:24 | Step 0 completed | Packet inputs, preview/write approach, and safety rules scoped |
 | 2026-04-20 20:24 | Step 1 started | Creation data model and preview contract |
+| 2026-04-20 20:25 | Review R001 | plan Step 1 returned REVISE; complexity rubric contract missing |
 
 ---
 
@@ -88,6 +90,7 @@
 Brings structured task authoring into the Operator Console.
 
 Preflight findings:
-- Minimum authoring inputs should cover area, title, mission, size, review level, optional dependencies, optional context refs, and optional file scope; server can derive task ID, folder slug, timestamps, score labels, canonical paths, and initial STATUS scaffolding.
+- Minimum authoring inputs should cover area, title, mission, size, explicit complexity rubric inputs (blast radius, pattern novelty, security, reversibility), optional override review level notes if needed, optional dependencies, optional context refs, and optional file scope; server can derive task ID, folder slug, timestamps, assessment prose, score breakdown, canonical paths, and initial STATUS scaffolding.
 - Preview/write should be server-authored from a shared generator so the dashboard does not fork packet formatting; client submits form data, server returns rendered PROMPT.md/STATUS.md preview plus derived task metadata, then a confirmed write uses the same generation path.
 - Safety rules should include reading area config from `.pi/taskplane-config.json`, reserving the current `Next Task ID` from `CONTEXT.md`, rejecting duplicate task IDs/folder names, creating the new folder only when absent, writing canonical files explicitly, and updating `Next Task ID` only after successful packet creation.
+- Reviewer suggestions to keep in mind: preview payload should return both rendered markdown and structured derived metadata; validation should separate operator-fixable field errors from server-side generation failures.
