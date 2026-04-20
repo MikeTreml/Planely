@@ -1402,15 +1402,17 @@ function parseWorkspaceReposYaml(raw) {
 function loadDashboardWorkspaceRepos() {
   const repos = {};
   const workspaceJson = readDashboardJsonConfig(REPO_ROOT);
-  const rawJsonRepos = workspaceJson?.workspace?.repos;
-  if (rawJsonRepos && typeof rawJsonRepos === "object") {
-    for (const [repoId, repo] of Object.entries(rawJsonRepos)) {
-      if (!repo || typeof repo !== "object") continue;
-      if (typeof repo.path !== "string" || !repo.path.trim()) continue;
-      repos[repoId] = { path: path.resolve(REPO_ROOT, repo.path.trim()) };
+  if (workspaceJson) {
+    const rawJsonRepos = workspaceJson?.workspace?.repos;
+    if (rawJsonRepos && typeof rawJsonRepos === "object") {
+      for (const [repoId, repo] of Object.entries(rawJsonRepos)) {
+        if (!repo || typeof repo !== "object") continue;
+        if (typeof repo.path !== "string" || !repo.path.trim()) continue;
+        repos[repoId] = { path: path.resolve(REPO_ROOT, repo.path.trim()) };
+      }
     }
+    return repos;
   }
-  if (Object.keys(repos).length > 0) return repos;
 
   const workspaceConfigCandidates = [
     path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),

@@ -305,6 +305,73 @@ describe("TP-182 dashboard backlog loading", () => {
 		}
 	});
 
+	it("treats JSON workspace metadata as authoritative over legacy workspace YAML", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-182-backlog-ws-precedence-"));
+		try {
+			const configRepo = join(root, "config-repo");
+			mkdirSync(join(root, ".pi"), { recursive: true });
+			mkdirSync(join(configRepo, ".taskplane"), { recursive: true });
+			writeFileSync(join(root, ".pi", "taskplane-config.json"), JSON.stringify({
+				workspace: { repos: {}, routing: { defaultRepo: "config" } },
+			}, null, 2));
+			writeFileSync(join(root, ".pi", "taskplane-workspace.yaml"), [
+				"repos:",
+				"  config:",
+				`    path: ${configRepo.replace(/\\/g, "/")}`,
+				"routing:",
+				"  default_repo: config",
+			].join("\n"));
+			writeFileSync(join(root, ".pi", "taskplane-pointer.json"), JSON.stringify({
+				config_repo: "config",
+				config_path: ".taskplane",
+			}, null, 2));
+			writeFileSync(join(configRepo, ".taskplane", "taskplane-config.json"), JSON.stringify({
+				taskRunner: {
+					taskAreas: {
+						general: { path: "taskplane-tasks", repoId: "planely" },
+					},
+				},
+			}, null, 2));
+			writeTaskPacket(
+				root,
+				"TP-280-should-not-load",
+				"# Task: TP-280 - Hidden pointer task\n\n## Mission\nJSON workspace metadata wins.\n",
+				"**Status:** ⬜ Not Started\n",
+			);
+
+			const context = {
+				fs,
+				path,
+				REPO_ROOT: root,
+				parseStatusMd(taskFolder: string) {
+					const statusPath = join(taskFolder, "STATUS.md");
+					if (!existsSync(statusPath)) return null;
+					const content = readFileSync(statusPath, "utf-8");
+					const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
+					return {
+						status: statusMatch ? statusMatch[1].trim() : "Unknown",
+						reviews: 0,
+						updatedAt: statSync(statusPath).mtimeMs,
+					};
+				},
+				checkDoneFile(taskFolder: string) {
+					return existsSync(join(taskFolder, ".DONE"));
+				},
+			};
+
+			const { loadBacklogData } = vm.runInNewContext(
+				`${helperBlock}; ({ loadBacklogData });`,
+				context,
+			) as { loadBacklogData: (state: any, history: any[]) => any };
+
+			const backlog = loadBacklogData(null, []);
+			expect(backlog.items).toHaveLength(0);
+			expect(backlog.scope.mode).toBe("repo");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
 	it("exposes backlog data from buildDashboardState even when no batch is active", () => {
 		const buildStateBlock = extractBlock(
 			source,

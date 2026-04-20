@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 9
+**Review Counter:** 10
 **Iteration:** 1
 **Size:** L
 
@@ -39,6 +39,7 @@
 - [x] Follow pointer-resolved config roots for workspace backlog discovery
 - [x] Resolve pointer roots from JSON-backed workspace metadata
 - [x] Preserve workspace backlog scope without an active batch
+- [x] Keep JSON workspace metadata authoritative over legacy workspace YAML
 
 ---
 
@@ -72,6 +73,7 @@
 | R007 | code | 2 | REVISE | `.reviews/R007-code-step2.md` |
 | R008 | code | 2 | REVISE | `.reviews/R008-code-step2.md` |
 | R009 | code | 2 | REVISE | `.reviews/R009-code-step2.md` |
+| R010 | code | 2 | REVISE | `.reviews/R010-code-step2.md` |
 
 ---
 
@@ -106,6 +108,7 @@
 | 2026-04-20 18:04 | Review fix 5 applied | Added pointer-aware dashboard config root resolution plus a workspace pointer regression test so backlog task-area discovery follows the same config chain as the rest of Taskplane. |
 | 2026-04-20 18:12 | Review fix 6 applied | Extended pointer resolution to read workspace repo metadata from JSON-backed config as well as legacy YAML, with a regression test for pointer discovery without `taskplane-workspace.yaml`. |
 | 2026-04-20 18:19 | Review fix 7 applied | Backlog scope now infers workspace mode from config-backed repo context when idle, and tests verify workspace mode/repo metadata remain present without an active batch. |
+| 2026-04-20 18:27 | Review fix 8 applied | Workspace repo discovery now treats JSON config as authoritative over legacy workspace YAML, with a regression test for pointer scope precedence when both files exist. |
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 
@@ -134,3 +137,4 @@ Preflight decisions:
 | 2026-04-20 17:04 | Review R007 | code Step 2: REVISE |
 | 2026-04-20 17:10 | Review R008 | code Step 2: REVISE |
 | 2026-04-20 17:15 | Review R009 | code Step 2: REVISE |
+| 2026-04-20 17:19 | Review R010 | code Step 2: REVISE |
