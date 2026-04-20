@@ -1,6 +1,6 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 2: Write path and safety semantics
+**Current Step:** Step 3: UI implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
@@ -31,12 +31,12 @@
 ---
 
 ### Step 2: Write path and safety semantics
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Implement safe packet write flow
 - [x] Update Next Task ID safely
 - [x] Block duplicates/overwrites
 - [x] Make failure states explicit and recoverable
-- [ ] Handle rename-race conflicts without deleting existing task folders
+- [x] Handle rename-race conflicts without deleting existing task folders
 
 ---
 
@@ -92,6 +92,7 @@
 | 2026-04-20 20:54 | Review R006 | plan Step 2 returned REVISE; failure handling outcome added to plan |
 | 2026-04-20 21:04 | Step 2 progress | Added create endpoint, counter update safeguards, duplicate blocking, and rollback/error handling tests |
 | 2026-04-20 21:06 | Review R008 | code Step 2 returned REVISE; rename-race cleanup must not delete concurrent writes |
+| 2026-04-20 21:10 | Step 2 revise | Added rename-race conflict handling and preserved concurrently-created folders |
 
 ---
 

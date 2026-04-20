@@ -2352,7 +2352,16 @@ function createTaskAuthoringPacket(payload, root = getActiveProjectRoot()) {
     fs.renameSync(tempFolderPath, finalFolderPath);
   } catch (error) {
     cleanupTaskAuthoringFolder(tempFolderPath);
-    cleanupTaskAuthoringFolder(finalFolderPath);
+    if (fs.existsSync(finalFolderPath)) {
+      return makeTaskAuthoringError(409, "TASK_FOLDER_CLAIMED", `Task folder was claimed concurrently: ${preview.derived.relativeFolderPath}`, {
+        recoverable: true,
+        taskId,
+        folderPath: preview.derived.relativeFolderPath,
+        preview: {
+          derived: preview.derived,
+        },
+      });
+    }
     return makeTaskAuthoringError(500, "TASK_WRITE_FAILED", `Could not create task packet files: ${error.message}`, {
       recoverable: true,
       taskId,

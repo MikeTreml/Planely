@@ -130,6 +130,39 @@ describe("TP-184 dashboard task authoring write flow", () => {
 		}
 	});
 
+	it("returns a conflict when the target folder is claimed during rename without deleting it", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-184-authoring-race-"));
+		try {
+			writeConfig(root, "TP-400");
+			const finalFolder = join(root, "taskplane-tasks", "TP-400-create-task-packet-from-dashboard");
+			const fsImpl = {
+				...fs,
+				renameSync(oldPath: fs.PathLike, newPath: fs.PathLike) {
+					mkdirSync(String(newPath), { recursive: true });
+					writeFileSync(join(String(newPath), "PROMPT.md"), "other request\n");
+					const err: any = new Error("folder exists");
+					err.code = "EEXIST";
+					throw err;
+				},
+			};
+			const context = createContext(root, fsImpl);
+			const { createTaskAuthoringPacket } = vm.runInNewContext(
+				`${helperBlock}; ({ createTaskAuthoringPacket });`,
+				context,
+			) as { createTaskAuthoringPacket: (payload: any, root?: string) => any };
+
+			const result = createTaskAuthoringPacket(authoringPayload(), root);
+			expect(result.ok).toBe(false);
+			expect(result.statusCode).toBe(409);
+			expect(result.error.code).toBe("TASK_FOLDER_CLAIMED");
+			expect(existsSync(finalFolder)).toBe(true);
+			expect(readFileSync(join(finalFolder, "PROMPT.md"), "utf-8")).toBe("other request\n");
+			expect(readFileSync(join(root, "taskplane-tasks", "CONTEXT.md"), "utf-8")).toContain("**Next Task ID:** TP-400");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
 	it("rolls back the new task folder when CONTEXT.md update fails", () => {
 		const root = mkdtempSync(join(tmpdir(), "tp-184-authoring-rollback-"));
 		try {
