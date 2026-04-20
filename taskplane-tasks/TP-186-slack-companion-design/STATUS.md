@@ -1,10 +1,10 @@
 # TP-186: Slack Companion Design — Status
 
-**Current Step:** Step 1: Slack companion scope
+**Current Step:** Step 2: Message/action contracts
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -19,15 +19,15 @@
 ---
 
 ### Step 1: Slack companion scope
-**Status:** 🟨 In Progress
-- [ ] Define goals, non-goals, and v1 actions
-- [ ] Define notification categories
-- [ ] Define source-of-truth relationship to dashboard/orchestrator
+**Status:** ✅ Complete
+- [x] Define goals, non-goals, and v1 actions
+- [x] Define notification categories
+- [x] Define source-of-truth relationship to dashboard/orchestrator
 
 ---
 
 ### Step 2: Message/action contracts
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define message shapes
 - [ ] Define approval/rejection payloads
 - [ ] Define deep-link and idempotency rules
@@ -75,6 +75,10 @@
 | 2026-04-20 16:53 | Slack action triage | Safe v1 candidates: notifications, status lookup, approve/reject, and bounded cancel/pause-abort requests; defer retry/skip/force-merge/resume/start until web-first flows and stronger context/confirmation exist |
 | 2026-04-20 16:55 | Deep-link scan | Current dashboard exposes batch history and STATUS.md/task views via API, so the minimum Slack-linkable targets are live batch, historical batch, task detail/status, and approval-focused views encoded as future dashboard URLs rather than Slack-owned state |
 | 2026-04-20 16:56 | Step 0 complete | Ready to draft Slack companion scope docs |
+| 2026-04-20 17:01 | Slack companion draft started | Created `docs/specifications/operator-console/slack-companion.md` with goals, non-goals, positioning, and bounded v1 actions |
+| 2026-04-20 17:02 | Notification scope defined | Documented v1 Slack notification categories: started, blocked, approval, failure, completion, and integration |
+| 2026-04-20 17:03 | Authority boundary captured | Spec defines Slack as companion-only, with dashboard as rich control surface and Taskplane/planning files as canonical state |
+| 2026-04-20 17:03 | Step 1 complete | Ready to define message and action contracts |
 
 ---
 
@@ -94,3 +98,4 @@ Preflight findings:
 - OpenClaw's relevant guidance matches that posture: Slack should provide notifications, quick status, approve/reject, and cancel, but not own canonical state or complex recovery flows.
 - Safe v1 Slack actions should stay low-risk and map cleanly to existing operator intents: view status, acknowledge/approve/reject a pending decision, and request a bounded batch/task stop. More destructive or recovery-heavy controls such as start, resume, retry, skip, and force-merge should stay deferred to the dashboard until identity, confirmation, and broader context are stronger.
 - Minimum dashboard deep-link targets for Slack are: a live batch view (`batchId`), a historical batch summary (`history/<batchId>`), a task-focused view (`taskId`, likely opening STATUS/task detail), and an approval-focused landing state (`approvalId` plus related batch/task IDs). The links should only identify canonical objects and desired focus; the dashboard should resolve current state from Taskplane files/APIs.
+| 2026-04-20 16:42 | Review R001 | plan Step 1: APPROVE |
