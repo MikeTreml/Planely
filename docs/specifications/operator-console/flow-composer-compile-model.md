@@ -298,6 +298,25 @@ Not allowed in MVP:
 
 That statement cannot be compiled into a bounded, auditable Taskplane pattern without inventing a second runtime authority.
 
+## Runtime-of-Record Verification
+
+The compile model preserves Taskplane as the runtime of record by keeping authority in existing runtime artifacts.
+
+### Composer-owned artifacts
+- saved flow definitions
+- normalized compile JSON
+- compile diagnostics and preview summaries
+
+### Taskplane-owned artifacts
+- task packets and packet-local files
+- run/batch/wave/lane state
+- reviews and approvals
+- integration results
+- operator-visible execution history
+
+### Verification rule
+If deleting the composer artifact would leave Taskplane still able to answer "what ran, what is waiting, and what completed," then the ownership boundary is correct. If execution truth would be lost, the design has leaked runtime authority into the composer and must be corrected.
+
 ## Guardrails
 
 ## 1. Runtime authority guardrail

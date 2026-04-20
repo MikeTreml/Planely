@@ -1,7 +1,7 @@
 # TP-191: Flow Composer MVP — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 4
@@ -46,10 +46,10 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify Taskplane remains runtime of record
-- [ ] Verify the MVP is incremental and bounded
-- [ ] Log discoveries and follow-ups
+**Status:** ✅ Complete
+- [x] Verify Taskplane remains runtime of record
+- [x] Verify the MVP is incremental and bounded
+- [x] Log discoveries and follow-ups
 
 ---
 
@@ -66,6 +66,9 @@
 |-----------|-------------|----------|
 | Flow Composer can safely compile to packet/orchestration templates because Taskplane already owns tasks, batches, waves, lanes, supervisor control, and review semantics. | Carry into MVP and compile-model docs | docs/specifications/operator-console/flow-composer-*.md |
 | Freeform drag-and-drop automation, arbitrary scripting blocks, and open-ended loop behavior would create a second runtime/authority layer instead of a bounded UX surface. | Explicitly defer beyond MVP | docs/specifications/operator-console/flow-composer-*.md |
+| Follow-up: define on-disk schema/versioning for saved flow definitions and whether compile JSON is persisted or regenerated. | Create implementation task after MVP spec approval | docs/specifications/operator-console/flow-composer-compile-model.md |
+| Follow-up: define which assignment hints Taskplane should honor in v1 versus display-only metadata. | Create implementation task after runtime feasibility review | docs/specifications/operator-console/flow-composer-compile-model.md |
+| Follow-up: prototype template gallery plus read-only compile preview before launch integration. | Recommended first implementation slice | docs/specifications/operator-console/flow-composer-mvp.md |
 
 ---
 

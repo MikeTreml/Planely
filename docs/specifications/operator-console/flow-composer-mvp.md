@@ -171,6 +171,31 @@ The MVP is successful when:
 4. the UI does not imply a second runtime or hidden scheduler; and
 5. future implementation can proceed incrementally: template library first, bounded editor next, compile preview after that.
 
+## Incremental Delivery Slices
+
+The MVP should be implemented in small slices rather than as one large workflow-builder project.
+
+### Slice 1: template catalog + read-only flow preview
+- offer a curated template gallery
+- render the selected flow visually
+- explain the Taskplane mapping in plain language
+- do not launch yet
+
+### Slice 2: bounded block editing + validation
+- allow safe edits to titles, goals, role hints, and supported containers
+- validate unsupported shapes immediately
+- keep template-first onboarding
+
+### Slice 3: compile preview + generated launch artifacts
+- generate normalized compile JSON and draft Taskplane-facing launch artifacts
+- show packet counts, checkpoints, loop caps, and parallel stages before launch
+
+### Slice 4: selected launch integration
+- enable real launch only for validated flows that have clear Taskplane-backed mappings
+- route operators back into Backlog, Live Batch, Approvals, and History after launch
+
+This sequence keeps the product bounded and lets the team ship value before the full end-to-end flow-launch path exists.
+
 ## Deferred Beyond MVP
 
 The following ideas should stay out of v1 even if they are attractive later:
