@@ -1,10 +1,10 @@
 # TP-186: Slack Companion Design — Status
 
-**Current Step:** Step 3: Safety model
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 4
+**Review Counter:** 5
 **Iteration:** 1
 **Size:** M
 
@@ -36,16 +36,16 @@
 ---
 
 ### Step 3: Safety model
-**Status:** 🟨 In Progress
-- [ ] Define audit, authorization, and confirmation rules
-- [ ] Define rate limiting and forbidden/deferred actions
-- [ ] Explain why Slack cannot own canonical run state
-- [ ] Define failure/fallback behavior
+**Status:** ✅ Complete
+- [x] Define audit, authorization, and confirmation rules
+- [x] Define rate limiting and forbidden/deferred actions
+- [x] Explain why Slack cannot own canonical run state
+- [x] Define failure/fallback behavior
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify the design is bounded and incremental
 - [ ] Ensure actions map to real orchestrator/app commands
 - [ ] Log follow-up implementation tasks
@@ -92,6 +92,11 @@
 | 2026-04-20 17:16 | Deep-link rules defined | Spec now covers batch/task/approval link targets plus duplicate delivery, repeated click, and stale action idempotency cases |
 | 2026-04-20 17:16 | Step 2 complete | Ready to define Slack safety and fallback rules |
 | 2026-04-20 17:18 | Review R004 | plan Step 3 returned REVISE; expanded Step 3 outcomes for authorization, rate limiting, and canonical-state guardrails |
+| 2026-04-20 17:22 | Safety model drafted | Created `docs/specifications/operator-console/slack-safety-model.md` with audit requirements, identity mapping constraints, and action-sensitive confirmation rules |
+| 2026-04-20 17:23 | Action guardrails defined | Classified allowed, confirmation-required, rate-limited, dashboard-only, and forbidden Slack actions for v1 |
+| 2026-04-20 17:24 | Canonical-state rationale captured | Safety doc explicitly explains why Slack messages cannot become the run-state ledger or second execution authority |
+| 2026-04-20 17:25 | Failure handling defined | Added explicit stale, unauthorized, unavailable, rate-limited, and dashboard-confirmation fallback responses |
+| 2026-04-20 17:25 | Step 3 complete | Ready to verify bounded scope and log follow-up implementation work |
 
 ---
 
@@ -118,3 +123,4 @@ Reviewer notes:
 - Step 3 must cover rate limiting, Slack identity/authorization constraints, and restate why Slack can never own canonical run state.
 | 2026-04-20 16:46 | Review R003 | plan Step 2: APPROVE |
 | 2026-04-20 16:50 | Review R004 | plan Step 3: REVISE |
+| 2026-04-20 16:51 | Review R005 | plan Step 3: APPROVE |
