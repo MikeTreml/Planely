@@ -1,10 +1,10 @@
 # TP-194: Recovery Report Schema and Supervisor Integration — Status
 
-**Current Step:** Step 3: Escalation and replan behavior
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -35,15 +35,15 @@
 ---
 
 ### Step 3: Escalation and replan behavior
-**Status:** 🟨 In Progress
-- [ ] Define redirect / replan outcomes
-- [ ] Define follow-up task recommendation behavior
-- [ ] Ensure unsafe automation is excluded
+**Status:** ✅ Complete
+- [x] Define redirect / replan outcomes
+- [x] Define follow-up task recommendation behavior
+- [x] Ensure unsafe automation is excluded
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify clarity and implementability
 - [ ] Log open questions and prerequisites
 
@@ -55,6 +55,7 @@
 |---|------|------|---------|------|
 | 1 | Plan | 1 | APPROVE | inline review_step |
 | 2 | Plan | 2 | APPROVE | inline review_step |
+| 3 | Plan | 3 | APPROVE | inline review_step |
 
 ---
 
@@ -87,6 +88,11 @@
 | 2026-04-20 20:51 | Defined invocation and relay model | Added intake contract, expected response, and operator-facing relay rules |
 | 2026-04-20 20:52 | Defined approval boundaries | Distinguished supervisor-safe, operator-approved, and always-advisory recovery recommendations |
 | 2026-04-20 20:53 | Step 3 started | Escalation and replan behavior |
+| 2026-04-20 20:54 | Plan review (Step 3) | APPROVE |
+| 2026-04-20 20:55 | Defined redirect and replan outcomes | Added redirect/replan handling and explicit do-not-continue relay guidance |
+| 2026-04-20 20:55 | Defined follow-up recommendation behavior | Added packet-splitting and follow-up task proposal fields plus supervisor handling rules |
+| 2026-04-20 20:56 | Locked autonomy exclusions | Listed unsafe automation exclusions and operator-approval-only paths |
+| 2026-04-20 20:57 | Step 4 started | Verification & Delivery |
 
 ---
 
@@ -106,3 +112,4 @@ Preflight synthesis:
 - Human-facing narrative remains appropriate for evidence explanation, why-alternatives-are-worse reasoning, and operator-ready wording.
 | 2026-04-20 20:20 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 20:23 | Review R002 | plan Step 2: APPROVE |
+| 2026-04-20 20:25 | Review R003 | plan Step 3: APPROVE |
