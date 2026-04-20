@@ -36,7 +36,7 @@ describe("TP-182 dashboard backlog loading", () => {
 
 	const helperBlock = extractBlock(
 		source,
-		"function hasDashboardConfigFiles(root)",
+		"function readDashboardJsonConfig(root)",
 		"function loadHistory()",
 	);
 
@@ -242,13 +242,14 @@ describe("TP-182 dashboard backlog loading", () => {
 			const configRepo = join(root, "config-repo");
 			mkdirSync(join(root, ".pi"), { recursive: true });
 			mkdirSync(join(configRepo, ".taskplane"), { recursive: true });
-			writeFileSync(join(root, ".pi", "taskplane-workspace.yaml"), [
-				"repos:",
-				"  config:",
-				`    path: ${configRepo.replace(/\\/g, "/")}`,
-				"routing:",
-				"  default_repo: config",
-			].join("\n"));
+			writeFileSync(join(root, ".pi", "taskplane-config.json"), JSON.stringify({
+				workspace: {
+					repos: {
+						config: { path: configRepo.replace(/\\/g, "/") },
+					},
+					routing: { defaultRepo: "config" },
+				},
+			}, null, 2));
 			writeFileSync(join(root, ".pi", "taskplane-pointer.json"), JSON.stringify({
 				config_repo: "config",
 				config_path: ".taskplane",

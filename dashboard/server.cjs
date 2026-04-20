@@ -1328,9 +1328,30 @@ function broadcastState() {
 
 // BATCH_HISTORY_PATH is initialized in main() alongside REPO_ROOT.
 
+function readDashboardJsonConfig(root) {
+  if (!root) return null;
+  const candidates = [
+    path.join(root, ".pi", "taskplane-config.json"),
+    path.join(root, "taskplane-config.json"),
+  ];
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate)) continue;
+    try {
+      return JSON.parse(fs.readFileSync(candidate, "utf-8"));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function hasDashboardConfigFiles(root) {
   if (!root) return false;
-  for (const fileName of ["taskplane-config.json", "task-runner.yaml", "task-orchestrator.yaml"]) {
+  const jsonConfig = readDashboardJsonConfig(root);
+  if (jsonConfig && (jsonConfig.taskRunner || jsonConfig.orchestrator)) {
+    return true;
+  }
+  for (const fileName of ["task-runner.yaml", "task-orchestrator.yaml"]) {
     if (fs.existsSync(path.join(root, ".pi", fileName)) || fs.existsSync(path.join(root, fileName))) {
       return true;
     }
@@ -1379,19 +1400,33 @@ function parseWorkspaceReposYaml(raw) {
 }
 
 function resolveDashboardPointerConfigRoot() {
-  const workspaceConfigCandidates = [
-    path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),
-    path.join(REPO_ROOT, "taskplane-workspace.yaml"),
-  ];
-  const workspaceConfigPath = workspaceConfigCandidates.find((candidate) => fs.existsSync(candidate));
-  if (!workspaceConfigPath) return null;
-
   const pointerPath = path.join(REPO_ROOT, ".pi", "taskplane-pointer.json");
   if (!fs.existsSync(pointerPath)) return null;
 
   try {
-    const workspaceRaw = fs.readFileSync(workspaceConfigPath, "utf-8");
-    const repos = parseWorkspaceReposYaml(workspaceRaw);
+    let repos = {};
+    const workspaceJson = readDashboardJsonConfig(REPO_ROOT);
+    const rawJsonRepos = workspaceJson?.workspace?.repos;
+    if (rawJsonRepos && typeof rawJsonRepos === "object") {
+      for (const [repoId, repo] of Object.entries(rawJsonRepos)) {
+        if (!repo || typeof repo !== "object") continue;
+        if (typeof repo.path !== "string" || !repo.path.trim()) continue;
+        repos[repoId] = { path: path.resolve(REPO_ROOT, repo.path.trim()) };
+      }
+    }
+
+    if (Object.keys(repos).length === 0) {
+      const workspaceConfigCandidates = [
+        path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),
+        path.join(REPO_ROOT, "taskplane-workspace.yaml"),
+      ];
+      const workspaceConfigPath = workspaceConfigCandidates.find((candidate) => fs.existsSync(candidate));
+      if (workspaceConfigPath) {
+        const workspaceRaw = fs.readFileSync(workspaceConfigPath, "utf-8");
+        repos = parseWorkspaceReposYaml(workspaceRaw);
+      }
+    }
+
     const pointer = JSON.parse(fs.readFileSync(pointerPath, "utf-8"));
     const repoId = typeof pointer?.config_repo === "string" ? pointer.config_repo.trim() : "";
     const configPath = typeof pointer?.config_path === "string" ? pointer.config_path.trim() : "";
