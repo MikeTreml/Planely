@@ -1,6 +1,6 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 1: Creation data model and preview contract
+**Current Step:** Step 2: Write path and safety semantics
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
@@ -19,13 +19,13 @@
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Define form and preview shapes
 - [x] Define validation rules
 - [x] Define complexity assessment contract
 - [x] Preserve packet compatibility
-- [ ] Align generated PROMPT/STATUS preview with canonical template sections
-- [ ] Update preview contract tests to enforce canonical packet invariants
+- [x] Align generated PROMPT/STATUS preview with canonical template sections
+- [x] Update preview contract tests to enforce canonical packet invariants
 
 ---
 
@@ -82,6 +82,8 @@
 | 2026-04-20 20:39 | Step 1 completed | Preview generator now emits canonical packet markdown and validation metadata |
 | 2026-04-20 20:39 | Step 2 started | Write path and safety semantics |
 | 2026-04-20 20:41 | Review R003 | code Step 1 returned REVISE; preview/template parity incomplete |
+| 2026-04-20 20:46 | Step 1 revise | Added canonical Testing & Verification plus Documentation & Delivery preview sections |
+| 2026-04-20 20:46 | Step 1 review fixes complete | Preview contract tests now enforce canonical packet invariants |
 
 ---
 

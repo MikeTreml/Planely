@@ -148,8 +148,16 @@ describe("TP-184 dashboard task authoring contract", () => {
 			expect(preview.preview.promptMarkdown).toContain("- `taskplane-tasks/CONTEXT.md`");
 			expect(preview.preview.promptMarkdown).toContain("- `docs/specifications/operator-console/view-models.md` — contract reference");
 			expect(preview.preview.promptMarkdown).toContain("- `dashboard/server.cjs`");
+			expect(preview.preview.promptMarkdown).toContain("### Step 2: Testing & Verification");
+			expect(preview.preview.promptMarkdown).toContain("- [ ] Run FULL test suite for the touched area");
+			expect(preview.preview.promptMarkdown).toContain("### Step 3: Documentation & Delivery");
+			expect(preview.preview.promptMarkdown).toContain("- [ ] \"Check If Affected\" docs reviewed");
+			expect(preview.preview.promptMarkdown).toContain("**Must Update:**\n- None");
+			expect(preview.preview.promptMarkdown).toContain("**Check If Affected:**\n- None");
 			expect(preview.preview.statusMarkdown).toContain("# TP-322: Task creation form and packet preview — Status");
 			expect(preview.preview.statusMarkdown).toContain("**Review Level:** 2");
+			expect(preview.preview.statusMarkdown).toContain("### Step 2: Testing & Verification");
+			expect(preview.preview.statusMarkdown).toContain("### Step 3: Documentation & Delivery");
 			expect(preview.preview.statusMarkdown).toContain("Generated from the dashboard task authoring preview.");
 		} finally {
 			rmSync(root, { recursive: true, force: true });
