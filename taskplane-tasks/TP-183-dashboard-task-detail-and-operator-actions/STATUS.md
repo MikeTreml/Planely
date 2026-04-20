@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** L
 
@@ -36,6 +36,7 @@
 
 ### Step 3: Frontend/server implementation
 **Status:** 🟨 In Progress
+- [ ] Align start-action gating with /orch phase semantics and add boundary tests (R004)
 - [ ] Implement action UI affordances
 - [ ] Implement minimal server support
 - [ ] Handle disabled/error/unsupported states
@@ -96,6 +97,7 @@
 ## Notes
 
 Builds the first true operator-control interactions into the dashboard.
+- R004 suggestion: centralize dashboard action phase gates where possible so server contract tracks extension semantics.
 - 2026-04-20 preflight: TP-182 backlog view currently lives in `dashboard/server.cjs` backlog packet builders (`loadBacklogData`, `buildBacklogItem`) and `dashboard/public/app.js` backlog card rendering/filter state; task cards already expose selection and STATUS.md viewing hooks but no task detail surface yet.
 - 2026-04-20 preflight: existing operator semantics come from extension handlers, not dashboard logic: `/orch` start is async batch launch; retry only permits failed/stalled tasks when batch phase is not launching/executing/merging/planning; skip only permits failed/stalled/pending under the same paused/stopped/failed constraint; integrate only applies to completed batches/branches and uses guarded existing paths.
 - 2026-04-20 preflight: safest v1 dashboard action surface is command-mediated POST endpoints that shell into existing `taskplane`/`pi` command paths instead of mutating batch files directly. Direct-trigger candidates: start selected tasks (via `/orch <paths>`/equivalent CLI entry) and integrate completed batch. Riskier recovery actions (retry/skip) need stronger gating and a confirmation layer because they modify persisted batch state; if direct invocation proves brittle, fallback should be a copyable command string shown in the detail/action UI.
@@ -103,3 +105,4 @@ Builds the first true operator-control interactions into the dashboard.
 | 2026-04-20 19:15 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 19:23 | Review R002 | code Step 1: APPROVE |
 | 2026-04-20 19:25 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 19:30 | Review R004 | code Step 2: REVISE |
