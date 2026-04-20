@@ -1,25 +1,25 @@
 # TP-198: Document Provenance and Freshness Model — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
+**Current Step:** Step 1: Provenance model
+**Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** M
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Review TP-197 and current doc types
-- [ ] Evaluate metadata encoding options
-- [ ] Identify special cases like README files
+**Status:** ✅ Complete
+- [x] Review TP-197 and current doc types
+- [x] Evaluate metadata encoding options
+- [x] Identify special cases like README files
 
 ---
 
 ### Step 1: Provenance model
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define provenance fields and meanings
 - [ ] Define required vs optional fields
 - [ ] Cover special-case docs cleanly
@@ -68,6 +68,10 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-20 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 20:18 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 20:18 | Step 0 started | Preflight |
+| 2026-04-20 20:24 | Step 0 completed | Reviewed TP-197 policy, current doc types, metadata options, and README special cases |
+| 2026-04-20 20:24 | Step 1 started | Provenance model |
 
 ---
 
