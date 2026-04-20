@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 12
+**Review Counter:** 13
 **Iteration:** 1
 **Size:** L
 
@@ -46,9 +46,11 @@
 
 ### Step 3: Frontend implementation
 **Status:** 🟨 In Progress
+- [ ] Integrate backlog into dashboard shell/view state
 - [ ] Add backlog panel/view
 - [ ] Render rows/cards and selection behavior
 - [ ] Add lightweight filtering/search affordances
+- [ ] Render backlog empty/partial/error and scope states
 - [ ] Preserve existing dashboard usability
 
 ---
@@ -144,3 +146,4 @@ Preflight decisions:
 | 2026-04-20 17:19 | Review R010 | code Step 2: REVISE |
 | 2026-04-20 17:23 | Review R011 | code Step 2: REVISE |
 | 2026-04-20 17:27 | Review R012 | code Step 2: APPROVE |
+| 2026-04-20 17:29 | Review R013 | plan Step 3: REVISE |
