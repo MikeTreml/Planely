@@ -688,23 +688,28 @@ function renderTaskAuthoringPanel() {
   }
 }
 
-async function ensureTaskAuthoringMetadata(force = false) {
+async function ensureTaskAuthoringMetadata(force = false, options = {}) {
   if (!$taskAuthoringShell) return;
   if (taskAuthoringState.loading) return;
   if (taskAuthoringState.metadata && !force) {
     renderTaskAuthoringPanel();
     return;
   }
+  const preserveFeedback = options?.preserveFeedback === true;
   taskAuthoringState.loading = true;
-  taskAuthoringState.lastTone = "neutral";
-  taskAuthoringState.lastMessage = "Loading task authoring defaults…";
+  if (!preserveFeedback) {
+    taskAuthoringState.lastTone = "neutral";
+    taskAuthoringState.lastMessage = "Loading task authoring defaults…";
+  }
   renderTaskAuthoringPanel();
   try {
     const response = await fetch("/api/task-authoring");
     const payload = await response.json();
     if (!response.ok) throw new Error(payload?.error || "Task authoring metadata unavailable.");
     applyTaskAuthoringMetadata(payload);
-    taskAuthoringState.lastMessage = "Fill the form, preview the packet, then write it to disk.";
+    if (!preserveFeedback) {
+      taskAuthoringState.lastMessage = "Fill the form, preview the packet, then write it to disk.";
+    }
   } catch (err) {
     taskAuthoringState.lastTone = "danger";
     taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
@@ -777,7 +782,7 @@ async function submitTaskAuthoringCreate() {
 
     taskAuthoringState.lastTone = "success";
     taskAuthoringState.lastMessage = `Created ${result.created?.taskId || "task"} and advanced Next Task ID to ${result.created?.nextTaskId || "the next value"}. Preview the next packet before writing again.`;
-    await ensureTaskAuthoringMetadata(true);
+    await ensureTaskAuthoringMetadata(true, { preserveFeedback: true });
     taskAuthoringState.preview = null;
     taskAuthoringState.previewFingerprint = "";
     taskAuthoringState.dirty = true;

@@ -27,7 +27,7 @@ describe("TP-184 dashboard task authoring UI", () => {
 	it("wires metadata, preview, and create interactions in the dashboard app", () => {
 		const app = readDashboard("app.js");
 		expect(app).toContain("const taskAuthoringState = {");
-		expect(app).toContain("function ensureTaskAuthoringMetadata(force = false)");
+		expect(app).toContain("function ensureTaskAuthoringMetadata(force = false, options = {})");
 		expect(app).toContain("function requestTaskAuthoringPreview()");
 		expect(app).toContain("function submitTaskAuthoringCreate()");
 		expect(app).toContain('fetch("/api/task-authoring")');
@@ -37,6 +37,7 @@ describe("TP-184 dashboard task authoring UI", () => {
 		expect(app).toContain("resetTaskAuthoringState({ preserveMetadata: true });");
 		expect(app).toContain("taskAuthoringState.preview = null;");
 		expect(app).toContain("Preview the next packet before writing again.");
+		expect(app).toContain("await ensureTaskAuthoringMetadata(true, { preserveFeedback: true });");
 	});
 
 	it("styles authoring cards, feedback, and preview panes", () => {
