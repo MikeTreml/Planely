@@ -1,10 +1,10 @@
 # TP-198: Document Provenance and Freshness Model — Status
 
-**Current Step:** Step 3: Encoding options and recommendation
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -36,15 +36,15 @@
 ---
 
 ### Step 3: Encoding options and recommendation
-**Status:** 🟨 In Progress
-- [ ] Compare frontmatter, sidecar, and manifest options
-- [ ] Recommend a default approach
-- [ ] Define migration/adoption guidance
+**Status:** ✅ Complete
+- [x] Compare frontmatter, sidecar, and manifest options
+- [x] Recommend a default approach
+- [x] Define migration/adoption guidance
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify practicality and tooling readiness
 - [ ] Log follow-up tasks
 
@@ -57,6 +57,7 @@
 | 1 | Plan | 1 | APPROVE | _inline_ |
 | 2 | Plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 | 3 | Plan | 2 | APPROVE | _inline_ |
+| 4 | Plan | 3 | APPROVE | _inline_ |
 
 ---
 
@@ -83,6 +84,9 @@
 | 2026-04-20 20:33 | Review R003 | plan Step 2: APPROVE |
 | 2026-04-20 20:37 | Step 2 completed | Documented task-distance freshness rules, authority-aware review windows, derived states, and date-only limitations |
 | 2026-04-20 20:37 | Step 3 started | Encoding options and recommendation |
+| 2026-04-20 20:38 | Review R004 | plan Step 3: APPROVE |
+| 2026-04-20 20:41 | Step 3 completed | Added encoding comparison matrix, default metadata priority, and incremental adoption guidance |
+| 2026-04-20 20:41 | Step 4 started | Verification & Delivery |
 
 ---
 
@@ -101,3 +105,4 @@ Reviewer suggestions to keep in mind:
 | 2026-04-20 20:19 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 20:22 | Review R002 | plan Step 2: REVISE |
 | 2026-04-20 20:23 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 20:25 | Review R004 | plan Step 3: APPROVE |

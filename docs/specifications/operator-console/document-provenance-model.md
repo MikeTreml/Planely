@@ -225,6 +225,16 @@ Best fit:
 
 ## Recommendation
 
+### Comparison summary
+
+| Approach | Human discoverability | Rename/move resilience | Best for | Primary risk |
+|----------|-----------------------|------------------------|----------|--------------|
+| Frontmatter / header block | High | High | most Markdown docs | visual intrusion in presentation-first docs |
+| Sidecar metadata | Medium | Medium | `README.md`, render-sensitive docs, externally mirrored content | sidecar drift or broken pairing on moves |
+| Registry manifest | Low at point of reading, high for bulk tooling | Medium | dashboards, audits, migration backfill | readers cannot infer provenance locally without tooling |
+
+### Default approach
+
 Default posture:
 1. use inline frontmatter or a predictable metadata header for most governed Markdown docs,
 2. allow sidecars for `README.md` and other render-sensitive exceptions,
@@ -232,13 +242,33 @@ Default posture:
 
 This keeps provenance close to the document while still respecting conventional filenames and presentation-sensitive files.
 
+### Decision rule for future tooling
+
+When multiple encodings are available, tooling should prefer:
+1. document-local metadata if present,
+2. sidecar metadata for the same path if the primary doc intentionally stays presentation-first,
+3. registry-manifest entries as audit/index support or migration fallback.
+
+That ordering preserves local readability while still allowing corpus-wide automation.
+
 ## Adoption Notes
+
+### Migration strategy for existing docs
 
 For existing docs without provenance metadata:
 1. classify authority and lifecycle first,
 2. add minimum required provenance fields during the next substantive review,
 3. record unknown fields honestly rather than guessing,
 4. and backfill cross-doc supersession links opportunistically as audits proceed.
+
+### Recommended rollout sequence
+
+1. **Govern new docs first** — require the minimum provenance envelope on newly created governed docs.
+2. **Backfill high-risk docs next** — prioritize active authoritative reference/how-to/spec documents that task packets are most likely to cite.
+3. **Handle special files deliberately** — add sidecars only where inline metadata would create undue presentation churn.
+4. **Add registry aggregation last** — once enough docs carry local metadata, build manifest/index tooling for audits and dashboards.
+
+This sequence keeps adoption incremental and low-churn instead of blocking on a full-corpus rewrite.
 
 ## Outcome
 
