@@ -82,6 +82,11 @@
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
 | 2026-04-20 16:23 | Task started | Runtime V2 lane-runner execution |
 | 2026-04-20 16:23 | Step 0 started | Preflight |
+| 2026-04-20 16:26 | Review R001 | plan Step 1: REVISE |
+| 2026-04-20 16:27 | Review R002 | plan Step 1: APPROVE |
+| 2026-04-20 16:30 | Review R003 | plan Step 2: REVISE |
+| 2026-04-20 16:31 | Review R004 | plan Step 2: APPROVE |
+| 2026-04-20 16:34 | Review R005 | plan Step 3: APPROVE |
 
 ---
 
@@ -101,8 +106,3 @@ Preflight findings:
 - Plan review suggestion to fold into Step 1 doc: include a short "not stored here" / non-goals section so later implementation tasks can see duplicate-authority boundaries at a glance.
 - Step 2 plan review asks for an explicit matrix covering repo, monorepo, and workspace mode plus discovery/indexing rules that keep any registry/cache derived from canonical planning files.
 - Verification notes: `planning-storage-layout.md` now includes explicit monorepo/workspace placement and root resolution; all three planning docs reiterate that packet/batch/run truth stays canonical in existing runtime artifacts and any planning index/summary remains derived.
-| 2026-04-20 16:26 | Review R001 | plan Step 1: REVISE |
-| 2026-04-20 16:27 | Review R002 | plan Step 1: APPROVE |
-| 2026-04-20 16:30 | Review R003 | plan Step 2: REVISE |
-| 2026-04-20 16:31 | Review R004 | plan Step 2: APPROVE |
-| 2026-04-20 16:34 | Review R005 | plan Step 3: APPROVE |
