@@ -1,0 +1,31 @@
+{
+  "batchId": "20260420T094622",
+  "laneNumber": 3,
+  "laneId": "lane-3",
+  "repoId": "default",
+  "taskId": "TP-188",
+  "segmentId": "TP-188::default",
+  "status": "complete",
+  "worker": {
+    "agentId": "orch-treml-lane-3-worker",
+    "status": "exited",
+    "elapsedMs": 862201,
+    "toolCalls": 94,
+    "contextPct": 20.209926470588236,
+    "costUsd": 1.2608435000000002,
+    "lastTool": "bash: git rev-parse --short HEAD",
+    "inputTokens": 90331,
+    "outputTokens": 19096,
+    "cacheReadTokens": 2994304,
+    "cacheWriteTokens": 0
+  },
+  "reviewer": null,
+  "progress": {
+    "currentStep": "Step 4: Verification & Delivery",
+    "checked": 19,
+    "total": 19,
+    "iteration": 1,
+    "reviews": 7
+  },
+  "updatedAt": 1776698234933
+}

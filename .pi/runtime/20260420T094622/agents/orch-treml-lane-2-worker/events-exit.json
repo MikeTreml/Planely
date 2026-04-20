@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "exitSignal": null,
+  "tokens": {
+    "input": 96885,
+    "output": 21992,
+    "cacheRead": 3404416,
+    "cacheWrite": 0
+  },
+  "cost": 1.4231964999999998,
+  "toolCalls": 102,
+  "retries": 0,
+  "compactions": 0,
+  "durationSec": 833,
+  "lastToolCall": "read: C:/Users/Treml/source/repos/Planely/.worktrees/treml-20260420T094622/lane-2/taskplane-tasks/TP-186-slack-companion-design/STATUS.md",
+  "error": null,
+  "contextUsage": {
+    "tokens": 55807,
+    "contextWindow": 272000,
+    "percent": 20.517279411764704
+  }
+}

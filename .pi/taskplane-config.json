@@ -15,7 +15,8 @@
       "general": {
         "path": "taskplane-tasks",
         "prefix": "TP",
-        "context": "taskplane-tasks/CONTEXT.md"
+        "context": "taskplane-tasks/CONTEXT.md",
+        "repoId": "planely"
       }
     }
   }

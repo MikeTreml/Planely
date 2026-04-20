@@ -1,0 +1,35 @@
+{"timestamp":"2026-04-20T02:55:19.716Z","type":"batch_complete","batchId":"20260419T215519","waveIndex":-1,"phase":"failed","succeededTasks":0,"failedTasks":0,"skippedTasks":0,"blockedTasks":0,"batchDurationMs":581}
+{"timestamp":"2026-04-20T02:57:25.247Z","type":"wave_start","batchId":"20260419T215723","waveIndex":0,"phase":"executing","taskIds":["TP-181","TP-185","EXAMPLE-001","EXAMPLE-002"],"laneCount":3}
+{"timestamp":"2026-04-20T03:15:57.265Z","type":"task_complete","batchId":"20260419T215723","waveIndex":0,"phase":"executing","taskId":"EXAMPLE-001","durationMs":84709,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:15:57.265Z","type":"task_complete","batchId":"20260419T215723","waveIndex":0,"phase":"executing","taskId":"EXAMPLE-002","durationMs":76843,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:15:57.266Z","type":"task_complete","batchId":"20260419T215723","waveIndex":0,"phase":"executing","taskId":"TP-181","durationMs":1111412,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:15:57.266Z","type":"task_complete","batchId":"20260419T215723","waveIndex":0,"phase":"executing","taskId":"TP-185","durationMs":667267,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:15:57.410Z","type":"merge_start","batchId":"20260419T215723","waveIndex":0,"phase":"merging","laneCount":3}
+{"timestamp":"2026-04-20T03:16:34.550Z","type":"merge_success","batchId":"20260419T215723","waveIndex":0,"phase":"merging","laneCount":3,"durationMs":37137,"totalWaves":5}
+{"timestamp":"2026-04-20T03:16:35.506Z","type":"wave_start","batchId":"20260419T215723","waveIndex":1,"phase":"executing","taskIds":["TP-182","TP-186","TP-188"],"laneCount":3}
+{"timestamp":"2026-04-20T03:30:01.903Z","type":"task_complete","batchId":"20260419T215723","waveIndex":1,"phase":"executing","taskId":"TP-186","durationMs":803880,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:30:01.903Z","type":"task_complete","batchId":"20260419T215723","waveIndex":1,"phase":"executing","taskId":"TP-188","durationMs":654667,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:30:01.904Z","type":"task_failed","batchId":"20260419T215723","waveIndex":1,"phase":"executing","taskId":"TP-182","durationMs":253835,"reason":"No progress after 3 iterations","partialProgress":false}
+{"timestamp":"2026-04-20T03:30:02.005Z","type":"merge_start","batchId":"20260419T215723","waveIndex":1,"phase":"merging","laneCount":2}
+{"timestamp":"2026-04-20T03:30:22.969Z","type":"merge_success","batchId":"20260419T215723","waveIndex":1,"phase":"merging","laneCount":2,"durationMs":20962,"totalWaves":5}
+{"timestamp":"2026-04-20T03:30:24.045Z","type":"wave_start","batchId":"20260419T215723","waveIndex":2,"phase":"executing","taskIds":["TP-187","TP-191"],"laneCount":2}
+{"timestamp":"2026-04-20T03:42:00.177Z","type":"task_complete","batchId":"20260419T215723","waveIndex":2,"phase":"executing","taskId":"TP-191","durationMs":692899,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T03:42:00.177Z","type":"task_failed","batchId":"20260419T215723","waveIndex":2,"phase":"executing","taskId":"TP-187","durationMs":605445,"reason":"No progress after 3 iterations","partialProgress":false}
+{"timestamp":"2026-04-20T03:42:00.227Z","type":"merge_start","batchId":"20260419T215723","waveIndex":2,"phase":"merging","laneCount":1}
+{"timestamp":"2026-04-20T03:42:11.092Z","type":"merge_success","batchId":"20260419T215723","waveIndex":2,"phase":"merging","laneCount":1,"durationMs":10864,"totalWaves":5}
+{"timestamp":"2026-04-20T03:42:11.822Z","type":"batch_paused","batchId":"20260419T215723","waveIndex":4,"phase":"paused","reason":"paused","failedTasks":2}
+{"timestamp":"2026-04-20T14:46:23.657Z","type":"wave_start","batchId":"20260420T094622","waveIndex":0,"phase":"executing","taskIds":["TP-114","EXAMPLE-001","TP-181","EXAMPLE-002","TP-185"],"laneCount":3}
+{"timestamp":"2026-04-20T15:02:10.391Z","type":"task_complete","batchId":"20260420T094622","waveIndex":0,"phase":"executing","taskId":"EXAMPLE-001","durationMs":81046,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:02:10.392Z","type":"task_complete","batchId":"20260420T094622","waveIndex":0,"phase":"executing","taskId":"EXAMPLE-002","durationMs":96129,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:02:10.392Z","type":"task_complete","batchId":"20260420T094622","waveIndex":0,"phase":"executing","taskId":"TP-114","durationMs":392542,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:02:10.392Z","type":"task_complete","batchId":"20260420T094622","waveIndex":0,"phase":"executing","taskId":"TP-181","durationMs":845593,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:02:10.392Z","type":"task_complete","batchId":"20260420T094622","waveIndex":0,"phase":"executing","taskId":"TP-185","durationMs":625152,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:02:10.541Z","type":"merge_start","batchId":"20260420T094622","waveIndex":0,"phase":"merging","laneCount":3}
+{"timestamp":"2026-04-20T15:02:51.700Z","type":"merge_success","batchId":"20260420T094622","waveIndex":0,"phase":"merging","laneCount":3,"durationMs":41157,"totalWaves":5}
+{"timestamp":"2026-04-20T15:02:52.700Z","type":"wave_start","batchId":"20260420T094622","waveIndex":1,"phase":"executing","taskIds":["TP-182","TP-186","TP-188"],"laneCount":3}
+{"timestamp":"2026-04-20T15:17:19.112Z","type":"task_complete","batchId":"20260420T094622","waveIndex":1,"phase":"executing","taskId":"TP-186","durationMs":833031,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:17:19.113Z","type":"task_complete","batchId":"20260420T094622","waveIndex":1,"phase":"executing","taskId":"TP-188","durationMs":862213,"outcome":"succeeded"}
+{"timestamp":"2026-04-20T15:17:19.113Z","type":"task_failed","batchId":"20260420T094622","waveIndex":1,"phase":"executing","taskId":"TP-182","durationMs":591972,"reason":"No progress after 3 iterations","partialProgress":false}
+{"timestamp":"2026-04-20T15:17:19.222Z","type":"merge_start","batchId":"20260420T094622","waveIndex":1,"phase":"merging","laneCount":2}
+{"timestamp":"2026-04-20T15:17:38.542Z","type":"merge_failed","batchId":"20260420T094622","waveIndex":1,"phase":"merging","laneNumber":2,"error":"Post-merge verification failed in lane 2: Merge succeeded initially at 94edd94c0c25165a25f94f31baedfbfbc74fe7a2, but verification failed. Verification command output:\nextensions dir not found\n\nMerge was reverted with: git revert -m 1 --no-edit HEAD"}
+{"timestamp":"2026-04-20T15:17:38.548Z","type":"batch_paused","batchId":"20260420T094622","waveIndex":1,"phase":"paused","reason":"Merge failed at wave 2: Post-merge verification failed in lane 2: Merge succeeded initially at 94edd94c0c25165a25f94f31baedfbfbc74fe7a2, but verification failed. Verification command output:\nextensions dir not found\n\nMerge was reverted with: git revert -m 1 --no-edit HEAD. Batch paused. Resolve conflicts and use /orch-resume to continue.","failedTasks":1}

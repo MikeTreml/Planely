@@ -1,0 +1,20 @@
+{
+  "batchId": "20260419T215723",
+  "agentId": "orch-treml-lane-2-worker",
+  "role": "worker",
+  "laneNumber": 2,
+  "taskId": "TP-191",
+  "repoId": "default",
+  "pid": 101828,
+  "parentPid": 86884,
+  "startedAt": 1776655824062,
+  "status": "exited",
+  "cwd": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-2",
+  "packet": {
+    "promptPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-2\\taskplane-tasks\\TP-191-flow-composer-mvp/PROMPT.md",
+    "statusPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-2\\taskplane-tasks\\TP-191-flow-composer-mvp\\STATUS.md",
+    "donePath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-2\\taskplane-tasks\\TP-191-flow-composer-mvp\\.DONE",
+    "reviewsDir": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-2\\taskplane-tasks\\TP-191-flow-composer-mvp/.reviews",
+    "taskFolder": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-2\\taskplane-tasks\\TP-191-flow-composer-mvp"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "exitSignal": null,
+  "tokens": {
+    "input": 90331,
+    "output": 19096,
+    "cacheRead": 2994304,
+    "cacheWrite": 0
+  },
+  "cost": 1.2608435000000002,
+  "toolCalls": 94,
+  "retries": 0,
+  "compactions": 0,
+  "durationSec": 862,
+  "lastToolCall": "bash: git rev-parse --short HEAD",
+  "error": null,
+  "contextUsage": {
+    "tokens": 54971,
+    "contextWindow": 272000,
+    "percent": 20.209926470588236
+  }
+}

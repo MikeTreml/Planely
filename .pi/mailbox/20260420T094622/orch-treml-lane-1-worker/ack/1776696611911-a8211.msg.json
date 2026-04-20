@@ -1,0 +1,11 @@
+{
+  "id": "1776696611911-a8211",
+  "batchId": "20260420T094622",
+  "from": "supervisor",
+  "to": "orch-treml-lane-1-worker",
+  "timestamp": 1776696611911,
+  "type": "steer",
+  "content": "Supervisor note: current main repo now contains `docs/specifications/framework/taskplane-runtime-v2/01-architecture.md` and `extensions/taskplane/*`. If your lane snapshot still lacks them, this may be a stale execution snapshot/worktree issue rather than true repo absence. Please verify from your lane with `git ls-tree --name-only HEAD docs/specifications/framework extensions` (or equivalent). If still absent, do not fabricate; document it explicitly as a stale snapshot blocker in STATUS.md and proceed to the task’s natural blocked/failure path.",
+  "expectsReply": false,
+  "replyTo": null
+}

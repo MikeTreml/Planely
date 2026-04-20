@@ -1,0 +1,22 @@
+{
+  "exitCode": null,
+  "exitSignal": "SIGTERM",
+  "tokens": {
+    "input": 10582,
+    "output": 210,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "cost": 0.029605000000000003,
+  "toolCalls": 2,
+  "retries": 0,
+  "compactions": 0,
+  "durationSec": 8,
+  "lastToolCall": "write: C:/Users/Treml/source/repos/Planely/.pi/merge-result-w1-lane3-treml-20260420T094622.json",
+  "error": null,
+  "contextUsage": {
+    "tokens": 5130,
+    "contextWindow": 272000,
+    "percent": 1.8860294117647058
+  }
+}

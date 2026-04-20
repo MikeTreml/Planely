@@ -1,0 +1,11 @@
+{
+  "id": "1776655116029-ea6ee",
+  "batchId": "20260419T215723",
+  "from": "supervisor",
+  "to": "orch-treml-lane-1-worker",
+  "timestamp": 1776655116029,
+  "type": "steer",
+  "content": "Confirmed: repo snapshot lacks the prompt-scoped implementation files (`dashboard/*`, `extensions/taskplane/*`). Please do not fabricate missing code. Finish by clearly documenting the blocker in STATUS.md/execution log/discoveries, note the exact missing paths and verification commands, and preserve any useful preflight analysis. Then proceed to the task's natural blocked/failure outcome.",
+  "expectsReply": false,
+  "replyTo": null
+}

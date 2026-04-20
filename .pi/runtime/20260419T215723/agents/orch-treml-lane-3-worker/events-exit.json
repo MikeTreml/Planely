@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "exitSignal": null,
+  "tokens": {
+    "input": 51178,
+    "output": 14980,
+    "cacheRead": 2036864,
+    "cacheWrite": 0
+  },
+  "cost": 0.8618609999999998,
+  "toolCalls": 84,
+  "retries": 0,
+  "compactions": 0,
+  "durationSec": 655,
+  "lastToolCall": "bash: git status --short",
+  "error": null,
+  "contextUsage": {
+    "tokens": 45010,
+    "contextWindow": 272000,
+    "percent": 16.547794117647058
+  }
+}

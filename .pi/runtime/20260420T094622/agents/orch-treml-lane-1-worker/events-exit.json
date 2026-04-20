@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "exitSignal": null,
+  "tokens": {
+    "input": 15991,
+    "output": 2528,
+    "cacheRead": 104832,
+    "cacheWrite": 0
+  },
+  "cost": 0.10410550000000002,
+  "toolCalls": 12,
+  "retries": 0,
+  "compactions": 0,
+  "durationSec": 64,
+  "lastToolCall": "escalate_to_supervisor: TP-182 remains genuinely blocked in Step 1 by an incomplete lane checkout. I re-verified the execution worktree, local refs, and remote refs available in this lane: repo root contains only `.pi/`, `docs/`, `hello-taskplane*.md`, and `taskplane-tasks/`; `dashboard/`, `extensions/`, `package.json`, an",
+  "error": null,
+  "contextUsage": {
+    "tokens": 16808,
+    "contextWindow": 272000,
+    "percent": 6.179411764705883
+  }
+}

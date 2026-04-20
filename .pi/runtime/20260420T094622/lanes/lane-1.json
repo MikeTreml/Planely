@@ -1,0 +1,31 @@
+{
+  "batchId": "20260420T094622",
+  "laneNumber": 1,
+  "laneId": "lane-1",
+  "repoId": "default",
+  "taskId": "TP-182",
+  "segmentId": "TP-182::default",
+  "status": "failed",
+  "worker": {
+    "agentId": "orch-treml-lane-1-worker",
+    "status": "crashed",
+    "elapsedMs": 63685,
+    "toolCalls": 12,
+    "contextPct": 6.179411764705883,
+    "costUsd": 0.10410550000000002,
+    "lastTool": "escalate_to_supervisor: TP-182 remains genuinely blocked in Step 1 by an incomplete lane checkout. I re-verified the execution worktree, local refs, and remote refs available in this lane: repo root contains only `.pi/`, `docs/`, `hello-taskplane*.md`, and `taskplane-tasks/`; `dashboard/`, `extensions/`, `package.json`, an",
+    "inputTokens": 15991,
+    "outputTokens": 2528,
+    "cacheReadTokens": 104832,
+    "cacheWriteTokens": 0
+  },
+  "reviewer": null,
+  "progress": {
+    "currentStep": "Step 1: Backlog data contract",
+    "checked": 3,
+    "total": 17,
+    "iteration": 4,
+    "reviews": 1
+  },
+  "updatedAt": 1776697964674
+}

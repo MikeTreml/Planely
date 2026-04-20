@@ -1,0 +1,11 @@
+{
+  "id": "1776696511169-52f11",
+  "batchId": "20260420T094622",
+  "from": "orch-treml-lane-1-worker",
+  "to": "supervisor",
+  "timestamp": 1776696511169,
+  "type": "escalate",
+  "content": "TP-114 is blocked by missing prompt-referenced files in the execution snapshot. I confirmed PROMPT/STATUS, created hello.txt and fibonacci.txt, then searched repo-wide. `docs/specifications/framework/taskplane-runtime-v2/01-architecture.md` does not exist (only `docs/specifications/operator-console/*` is present), and there is no `extensions/` tree, so `extensions/taskplane/lane-runner.ts` and `extensions/taskplane/agent-host.ts` are unavailable. I logged the discovery/blocker in STATUS.md. Please advise whether to proceed with best-effort substitutes or restore the referenced files.",
+  "expectsReply": true,
+  "replyTo": null
+}

@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "exitSignal": null,
+  "tokens": {
+    "input": 12208,
+    "output": 1520,
+    "cacheRead": 67584,
+    "cacheWrite": 0
+  },
+  "cost": 0.070216,
+  "toolCalls": 13,
+  "retries": 0,
+  "compactions": 0,
+  "durationSec": 42,
+  "lastToolCall": "bash: git add taskplane-tasks/TP-187-project-sidebar-and-navigation/STATUS.md && git commit -m \"chore(TP-187): document iteration 4 blocker audit\"",
+  "error": null,
+  "contextUsage": {
+    "tokens": 12594,
+    "contextWindow": 272000,
+    "percent": 4.630147058823529
+  }
+}

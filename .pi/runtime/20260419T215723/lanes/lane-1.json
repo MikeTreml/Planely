@@ -1,0 +1,31 @@
+{
+  "batchId": "20260419T215723",
+  "laneNumber": 1,
+  "laneId": "lane-1",
+  "repoId": "default",
+  "taskId": "TP-187",
+  "segmentId": "TP-187::default",
+  "status": "failed",
+  "worker": {
+    "agentId": "orch-treml-lane-1-worker",
+    "status": "crashed",
+    "elapsedMs": 42176,
+    "toolCalls": 13,
+    "contextPct": 4.630147058823529,
+    "costUsd": 0.070216,
+    "lastTool": "bash: git add taskplane-tasks/TP-187-project-sidebar-and-navigation/STATUS.md && git commit -m \"chore(TP-187): document iteration 4 blocker audit\"",
+    "inputTokens": 12208,
+    "outputTokens": 1520,
+    "cacheReadTokens": 67584,
+    "cacheWriteTokens": 0
+  },
+  "reviewer": null,
+  "progress": {
+    "currentStep": "Step 2: UI implementation",
+    "checked": 10,
+    "total": 21,
+    "iteration": 4,
+    "reviews": 3
+  },
+  "updatedAt": 1776656429494
+}

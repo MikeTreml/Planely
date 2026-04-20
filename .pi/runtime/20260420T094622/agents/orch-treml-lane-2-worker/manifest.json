@@ -1,0 +1,20 @@
+{
+  "batchId": "20260420T094622",
+  "agentId": "orch-treml-lane-2-worker",
+  "role": "worker",
+  "laneNumber": 2,
+  "taskId": "TP-186",
+  "repoId": "default",
+  "pid": 53924,
+  "parentPid": 69948,
+  "startedAt": 1776697372717,
+  "status": "exited",
+  "cwd": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-2",
+  "packet": {
+    "promptPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-2\\taskplane-tasks\\TP-186-slack-companion-design/PROMPT.md",
+    "statusPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-2\\taskplane-tasks\\TP-186-slack-companion-design\\STATUS.md",
+    "donePath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-2\\taskplane-tasks\\TP-186-slack-companion-design\\.DONE",
+    "reviewsDir": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-2\\taskplane-tasks\\TP-186-slack-companion-design/.reviews",
+    "taskFolder": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-2\\taskplane-tasks\\TP-186-slack-companion-design"
+  }
+}

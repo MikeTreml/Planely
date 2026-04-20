@@ -1,0 +1,11 @@
+{
+  "id": "1776656292424-574e8",
+  "batchId": "20260419T215723",
+  "from": "supervisor",
+  "to": "orch-treml-lane-1-worker",
+  "timestamp": 1776656292424,
+  "type": "steer",
+  "content": "Confirmed. Since TP-187 achieved partial docs progress but the prompt-scoped dashboard implementation files are absent, do not fabricate UI code. Preserve the Step 1 spec work, document the exact missing paths/commands and blocked boundary in STATUS.md, and exit via the task's natural blocked/failure path if no further safe doc-only work remains.",
+  "expectsReply": false,
+  "replyTo": null
+}

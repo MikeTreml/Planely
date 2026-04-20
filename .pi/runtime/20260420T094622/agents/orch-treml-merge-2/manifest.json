@@ -1,0 +1,14 @@
+{
+  "batchId": "20260420T094622",
+  "agentId": "orch-treml-merge-2",
+  "role": "merger",
+  "laneNumber": null,
+  "taskId": null,
+  "repoId": "default",
+  "pid": 71928,
+  "parentPid": 69948,
+  "startedAt": 1776698239413,
+  "status": "killed",
+  "cwd": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\merge",
+  "packet": null
+}

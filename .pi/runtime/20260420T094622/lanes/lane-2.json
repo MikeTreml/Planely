@@ -1,0 +1,31 @@
+{
+  "batchId": "20260420T094622",
+  "laneNumber": 2,
+  "laneId": "lane-2",
+  "repoId": "default",
+  "taskId": "TP-186",
+  "segmentId": "TP-186::default",
+  "status": "complete",
+  "worker": {
+    "agentId": "orch-treml-lane-2-worker",
+    "status": "exited",
+    "elapsedMs": 833018,
+    "toolCalls": 102,
+    "contextPct": 20.517279411764704,
+    "costUsd": 1.4231964999999998,
+    "lastTool": "read: C:/Users/Treml/source/repos/Planely/.worktrees/treml-20260420T094622/lane-2/taskplane-tasks/TP-186-slack-companion-design/STATUS.md",
+    "inputTokens": 96885,
+    "outputTokens": 21992,
+    "cacheReadTokens": 3404416,
+    "cacheWriteTokens": 0
+  },
+  "reviewer": null,
+  "progress": {
+    "currentStep": "Step 4: Verification & Delivery",
+    "checked": 18,
+    "total": 18,
+    "iteration": 1,
+    "reviews": 5
+  },
+  "updatedAt": 1776698205743
+}

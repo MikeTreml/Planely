@@ -1,0 +1,20 @@
+{
+  "batchId": "20260420T094622",
+  "agentId": "orch-treml-lane-1-worker",
+  "role": "worker",
+  "laneNumber": 1,
+  "taskId": "TP-182",
+  "repoId": "default",
+  "pid": 119628,
+  "parentPid": 69948,
+  "startedAt": 1776697900950,
+  "status": "exited",
+  "cwd": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-1",
+  "packet": {
+    "promptPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-1\\taskplane-tasks\\TP-182-dashboard-backlog-view/PROMPT.md",
+    "statusPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-1\\taskplane-tasks\\TP-182-dashboard-backlog-view\\STATUS.md",
+    "donePath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-1\\taskplane-tasks\\TP-182-dashboard-backlog-view\\.DONE",
+    "reviewsDir": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-1\\taskplane-tasks\\TP-182-dashboard-backlog-view/.reviews",
+    "taskFolder": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-1\\taskplane-tasks\\TP-182-dashboard-backlog-view"
+  }
+}

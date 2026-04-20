@@ -1,0 +1,11 @@
+{
+  "id": "1776656263721-cf5c6",
+  "batchId": "20260419T215723",
+  "from": "orch-treml-lane-1-worker",
+  "to": "supervisor",
+  "timestamp": 1776656263721,
+  "type": "escalate",
+  "content": "TP-187 is genuinely blocked at Step 2. I completed Step 0 preflight and Step 1 by updating `docs/specifications/operator-console/ux-ia.md` with the sidebar UX contract, but the prompt-scoped implementation targets do not exist in this snapshot: `dashboard/public/index.html`, `dashboard/public/app.js`, `dashboard/public/style.css`, and `dashboard/server.cjs`. I verified with repo-wide `find` and `git ls-files | grep dashboard`, both returned no matches. `.pi/project-registry.json` is also absent, so there is no registry-backed project feed to wire into a sidebar. I logged the blocker in STATUS.md. Please advise whether to wait for restored dashboard assets / alternate implementation target, or whether this task should end as blocked in the current snapshot.",
+  "expectsReply": true,
+  "replyTo": null
+}

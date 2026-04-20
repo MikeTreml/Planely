@@ -1,0 +1,20 @@
+{
+  "batchId": "20260420T094622",
+  "agentId": "orch-treml-lane-3-worker",
+  "role": "worker",
+  "laneNumber": 3,
+  "taskId": "TP-188",
+  "repoId": "default",
+  "pid": 97860,
+  "parentPid": 69948,
+  "startedAt": 1776697372726,
+  "status": "exited",
+  "cwd": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-3",
+  "packet": {
+    "promptPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-3\\taskplane-tasks\\TP-188-project-registry-recent-and-archive-state/PROMPT.md",
+    "statusPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-3\\taskplane-tasks\\TP-188-project-registry-recent-and-archive-state\\STATUS.md",
+    "donePath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-3\\taskplane-tasks\\TP-188-project-registry-recent-and-archive-state\\.DONE",
+    "reviewsDir": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-3\\taskplane-tasks\\TP-188-project-registry-recent-and-archive-state/.reviews",
+    "taskFolder": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260420T094622\\lane-3\\taskplane-tasks\\TP-188-project-registry-recent-and-archive-state"
+  }
+}

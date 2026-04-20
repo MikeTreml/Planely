@@ -1,0 +1,16 @@
+{
+  "opId": "treml",
+  "batchId": "20260419T215723",
+  "waveIndex": 2,
+  "laneNumber": 2,
+  "repoId": null,
+  "baseHEAD": "f8e8ccbb7bd0e4c628f8971da9bb3501fac3846f",
+  "laneHEAD": "957040d18d540f05dffa408fe171d56ac3be3cd5",
+  "mergedHEAD": "45c0eec00e753fc5d4b3b4db176b76cbebc0622d",
+  "status": "committed",
+  "rollbackAttempted": false,
+  "rollbackResult": null,
+  "recoveryCommands": [],
+  "startedAt": "2026-04-20T03:30:02.116Z",
+  "completedAt": "2026-04-20T03:30:12.233Z"
+}

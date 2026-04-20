@@ -1,0 +1,20 @@
+{
+  "batchId": "20260419T215723",
+  "agentId": "orch-treml-lane-1-worker",
+  "role": "worker",
+  "laneNumber": 1,
+  "taskId": "TP-187",
+  "repoId": "default",
+  "pid": 18812,
+  "parentPid": 86884,
+  "startedAt": 1776656387280,
+  "status": "exited",
+  "cwd": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-1",
+  "packet": {
+    "promptPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-1\\taskplane-tasks\\TP-187-project-sidebar-and-navigation/PROMPT.md",
+    "statusPath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-1\\taskplane-tasks\\TP-187-project-sidebar-and-navigation\\STATUS.md",
+    "donePath": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-1\\taskplane-tasks\\TP-187-project-sidebar-and-navigation\\.DONE",
+    "reviewsDir": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-1\\taskplane-tasks\\TP-187-project-sidebar-and-navigation/.reviews",
+    "taskFolder": "C:\\Users\\Treml\\source\\repos\\Planely\\.worktrees\\treml-20260419T215723\\lane-1\\taskplane-tasks\\TP-187-project-sidebar-and-navigation"
+  }
+}

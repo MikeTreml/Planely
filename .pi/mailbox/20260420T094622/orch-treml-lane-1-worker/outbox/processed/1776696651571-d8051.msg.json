@@ -1,0 +1,11 @@
+{
+  "id": "1776696651571-d8051",
+  "batchId": "20260420T094622",
+  "from": "orch-treml-lane-1-worker",
+  "to": "supervisor",
+  "timestamp": 1776696651571,
+  "type": "reply",
+  "content": "Verified from the lane with `git ls-tree --name-only HEAD docs/specifications/framework extensions`; it returned no entries, so this lane snapshot/worktree is stale or incomplete. I updated STATUS.md to record the steering message and explicit stale-snapshot blocker. Step 2 remains blocked; no fabrication performed.",
+  "expectsReply": false,
+  "replyTo": null
+}

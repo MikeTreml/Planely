@@ -1,0 +1,21 @@
+{
+  "batchId": "20260420T094622",
+  "mergeNumber": 1,
+  "sessionName": "orch-treml-merge-1",
+  "waveIndex": 1,
+  "status": "failed",
+  "agent": {
+    "agentId": "orch-treml-merge-1",
+    "status": "crashed",
+    "elapsedMs": 12108,
+    "toolCalls": 3,
+    "contextPct": 1.8775735294117648,
+    "costUsd": 0.021102,
+    "lastTool": "write: C:/Users/Treml/source/repos/Planely/.pi/merge-result-w1-lane1-treml-20260420T094622.json",
+    "inputTokens": 5772,
+    "outputTokens": 272,
+    "cacheReadTokens": 10368,
+    "cacheWriteTokens": 0
+  },
+  "updatedAt": 1776697342814
+}
