@@ -551,11 +551,69 @@ $historyBody?.addEventListener("click", (event) => {
   if (taskId) selectTask(taskId);
 });
 
-$taskDetailBody?.addEventListener("click", (event) => {
+$taskDetailBody?.addEventListener("click", async (event) => {
   const viewStatusBtn = event.target.closest?.("[data-backlog-open-status]");
-  if (!viewStatusBtn) return;
-  const taskId = viewStatusBtn.getAttribute("data-backlog-open-status");
-  if (taskId) viewStatusMd(taskId);
+  if (viewStatusBtn) {
+    const taskId = viewStatusBtn.getAttribute("data-backlog-open-status");
+    if (taskId) viewStatusMd(taskId);
+    return;
+  }
+
+  const actionBtn = event.target.closest?.("[data-dashboard-action]");
+  if (!actionBtn) return;
+
+  const actionId = actionBtn.getAttribute("data-dashboard-action");
+  const taskId = actionBtn.getAttribute("data-task-id") || selectedBacklogTaskId || "";
+  const batchScoped = actionBtn.getAttribute("data-batch-action") === "true";
+  const backlogItem = taskId ? findBacklogItem(taskId) : null;
+  const action = batchScoped
+    ? (currentData?.batchActions?.[actionId] || null)
+    : (backlogItem?.actions?.[actionId] || null);
+  if (!action) return;
+
+  if (action.confirmation && !window.confirm(action.confirmation)) {
+    return;
+  }
+
+  if (action.invokeMode === "copy") {
+    try {
+      await copyText(action.commandPreview || "");
+      dashboardActionState.lastTone = "success";
+      dashboardActionState.lastMessage = `${action.label} copied to clipboard.`;
+    } catch (err) {
+      dashboardActionState.lastTone = "danger";
+      dashboardActionState.lastMessage = `Failed to copy command: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    renderTaskDetail();
+    return;
+  }
+
+  dashboardActionState.pendingKey = `${action.id}:${batchScoped ? "batch" : taskId}`;
+  dashboardActionState.lastTone = "info";
+  dashboardActionState.lastMessage = `${action.label} requested…`;
+  renderTaskDetail();
+
+  try {
+    const response = await fetch("/api/actions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: actionId, taskId, confirmed: true }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.error || `Request failed (${response.status})`);
+    }
+    dashboardActionState.lastTone = "success";
+    dashboardActionState.lastMessage = payload?.output || `${action.label} completed.`;
+    fetch("/api/state").then((r) => r.json()).then(render).catch(() => renderTaskDetail());
+  } catch (err) {
+    dashboardActionState.lastTone = "danger";
+    dashboardActionState.lastMessage = err instanceof Error ? err.message : String(err);
+    renderTaskDetail();
+  } finally {
+    dashboardActionState.pendingKey = "";
+    renderTaskDetail();
+  }
 });
 
 // ─── Render: Header ─────────────────────────────────────────────────────────
@@ -1525,6 +1583,50 @@ function findHistoryTask(taskId) {
   return tasks.find((task) => task.taskId === taskId) || null;
 }
 
+const dashboardActionState = {
+  pendingKey: "",
+  lastMessage: "",
+  lastTone: "info",
+};
+
+function copyText(text) {
+  if (!text) return Promise.reject(new Error("Nothing to copy"));
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    try {
+      const input = document.createElement("textarea");
+      input.value = text;
+      input.setAttribute("readonly", "true");
+      input.style.position = "absolute";
+      input.style.left = "-9999px";
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      resolve();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function taskActionButtonHtml(action, taskId, batchScoped) {
+  if (!action) return "";
+  const actionKey = `${action.id}:${batchScoped ? "batch" : (taskId || "task")}`;
+  const isPending = dashboardActionState.pendingKey === actionKey;
+  const isCopy = action.invokeMode === "copy";
+  const disabled = !isCopy && (!action.enabled || isPending);
+  const label = isCopy ? `Copy ${action.label}` : action.label;
+  const reason = action.reason ? `<div class="task-action-reason">${escapeHtml(action.reason)}</div>` : "";
+  const preview = action.commandPreview ? `<div class="task-action-preview"><code>${escapeHtml(action.commandPreview)}</code></div>` : "";
+  return `
+    <div class="task-action-card ${disabled ? "is-disabled" : ""}">
+      <button class="session-view-btn task-action-btn" type="button" data-dashboard-action="${escapeHtml(action.id)}" ${taskId ? `data-task-id="${escapeHtml(taskId)}"` : ""} ${batchScoped ? 'data-batch-action="true"' : ""} ${disabled ? "disabled" : ""}>${escapeHtml(isPending ? `${label}…` : label)}</button>
+      ${reason}
+      ${preview}
+    </div>`;
+}
+
 function renderTaskDetail() {
   if (!$taskDetailPanel || !$taskDetailBody || !$taskDetailTitle || !$taskDetailSubtitle) return;
   const taskId = selectedBacklogTaskId;
@@ -1568,6 +1670,17 @@ function renderTaskDetail() {
   const statusAction = canOpenStatus
     ? `<button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(taskId)}">View STATUS.md</button>`
     : '<span class="backlog-selection-hint">STATUS viewer available when this task is part of the active batch.</span>';
+  const taskActions = backlogItem?.actions || null;
+  const batchIntegrateAction = currentData?.batchActions?.integrate || null;
+  const actionNotice = dashboardActionState.lastMessage
+    ? `<div class="task-action-notice tone-${escapeHtml(dashboardActionState.lastTone)}">${escapeHtml(dashboardActionState.lastMessage)}</div>`
+    : "";
+  const actionButtonsHtml = [
+    taskActionButtonHtml(taskActions?.start, taskId, false),
+    taskActionButtonHtml(taskActions?.retry, taskId, false),
+    taskActionButtonHtml(taskActions?.skip, taskId, false),
+    taskActionButtonHtml(batchIntegrateAction, taskId, true),
+  ].filter(Boolean).join("");
 
   $taskDetailPanel.style.display = "";
   $taskDetailTitle.textContent = `${taskId} — ${title}`;
@@ -1603,6 +1716,11 @@ function renderTaskDetail() {
       <div class="task-detail-section">
         <div class="task-detail-section-title">Dependencies</div>
         ${dependenciesHtml}
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Operator actions</div>
+        ${actionNotice}
+        <div class="task-action-grid">${actionButtonsHtml || '<div class="task-detail-empty">No operator actions available for this selection</div>'}</div>
       </div>
       <div class="task-detail-section task-detail-section-wide">
         <div class="task-detail-section-title">File scope</div>

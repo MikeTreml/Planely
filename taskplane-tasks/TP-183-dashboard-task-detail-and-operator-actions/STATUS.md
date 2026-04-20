@@ -1,10 +1,10 @@
 # TP-183: Dashboard Task Detail and Operator Actions — Status
 
-**Current Step:** Step 3: Frontend/server implementation
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 4
+**Review Counter:** 6
 **Iteration:** 1
 **Size:** L
 
@@ -35,16 +35,16 @@
 ---
 
 ### Step 3: Frontend/server implementation
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Align start-action gating with /orch phase semantics and add boundary tests (R004)
-- [ ] Implement action UI affordances
-- [ ] Implement minimal server support
-- [ ] Handle disabled/error/unsupported states
+- [x] Implement action UI affordances
+- [x] Implement minimal server support
+- [x] Handle disabled/error/unsupported states
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Add state-handling tests
 - [ ] Smoke-test inspect and action flows
 - [ ] Update docs if shipped
@@ -86,6 +86,11 @@
 | 2026-04-20 20:15 | Step 2 completed | Operator action contract and gating metadata added |
 | 2026-04-20 20:15 | Step 3 started | Frontend/server implementation |
 | 2026-04-20 20:20 | R004 fixed | Start-action gating now mirrors busy-phase rules and tests cover completed/failed/stopped vs launching/executing |
+| 2026-04-20 20:40 | Action UI rendered | Task detail panel now shows start/retry/skip/integrate controls with confirmation and copy/direct affordances |
+| 2026-04-20 20:40 | Action endpoint added | Dashboard server now validates action requests and runs direct slash-command prompts through rpc-wrapper for supported actions |
+| 2026-04-20 20:41 | Error/unsupported handling wired | Disabled actions show reasons, fallback-only actions copy command previews, and action results surface in the detail panel |
+| 2026-04-20 20:41 | Step 3 completed | Dashboard operator controls now have UI + server wiring |
+| 2026-04-20 20:41 | Step 4 started | Verification & Delivery |
 
 ---
 
@@ -107,3 +112,5 @@ Builds the first true operator-control interactions into the dashboard.
 | 2026-04-20 19:23 | Review R002 | code Step 1: APPROVE |
 | 2026-04-20 19:25 | Review R003 | plan Step 2: APPROVE |
 | 2026-04-20 19:30 | Review R004 | code Step 2: REVISE |
+| 2026-04-20 19:33 | Review R005 | code Step 2: APPROVE |
+| 2026-04-20 19:33 | Review R006 | plan Step 3: APPROVE |

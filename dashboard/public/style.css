@@ -870,6 +870,66 @@ body {
   border-top: 1px solid var(--border-subtle);
 }
 
+.task-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.task-action-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--bg-surface);
+}
+
+.task-action-card.is-disabled {
+  opacity: 0.8;
+}
+
+.task-action-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.task-action-reason,
+.task-action-preview,
+.task-action-notice {
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
+.task-action-reason {
+  color: var(--text-muted);
+}
+
+.task-action-preview code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-action-notice {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.task-action-notice.tone-success {
+  color: var(--green);
+  background: var(--badge-succeeded-bg);
+}
+
+.task-action-notice.tone-danger {
+  color: var(--red);
+  background: var(--badge-failed-bg);
+}
+
+.task-action-notice.tone-info {
+  color: var(--accent);
+  background: var(--badge-running-bg);
+}
+
 .history-task-link {
   background: none;
   border: none;

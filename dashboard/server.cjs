@@ -12,7 +12,8 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
+const { tmpdir } = require("os");
 // url module not needed — we parse with new URL() below
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -2301,6 +2302,174 @@ function handlePostPreferences(req, res) {
   });
 }
 
+function readJsonRequestBody(req, callback) {
+  let body = "";
+  req.on("data", (chunk) => { body += chunk; });
+  req.on("end", () => {
+    try {
+      callback(null, body ? JSON.parse(body) : {});
+    } catch (err) {
+      callback(err);
+    }
+  });
+}
+
+function sendJson(res, statusCode, payload) {
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function resolveDashboardActionRequest(payload) {
+  const state = loadBatchState();
+  const history = loadHistory();
+  const backlog = loadBacklogData(state, history);
+  const taskId = typeof payload?.taskId === "string" ? payload.taskId : "";
+  const actionId = typeof payload?.action === "string" ? payload.action : "";
+  const backlogItem = taskId
+    ? (Array.isArray(backlog.items) ? backlog.items.find((item) => item.taskId === taskId) || null : null)
+    : null;
+  const contract = backlogItem?.actions?.[actionId]
+    || buildBatchActionContract(state)?.[actionId]
+    || null;
+  return { state, backlogItem, contract, actionId, taskId };
+}
+
+function runDashboardPiPrompt(promptText, callback) {
+  const rpcWrapperPath = path.join(REPO_ROOT, "bin", "rpc-wrapper.mjs");
+  const extensionPath = path.join(REPO_ROOT, "extensions", "taskplane", "extension.ts");
+  if (!fs.existsSync(rpcWrapperPath) || !fs.existsSync(extensionPath)) {
+    callback(new Error("Dashboard action runtime is unavailable in this checkout."));
+    return;
+  }
+
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const promptPath = path.join(tmpdir(), `taskplane-dashboard-action-${stamp}.md`);
+  const sidecarPath = path.join(tmpdir(), `taskplane-dashboard-action-${stamp}.jsonl`);
+  const summaryPath = path.join(tmpdir(), `taskplane-dashboard-action-${stamp}.summary.json`);
+  fs.writeFileSync(promptPath, `${promptText.trim()}\n`, "utf-8");
+
+  execFile(process.execPath, [
+    rpcWrapperPath,
+    "--sidecar-path", sidecarPath,
+    "--exit-summary-path", summaryPath,
+    "--prompt-file", promptPath,
+    "--extensions", extensionPath,
+  ], {
+    cwd: REPO_ROOT,
+    env: { ...process.env },
+    timeout: 120000,
+    maxBuffer: 1024 * 1024,
+  }, (error, stdout, stderr) => {
+    let summary = null;
+    try {
+      if (fs.existsSync(summaryPath)) {
+        summary = JSON.parse(fs.readFileSync(summaryPath, "utf-8"));
+      }
+    } catch {
+      summary = null;
+    }
+
+    for (const file of [promptPath, sidecarPath, summaryPath]) {
+      try { fs.unlinkSync(file); } catch {}
+    }
+
+    if (error) {
+      const message = summary?.error || stderr || stdout || error.message;
+      callback(new Error(String(message).trim()));
+      return;
+    }
+
+    callback(null, {
+      ok: summary?.error == null,
+      exitCode: summary?.exitCode ?? 0,
+      stdout: String(stdout || "").trim(),
+      stderr: String(stderr || "").trim(),
+      summary,
+    });
+  });
+}
+
+function handleDashboardAction(req, res) {
+  readJsonRequestBody(req, (err, payload) => {
+    if (err) {
+      sendJson(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+
+    const { contract, backlogItem, actionId, taskId } = resolveDashboardActionRequest(payload);
+    if (!contract) {
+      sendJson(res, 404, { error: "Unknown dashboard action", action: actionId, taskId });
+      return;
+    }
+
+    if (!payload?.confirmed && contract.confirmation) {
+      sendJson(res, 409, {
+        error: "Confirmation required",
+        action: actionId,
+        taskId,
+        confirmation: contract.confirmation,
+        commandPreview: contract.commandPreview || null,
+      });
+      return;
+    }
+
+    if (!contract.enabled) {
+      sendJson(res, 409, {
+        error: contract.reason || "Action is currently disabled",
+        action: actionId,
+        taskId,
+        supported: contract.invokeMode === "post",
+        commandPreview: contract.commandPreview || null,
+      });
+      return;
+    }
+
+    if (contract.invokeMode !== "post") {
+      sendJson(res, 501, {
+        error: contract.reason || "Direct execution is not supported yet",
+        action: actionId,
+        taskId,
+        supported: false,
+        commandPreview: contract.commandPreview || null,
+      });
+      return;
+    }
+
+    const promptText = actionId === "start"
+      ? `/orch ${backlogItem?.navigation?.promptPath || backlogItem?.promptPath || ""}`
+      : (actionId === "integrate" ? "/orch-integrate" : "");
+
+    if (!promptText.trim()) {
+      sendJson(res, 400, { error: "Action is missing a runnable command", action: actionId, taskId });
+      return;
+    }
+
+    runDashboardPiPrompt(promptText, (runErr, result) => {
+      if (runErr) {
+        sendJson(res, 500, {
+          error: runErr.message,
+          action: actionId,
+          taskId,
+          commandPreview: contract.commandPreview || null,
+        });
+        return;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        action: actionId,
+        taskId,
+        commandPreview: contract.commandPreview || null,
+        summary: result?.summary || null,
+        output: result?.stdout || result?.stderr || "Command completed.",
+      });
+    });
+  });
+}
+
 // ─── HTTP Server ────────────────────────────────────────────────────────────
 
 function createServer() {
@@ -2360,6 +2529,8 @@ function createServer() {
       handleGetPreferences(req, res);
     } else if (pathname === "/api/preferences" && req.method === "POST") {
       handlePostPreferences(req, res);
+    } else if (pathname === "/api/actions" && req.method === "POST") {
+      handleDashboardAction(req, res);
     } else if (req.method === "OPTIONS") {
       // CORS preflight for POST
       res.writeHead(204, {
