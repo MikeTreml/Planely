@@ -148,7 +148,7 @@ Use `archived` when the value is mostly retention and traceability.
 
 ## Authority Classes
 
-Lifecycle state answers **how current** a document is. Authority answers **how much it should control decisions**.
+Lifecycle state answers **how current** a document is. Authority answers **how much it should control decisions**. A document can therefore be `active` but merely contextual, or `historical` and still valuable for provenance; freshness and authority should not be collapsed into one label.
 
 ### Authoritative
 
@@ -225,7 +225,8 @@ Problems with filename-led governance:
 
 Therefore:
 - filenames and directories may remain helpful navigation cues,
-- but lifecycle state and provenance metadata should be the authoritative trust mechanism.
+- but lifecycle state and provenance metadata should be the authoritative trust mechanism,
+- and future task packets should never infer primary freshness or authority from filename patterns alone.
 
 ## Citation Rules for Future Task Packets
 

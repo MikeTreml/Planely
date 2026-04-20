@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -27,16 +27,16 @@
 ---
 
 ### Step 2: Define governance rules
-**Status:** 🟨 In Progress
-- [ ] Define authoritative vs contextual vs historical docs
-- [ ] Define supersession recording
-- [ ] Define how stale docs should be handled in future planning
-- [ ] Explain why filename encoding is insufficient as the primary mechanism
+**Status:** ✅ Complete
+- [x] Define authoritative vs contextual vs historical docs
+- [x] Define supersession recording
+- [x] Define how stale docs should be handled in future planning
+- [x] Explain why filename encoding is insufficient as the primary mechanism
 
 ---
 
 ### Step 3: Connect docs to project progress
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Capture task-distance review thinking
 - [ ] Explain why date-only freshness is insufficient
 - [ ] Suggest initial review windows by doc type
@@ -81,6 +81,8 @@
 | 2026-04-20 19:33 | Step 1 started | Define lifecycle states |
 | 2026-04-20 19:36 | Step 1 completed | Lifecycle states, handling, and practical constraints documented |
 | 2026-04-20 19:36 | Step 2 started | Define governance rules |
+| 2026-04-20 19:42 | Step 2 completed | Authority classes, supersession rules, stale citation guidance, and filename rationale documented |
+| 2026-04-20 19:42 | Step 3 started | Connect docs to project progress |
 
 ---
 
@@ -108,5 +110,10 @@ Step 0 evidence:
 - Added state transition rules and explicit guidance for when docs should move into review-due, stale-suspect, superseded, archived, or historical handling.
 - Kept the policy implementation-light by preferring a small shared state set, metadata envelopes, and low-churn maintenance rules rather than mandatory renames or tooling in this task.
 - Reviewer R002 required Step 2 to explicitly track the filename-insufficiency rationale inside the checklist, not only in Step 0 notes.
+- Step 2 policy content now separates lifecycle state from authority and defines authoritative, contextual, and historical classes for future citation decisions.
+- Added supersession rules that require explicit replacement links and prefer bidirectional `supersedes` / `supersededBy` recording for future indexing.
+- Added citation rules for future task packets so stale-suspect, superseded, archived, and historical docs are not treated as silent primary authority.
+- Strengthened the filename-governance section so metadata/provenance are explicitly primary and task packets are told not to infer trust from filenames alone.
 | 2026-04-20 19:24 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 19:27 | Review R002 | plan Step 2: REVISE |
+| 2026-04-20 19:28 | Review R003 | plan Step 2: APPROVE |
