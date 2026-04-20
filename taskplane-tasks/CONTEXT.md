@@ -28,3 +28,5 @@ parallel batch execution or `/orch <path/to/PROMPT.md>` for a single task.
 ## Technical Debt / Future Work
 
 _Items discovered during task execution are logged here by agents._
+
+- [ ] **Restore or restage Taskplane architecture/dashboard reference docs in execution snapshots** — TP-180 found prompt-referenced files like `docs/explanation/architecture.md`, `docs/reference/commands.md`, dashboard assets, and OpenClaw reference docs absent from the worker snapshot, which makes grounding follow-on planning tasks harder. (discovered during TP-180)
