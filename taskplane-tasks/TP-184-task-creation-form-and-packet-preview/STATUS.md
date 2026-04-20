@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 4: Verification & Delivery
+**Current Step:** Step 3: UI implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 11
+**Review Counter:** 12
 **Iteration:** 1
 **Size:** L
 
@@ -41,11 +41,12 @@
 ---
 
 ### Step 3: UI implementation
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Add create-task form UI
 - [x] Add preview UI
 - [x] Add success/failure navigation and feedback
 - [x] Fix reset/default restoration and invalidate stale preview after successful create
+- [ ] Preserve success feedback across post-create metadata refresh
 
 ---
 
@@ -97,6 +98,7 @@
 | 2026-04-20 21:24 | Step 3 progress | Added authoring form, preview surface, and create feedback that reselects the new task in backlog detail |
 | 2026-04-20 21:27 | Review R011 | code Step 3 returned REVISE; reset/create preview state needs hardening |
 | 2026-04-20 21:31 | Step 3 revise | Reset now restores project defaults and successful create invalidates stale preview state |
+| 2026-04-20 21:34 | Review R012 | code Step 3 returned REVISE; success banner is lost during metadata refresh |
 
 ---
 
@@ -123,3 +125,4 @@ Preflight findings:
 - Code review follow-up for Step 2: rename collisions must return a recoverable conflict and must never delete a folder this request did not create.
 - Step 3 implementation adds a backlog-embedded task authoring form with area, mission, size, review, complexity, dependency, context, and file-scope inputs grounded in the shared server contract.
 - Code review follow-up for Step 3: Reset must preserve loaded metadata/defaults, and successful create must invalidate stale preview state until the operator previews the next derived packet.
+- Additional Step 3 review follow-up: metadata refresh after create must not clobber the operator-visible success confirmation.
