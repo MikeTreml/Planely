@@ -1354,6 +1354,16 @@ function buildBacklogDisplayStatus(packet, context) {
     };
   }
 
+  if (currentTask?.status === "succeeded") {
+    return {
+      key: "succeeded",
+      label: "Done",
+      tone: "success",
+      reason: currentTask.batchId ? `Completed in batch ${currentTask.batchId}` : "Completed in the active batch",
+      source: ["batch-state"],
+    };
+  }
+
   if (currentTask?.status === "skipped") {
     return {
       key: "skipped",
@@ -1446,6 +1456,8 @@ function buildBacklogItem(packet, context) {
       ? `Last batch ${historyEntry.batchId || "unknown"}: ${historyEntry.status || "unknown"}`
       : status.reason || null);
 
+  const batchScopedWaiting = Boolean(currentTask) && (status.key === "waiting" || status.key === "running");
+
   return {
     taskId: packet.taskId,
     title: packet.title,
@@ -1462,7 +1474,7 @@ function buildBacklogItem(packet, context) {
       blockedBy: blockedDependencies,
       waitingOn: status.key === "blocked"
         ? "dependencies"
-        : (status.key === "waiting" || status.key === "running" ? "active-batch" : null),
+        : (batchScopedWaiting ? "active-batch" : null),
     },
     execution: {
       batchId: currentTask?.batchId || null,

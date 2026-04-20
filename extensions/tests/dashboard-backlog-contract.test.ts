@@ -79,6 +79,39 @@ describe("TP-182 dashboard backlog contract", () => {
 		expect(status.source).toContain(".DONE");
 	});
 
+	it("treats active succeeded tasks as completed even before packet artifacts update", () => {
+		const packet = {
+			taskId: "TP-102A",
+			title: "Freshly completed task",
+			statusData: { status: "⬜ Not Started", reviews: 0 },
+		};
+
+		const status = buildBacklogDisplayStatus(packet, {
+			activeTask: { batchId: "batch-8", status: "succeeded", laneNumber: 1 },
+		});
+
+		expect(status.key).toBe("succeeded");
+		expect(status.reason).toContain("batch-8");
+		expect(status.source).toContain("batch-state");
+	});
+
+	it("does not claim active-batch waiting for out-of-band in-progress packets", () => {
+		const packet = {
+			taskId: "TP-102B",
+			title: "Out-of-band work",
+			statusData: { status: "🟡 In Progress", reviews: 0 },
+			dependencies: [],
+		};
+
+		const item = buildBacklogItem(packet, {
+			blockedDependencies: [],
+			completedDependencies: [],
+		});
+
+		expect(item.status.key).toBe("waiting");
+		expect(item.readiness.waitingOn).toBe(null);
+	});
+
 	it("builds backlog rows with readiness, activity, and navigation metadata", () => {
 		const packet = {
 			taskId: "TP-103",
