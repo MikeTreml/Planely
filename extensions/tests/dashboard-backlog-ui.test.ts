@@ -28,8 +28,9 @@ describe("TP-182 dashboard backlog UI", () => {
 		expect(app).toContain("function applyPrimaryViewVisibility(data)");
 		expect(app).toContain("function renderBacklog(backlog)");
 		expect(app).toContain("function backlogScopeText(backlog)");
+		expect(app).toContain("function backlogCanOpenStatus(item)");
 		expect(app).toContain("function backlogSelectionHtml(item, outOfFilter)");
-		expect(app).toContain("data-backlog-open-status");
+		expect(app).toContain("STATUS viewer available when this task is part of the active batch");
 		expect(app).toContain("$backlogClearFilters?.addEventListener");
 		expect(app).toContain("renderSummary(null, data.backlog)");
 		expect(app).toContain("configuredRepoIds");

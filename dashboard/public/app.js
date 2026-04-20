@@ -1424,6 +1424,12 @@ function backlogSummaryStripHtml(summary, filteredCount, totalCount) {
     </div>`;
 }
 
+function backlogCanOpenStatus(item) {
+  if (!item || !currentData?.batch || !item.execution?.batchId) return false;
+  if (currentData.batch.batchId && item.execution.batchId !== currentData.batch.batchId) return false;
+  return (currentData.batch.tasks || []).some((task) => task.taskId === item.taskId);
+}
+
 function backlogSelectionHtml(item, outOfFilter) {
   if (!item) return "";
   const deps = Array.isArray(item.readiness?.blockedBy) ? item.readiness.blockedBy : [];
@@ -1434,13 +1440,17 @@ function backlogSelectionHtml(item, outOfFilter) {
   const outOfFilterBadge = outOfFilter
     ? '<span class="backlog-selection-badge">Outside current repo/filter view</span>'
     : '';
+  const canOpenStatus = backlogCanOpenStatus(item);
+  const actionHtml = canOpenStatus
+    ? `<button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(item.taskId)}">View STATUS.md</button>`
+    : '<span class="backlog-selection-hint">STATUS viewer available when this task is part of the active batch.</span>';
   return `
     <div class="backlog-selection-card">
       <div class="backlog-selection-header">
         <div class="backlog-selection-title">Selected: ${escapeHtml(item.taskId)} — ${escapeHtml(item.title || "Untitled")}</div>
         <div class="backlog-selection-actions">
           ${outOfFilterBadge}
-          <button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(item.taskId)}">View STATUS.md</button>
+          ${actionHtml}
         </div>
       </div>
       <div class="backlog-selection-grid">

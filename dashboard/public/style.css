@@ -661,7 +661,8 @@ body {
 .backlog-card-meta,
 .backlog-card-footer,
 .backlog-selection-note,
-.backlog-selection-grid {
+.backlog-selection-grid,
+.backlog-selection-hint {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
