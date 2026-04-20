@@ -1,7 +1,7 @@
 # TP-185: Planning Artifact Schema and Storage — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 5
@@ -47,10 +47,10 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify mono-repo/workspace practicality
-- [ ] Confirm no duplicate canonical state
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Verify mono-repo/workspace practicality
+- [x] Confirm no duplicate canonical state
+- [x] Log discoveries
 
 ---
 
@@ -61,6 +61,8 @@
 | 1 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 | 2 | Plan | 1 | APPROVE | `.reviews/R002-plan-step1.md` |
 | 3 | Plan | 2 | REVISE | `.reviews/R003-plan-step2.md` |
+| 4 | Plan | 2 | APPROVE | `.reviews/R004-plan-step2.md` |
+| 5 | Plan | 3 | APPROVE | `.reviews/R005-plan-step3.md` |
 
 ---
 
@@ -68,6 +70,8 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Planning layer implementation will need a schema/loader task for `.taskplane/project/planning/*.json` plus validation of derived indexes. | Follow-up task | `docs/specifications/operator-console/planning-artifacts.md`, `docs/specifications/operator-console/planning-storage-layout.md` |
+| Planning-aware console work should add root-resolution tests for single-repo, monorepo, and workspace-mode config-repo placement before rendering linked packet status. | Follow-up task | `docs/specifications/operator-console/planning-storage-layout.md` |
 
 ---
 
@@ -96,6 +100,7 @@ Preflight findings:
 - Planning-layer requirements captured for this spec: canonical files must remain human-inspectable; planning artifacts may describe intent but cannot redefine packet/run/batch truth; links must favor stable IDs/paths over embedded copies; history should be append-only where possible; discovery must work in mono-repo and workspace layouts without requiring a database or always-on service.
 - Plan review suggestion to fold into Step 1 doc: include a short "not stored here" / non-goals section so later implementation tasks can see duplicate-authority boundaries at a glance.
 - Step 2 plan review asks for an explicit matrix covering repo, monorepo, and workspace mode plus discovery/indexing rules that keep any registry/cache derived from canonical planning files.
+- Verification notes: `planning-storage-layout.md` now includes explicit monorepo/workspace placement and root resolution; all three planning docs reiterate that packet/batch/run truth stays canonical in existing runtime artifacts and any planning index/summary remains derived.
 | 2026-04-20 16:26 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 16:27 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 16:30 | Review R003 | plan Step 2: REVISE |
