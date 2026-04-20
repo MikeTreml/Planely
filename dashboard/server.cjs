@@ -2246,6 +2246,193 @@ function buildTaskAuthoringPreview(payload, root = getActiveProjectRoot()) {
   };
 }
 
+function incrementTaskAuthoringId(taskId) {
+  const match = String(taskId || "").trim().match(/^([A-Z]+)-(\d+)$/);
+  if (!match) return null;
+  const width = match[2].length;
+  const nextValue = Number.parseInt(match[2], 10) + 1;
+  return `${match[1]}-${String(nextValue).padStart(width, "0")}`;
+}
+
+function makeTaskAuthoringError(statusCode, code, message, extra = {}) {
+  return {
+    ok: false,
+    statusCode,
+    error: { code, message, ...extra },
+  };
+}
+
+function cleanupTaskAuthoringFolder(folderPath) {
+  try {
+    if (folderPath && fs.existsSync(folderPath)) {
+      fs.rmSync(folderPath, { recursive: true, force: true });
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function createTaskAuthoringPacket(payload, root = getActiveProjectRoot()) {
+  const preview = buildTaskAuthoringPreview(payload, root);
+  if (!preview.ok) {
+    return {
+      statusCode: 422,
+      ...preview,
+    };
+  }
+
+  const taskAreas = loadTaskplaneTaskAreas(root);
+  const areaId = preview.derived?.areaId;
+  const area = areaId ? taskAreas[areaId] : null;
+  const contextInfo = areaId ? readTaskAuthoringAreaContext(areaId, area, root) : null;
+  const areaPath = contextInfo?.areaPath || null;
+  const taskId = preview.derived?.taskId || null;
+  const folderName = preview.derived?.folderName || null;
+  if (!areaPath || !taskId || !folderName) {
+    return makeTaskAuthoringError(500, "AUTHORING_CONFIG_INVALID", "Task authoring paths could not be resolved.", {
+      recoverable: true,
+      preview: {
+        derived: preview.derived,
+      },
+    });
+  }
+
+  if (!fs.existsSync(areaPath)) {
+    return makeTaskAuthoringError(500, "AUTHORING_AREA_MISSING", `Task area path does not exist: ${areaPath}`, {
+      recoverable: true,
+    });
+  }
+
+  const finalFolderPath = path.join(areaPath, folderName);
+  if (fs.existsSync(finalFolderPath)) {
+    return makeTaskAuthoringError(409, "TASK_FOLDER_EXISTS", `Task folder already exists: ${preview.derived.relativeFolderPath}`, {
+      recoverable: true,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+      preview: {
+        derived: preview.derived,
+      },
+    });
+  }
+
+  try {
+    const siblings = fs.readdirSync(areaPath, { withFileTypes: true });
+    const conflicting = siblings.find((entry) => entry?.isDirectory?.() && entry.name !== folderName && entry.name.startsWith(`${taskId}-`));
+    if (conflicting) {
+      return makeTaskAuthoringError(409, "TASK_ID_CONFLICT", `Task ID ${taskId} is already present in ${conflicting.name}.`, {
+        recoverable: true,
+        taskId,
+        folderPath: preview.derived.relativeFolderPath,
+        preview: {
+          derived: preview.derived,
+        },
+      });
+    }
+  } catch (error) {
+    return makeTaskAuthoringError(500, "AUTHORING_AREA_UNREADABLE", `Could not inspect task area: ${error.message}`, {
+      recoverable: true,
+    });
+  }
+
+  const nextTaskId = incrementTaskAuthoringId(taskId);
+  if (!nextTaskId) {
+    return makeTaskAuthoringError(500, "NEXT_TASK_ID_INVALID", `Could not increment task ID ${taskId}.`, {
+      recoverable: true,
+    });
+  }
+
+  const tempFolderPath = path.join(areaPath, `.${folderName}.tmp-${Date.now()}-${process.pid}`);
+  cleanupTaskAuthoringFolder(tempFolderPath);
+
+  try {
+    fs.mkdirSync(path.join(tempFolderPath, ".reviews"), { recursive: true });
+    fs.writeFileSync(path.join(tempFolderPath, "PROMPT.md"), `${preview.preview.promptMarkdown.trimEnd()}\n`, "utf-8");
+    fs.writeFileSync(path.join(tempFolderPath, "STATUS.md"), `${preview.preview.statusMarkdown.trimEnd()}\n`, "utf-8");
+    fs.renameSync(tempFolderPath, finalFolderPath);
+  } catch (error) {
+    cleanupTaskAuthoringFolder(tempFolderPath);
+    cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "TASK_WRITE_FAILED", `Could not create task packet files: ${error.message}`, {
+      recoverable: true,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+      preview: {
+        derived: preview.derived,
+      },
+    });
+  }
+
+  let contextRaw = "";
+  try {
+    if (!contextInfo?.contextPath || !fs.existsSync(contextInfo.contextPath)) {
+      throw new Error("Area CONTEXT.md is missing");
+    }
+    contextRaw = fs.readFileSync(contextInfo.contextPath, "utf-8");
+  } catch (error) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "CONTEXT_READ_FAILED", `Could not read area CONTEXT.md: ${error.message}`, {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  const currentTaskId = contextRaw.match(/^\*\*Next Task ID:\*\*\s*([A-Z]+-\d+)/m)?.[1] || "";
+  if (currentTaskId !== taskId) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(409, "NEXT_TASK_ID_STALE", `Next Task ID changed from ${taskId} to ${currentTaskId || "unknown"} before commit.`, {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      nextTaskId: currentTaskId || null,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  const updatedContext = contextRaw.replace(/^\*\*Next Task ID:\*\*\s*[A-Z]+-\d+/m, `**Next Task ID:** ${nextTaskId}`);
+  if (updatedContext === contextRaw) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "NEXT_TASK_ID_UPDATE_FAILED", "Could not update Next Task ID in CONTEXT.md.", {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  try {
+    fs.writeFileSync(contextInfo.contextPath, updatedContext, "utf-8");
+  } catch (error) {
+    const cleanupSucceeded = cleanupTaskAuthoringFolder(finalFolderPath);
+    return makeTaskAuthoringError(500, "CONTEXT_WRITE_FAILED", `Could not update CONTEXT.md: ${error.message}`, {
+      recoverable: cleanupSucceeded,
+      rollbackAttempted: true,
+      rollbackSucceeded: cleanupSucceeded,
+      taskId,
+      folderPath: preview.derived.relativeFolderPath,
+    });
+  }
+
+  return {
+    ok: true,
+    statusCode: 201,
+    created: {
+      taskId,
+      nextTaskId,
+      folderPath: preview.derived.relativeFolderPath,
+      promptPath: `${preview.derived.relativeFolderPath}/PROMPT.md`,
+      statusPath: `${preview.derived.relativeFolderPath}/STATUS.md`,
+      contextPath: preview.derived.contextPath,
+    },
+    preview,
+  };
+}
+
 function handleTaskAuthoringPreview(req, res) {
   readJsonRequestBody(req, (err, payload) => {
     if (err) {
@@ -2255,6 +2442,18 @@ function handleTaskAuthoringPreview(req, res) {
 
     const preview = buildTaskAuthoringPreview(payload, getActiveProjectRoot());
     sendJson(res, preview.ok ? 200 : 422, preview);
+  });
+}
+
+function handleTaskAuthoringCreate(req, res) {
+  readJsonRequestBody(req, (err, payload) => {
+    if (err) {
+      sendJson(res, 400, makeTaskAuthoringError(400, "INVALID_JSON", "Invalid JSON", { recoverable: true }));
+      return;
+    }
+
+    const result = createTaskAuthoringPacket(payload, getActiveProjectRoot());
+    sendJson(res, result.statusCode || (result.ok ? 201 : 500), result);
   });
 }
 
@@ -3227,6 +3426,8 @@ function createServer() {
       handleTaskAuthoringMetadata(req, res);
     } else if (pathname === "/api/task-authoring/preview" && req.method === "POST") {
       handleTaskAuthoringPreview(req, res);
+    } else if (pathname === "/api/task-authoring/create" && req.method === "POST") {
+      handleTaskAuthoringCreate(req, res);
     } else if (pathname === "/api/actions" && req.method === "POST") {
       handleDashboardAction(req, res);
     } else if (req.method === "OPTIONS") {

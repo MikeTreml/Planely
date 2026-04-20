@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 2: Write path and safety semantics
+**Current Step:** Step 3: UI implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 6
+**Review Counter:** 7
 **Iteration:** 1
 **Size:** L
 
@@ -31,16 +31,16 @@
 ---
 
 ### Step 2: Write path and safety semantics
-**Status:** 🟨 In Progress
-- [ ] Implement safe packet write flow
-- [ ] Update Next Task ID safely
-- [ ] Block duplicates/overwrites
-- [ ] Make failure states explicit and recoverable
+**Status:** ✅ Complete
+- [x] Implement safe packet write flow
+- [x] Update Next Task ID safely
+- [x] Block duplicates/overwrites
+- [x] Make failure states explicit and recoverable
 
 ---
 
 ### Step 3: UI implementation
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Add create-task form UI
 - [ ] Add preview UI
 - [ ] Add success/failure navigation and feedback
@@ -89,6 +89,7 @@
 | 2026-04-20 20:48 | Review R004 | code Step 1 returned REVISE; additional template invariants still missing |
 | 2026-04-20 20:52 | Step 1 revise | Added targeted-test/artifact blocks, canonical commit guardrails, and STATUS hydration/testing wording |
 | 2026-04-20 20:54 | Review R006 | plan Step 2 returned REVISE; failure handling outcome added to plan |
+| 2026-04-20 21:04 | Step 2 progress | Added create endpoint, counter update safeguards, duplicate blocking, and rollback/error handling tests |
 
 ---
 
@@ -111,3 +112,5 @@ Preflight findings:
 - Code review follow-up: the preview generator must emit canonical `Testing & Verification` plus `Documentation & Delivery` sections and tests must enforce those template invariants.
 - Additional review follow-up: preview output still needs Step 1 targeted-test/artifact content, fuller testing/build wording, canonical `test(...)` commit entry, standard Do NOT bullets, and STATUS hydration/testing language.
 - Step 2 review follow-up: write flow must surface duplicate/conflict/partial-write failures explicitly and keep preview/write output byte-aligned from the shared generator.
+- Step 2 implementation now exposes `/api/task-authoring/create`, writes packet files from the shared preview generator, stages files in a temp folder before final placement, and seeds an empty `.reviews/` directory in the created packet.
+| 2026-04-20 20:39 | Review R007 | plan Step 2: APPROVE |
