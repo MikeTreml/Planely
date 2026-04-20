@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -23,6 +23,7 @@
 **Status:** 🟨 In Progress
 - [ ] Define sidebar sections and row content
 - [ ] Define selection and empty states
+- [ ] Define project-switch state reset and fallback behavior
 - [ ] Define archive visibility behavior
 
 ---
@@ -57,6 +58,7 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| 1 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 
 ---
 
@@ -78,6 +80,7 @@
 | 2026-04-20 19:43 | Step 0 started | Preflight |
 | 2026-04-20 19:49 | Step 0 completed | Specs reviewed; current dashboard is single-project and lacks project registry payload |
 | 2026-04-20 19:49 | Step 1 started | Sidebar UX contract |
+| 2026-04-20 19:49 | Step 1 plan review | REVISE; add project-switch state behavior outcome before implementation |
 
 ---
 
@@ -92,3 +95,5 @@
 Sidebar/navigation task for multi-project operator UX.
 - Step 0 findings: minimum sidebar identity should stay lightweight and grounded in TP-188 fields — stable `id`, display `name`, reopenable `rootPath`/`configPath`, `mode`, explicit `archived`, and activity timestamps (`lastOpenedAt`, `lastBatchAt`) so the UI can derive Active/Archived/Recent plus missing-path warnings without inventing UI-only truth.
 - Current dashboard shell uses header + summary + primary tabs over a single `.content` column. The least disruptive sidebar insertion point is a new split body where the sidebar owns project navigation and the existing backlog/live/history/task-detail panels remain in the main pane.
+- Reviewer suggestions for Step 1: keep row content anchored to registry-grounded fields (`id`, `name`, `rootPath`/`configPath`, `archived`, `lastOpenedAt`, `lastBatchAt`), use ordering consistent with the project-registry spec (current project first, then active recents, then other active, archived collapsed/de-emphasized), and explicitly justify any Recent deferment if the payload is not ready yet.
+| 2026-04-20 19:47 | Review R001 | plan Step 1: REVISE |
