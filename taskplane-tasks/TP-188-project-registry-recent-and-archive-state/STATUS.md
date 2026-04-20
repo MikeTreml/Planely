@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -23,6 +23,7 @@
 - [ ] Define project record fields
 - [ ] Define canonical vs derived fields
 - [ ] Define active/archived/recent grouping rules
+- [ ] Define duplicate-root, rename, and missing-path rules
 
 ---
 
@@ -55,6 +56,7 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 
 ---
 
@@ -99,3 +101,5 @@ Minimum registry requirements:
 - Archive state must be explicit and reversible, and must never imply deletion of project files or runtime history.
 - Recent state must be derived from local usage timestamps, pruneable, and secondary to the canonical project record.
 - The registry must stay inspectable and local-first, with one canonical record store and only reproducible derived views/caches around it.
+- Reviewer suggestion noted: tie identity rules back to current root-based CLI/dashboard behavior and make “recent” explicitly derived from timestamps on the canonical project record.
+| 2026-04-20 16:41 | Review R001 | plan Step 1: REVISE |
