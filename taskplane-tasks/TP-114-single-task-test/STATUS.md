@@ -1,6 +1,6 @@
 # TP-114: Single Task Test — Status
 
-**Current Step:** Step 1: Create Test Files
+**Current Step:** Step 2: Code Analysis
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 0
@@ -18,16 +18,16 @@
 ---
 
 ### Step 1: Create Test Files
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 
-- [ ] Create `hello.txt` in this task folder with content "Runtime V2 works!"
-- [ ] Create `fibonacci.txt` with the first 20 Fibonacci numbers, one per line
-- [ ] Create `summary.txt` with a 3-paragraph summary of what Runtime V2 is (based on reading docs/specifications/framework/taskplane-runtime-v2/01-architecture.md)
+- [x] Create `hello.txt` in this task folder with content "Runtime V2 works!"
+- [x] Create `fibonacci.txt` with the first 20 Fibonacci numbers, one per line
+- [x] Create `summary.txt` with a 3-paragraph summary of what Runtime V2 is (based on reading docs/specifications/framework/taskplane-runtime-v2/01-architecture.md)
 
 ---
 
 ### Step 2: Code Analysis
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 
 - [ ] Read `extensions/taskplane/lane-runner.ts` and count the number of exported functions. Write the count and function names to `analysis.txt` in this task folder
 - [ ] Read `extensions/taskplane/agent-host.ts` and list all event types emitted by `emitEvent()`. Write them to `events.txt` in this task folder
