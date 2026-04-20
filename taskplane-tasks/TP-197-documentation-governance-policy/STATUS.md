@@ -1,25 +1,25 @@
 # TP-197: Documentation Governance Policy — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
+**Current Step:** Step 1: Define lifecycle states
+**Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** M
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Review current docs layout and drift patterns
-- [ ] Evaluate filename ideas vs metadata alternatives
-- [ ] Identify doc categories and authority levels
+**Status:** ✅ Complete
+- [x] Review current docs layout and drift patterns
+- [x] Evaluate filename ideas vs metadata alternatives
+- [x] Identify doc categories and authority levels
 
 ---
 
 ### Step 1: Define lifecycle states
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define doc states and meanings
 - [ ] Define review / archive / supersede handling
 - [ ] Keep the state model practical
@@ -60,6 +60,10 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Docs are organized by audience/purpose (`explanation/`, `reference/`, `specifications/`, `how-to/`, `tutorials/`) but governance metadata is inconsistent across specification files. | Use as policy input; prefer bounded lifecycle states plus provenance fields over ad hoc headings. | `docs/`, `docs/specifications/README.md` |
+| Common drift patterns already exist: stale-but-still-indexed specs, implemented docs mixed with active drafts, and inconsistent provenance (`Status`, `Created`, `Updated`, task IDs, or none). | Capture directly in the governance policy so future task packets can classify documents before citing them. | `docs/specifications/**/*.md` |
+| Filename cues alone are weak: folders like `implemented/` help, but headings such as "Implemented", "Draft", or version notes live inside docs and drift independently of filenames. | Recommend metadata/provenance as the primary mechanism, with filenames/folders used only as secondary aids. | `docs/specifications/taskplane/implemented/*`, `docs/specifications/*.md` |
+| Initial category split for the policy is clear enough to proceed: reference/how-to/tutorial docs should be treated differently from forward-looking specifications, implementation records, and historical migration/investigation logs. | Use this to define authoritative vs contextual vs historical material in the policy. | `docs/README.md`, `docs/specifications/**`, `docs/explanation/**` |
 
 ---
 
@@ -68,6 +72,10 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-20 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 19:22 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 19:22 | Step 0 started | Preflight |
+| 2026-04-20 19:33 | Step 0 completed | Reviewed docs layout, drift patterns, and governance inputs |
+| 2026-04-20 19:33 | Step 1 started | Define lifecycle states |
 
 ---
 
@@ -80,3 +88,10 @@
 ## Notes
 
 Policy task for keeping documentation trustworthy as project assumptions evolve.
+
+Step 0 evidence:
+- Reviewed `docs/` layout and `docs/specifications/README.md` index structure.
+- Sampled operator-console, taskplane, framework, and implemented specs to compare headers and status conventions.
+- Confirmed drift patterns: mixed lifecycle cues, supersession sometimes recorded in prose only, and historical docs remaining navigable without uniform authority markers.
+- Compared folder/filename signals (`implemented/`) against in-doc metadata patterns and noted why filename-only freshness would be brittle.
+- Identified likely authority bands for later policy language: operational/reference docs, active design specs, implementation records, and historical investigation/migration logs.
