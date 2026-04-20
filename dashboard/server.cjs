@@ -1140,6 +1140,7 @@ function buildDashboardState() {
       batchTotalCost: 0,
       supervisor: null,
       backlog,
+      batchActions: buildBatchActionContract(null),
       timestamp: Date.now(),
     };
   }
@@ -1230,6 +1231,7 @@ function buildDashboardState() {
     runtimeMergeSnapshots,
     mailbox: mailboxData,
     backlog,
+    batchActions: buildBatchActionContract(state),
     batch: {
       batchId: state.batchId,
       phase: state.phase,
@@ -1815,6 +1817,7 @@ function loadBacklogData(state, history) {
       blockedDependencies,
       completedDependencies,
       historyEntry: findTaskHistoryEntry(history, packet.taskId),
+      batchState: state,
     });
   }).sort((a, b) => a.taskId.localeCompare(b.taskId));
 
@@ -1963,6 +1966,106 @@ function buildBacklogDisplayStatus(packet, context) {
   };
 }
 
+function isDashboardActionBatchBusy(batchState) {
+  const phase = batchState?.phase || "";
+  return ["launching", "planning", "executing", "merging"].includes(phase);
+}
+
+function buildTaskActionContract(item, batchState) {
+  const currentTask = item?.execution || {};
+  const busy = isDashboardActionBatchBusy(batchState);
+  const hasBatch = Boolean(batchState?.batchId);
+  const promptPath = item?.navigation?.promptPath || item?.promptPath || null;
+
+  const startReason = hasBatch
+    ? `Batch ${batchState.batchId} is ${batchState.phase}`
+    : (!item?.readiness?.isReady
+      ? (item?.status?.reason || "Task is not ready")
+      : (!promptPath ? "PROMPT.md path unavailable" : null));
+
+  const retrySupported = false;
+  const retryEnabled = retrySupported
+    && Boolean(hasBatch && currentTask?.status && ["failed", "stalled"].includes(currentTask.status) && !busy);
+  const retryReason = busy
+    ? `Pause or wait for the batch to stop (current phase: ${batchState?.phase || "unknown"})`
+    : (!hasBatch
+      ? "Retry applies to the current batch only"
+      : (!currentTask?.status || !["failed", "stalled"].includes(currentTask.status)
+        ? "Only failed or stalled active-batch tasks can be retried"
+        : (retrySupported ? null : "Dashboard fallback only — copy this recovery tool call into the operator console")));
+
+  const skipSupported = false;
+  const skipEnabled = skipSupported
+    && Boolean(hasBatch && currentTask?.status && ["failed", "stalled", "pending"].includes(currentTask.status) && !busy);
+  const skipReason = busy
+    ? `Pause or wait for the batch to stop (current phase: ${batchState?.phase || "unknown"})`
+    : (!hasBatch
+      ? "Skip applies to the current batch only"
+      : (!currentTask?.status || !["failed", "stalled", "pending"].includes(currentTask.status)
+        ? "Only failed, stalled, or pending active-batch tasks can be skipped"
+        : (skipSupported ? null : "Dashboard fallback only — copy this recovery tool call into the operator console")));
+
+  return {
+    start: {
+      id: "start",
+      label: "Start task",
+      invokeMode: "post",
+      enabled: !startReason,
+      reason: startReason,
+      commandPreview: promptPath ? `/orch ${promptPath}` : null,
+      confirmation: !startReason ? `Start a batch for ${item?.taskId}?` : null,
+    },
+    retry: {
+      id: "retry",
+      label: "Retry task",
+      invokeMode: retrySupported ? "post" : "copy",
+      enabled: retryEnabled,
+      reason: retryReason,
+      commandPreview: item?.taskId ? `orch_retry_task(taskId="${item.taskId}")` : null,
+      confirmation: retryEnabled ? `Retry ${item?.taskId} on the next resume cycle?` : null,
+    },
+    skip: {
+      id: "skip",
+      label: "Skip task",
+      invokeMode: skipSupported ? "post" : "copy",
+      enabled: skipEnabled,
+      reason: skipReason,
+      commandPreview: item?.taskId ? `orch_skip_task(taskId="${item.taskId}")` : null,
+      confirmation: skipEnabled ? `Skip ${item?.taskId} and unblock dependents?` : null,
+    },
+  };
+}
+
+function buildBatchActionContract(batchState) {
+  if (!batchState) {
+    return {
+      integrate: {
+        id: "integrate",
+        label: "Integrate batch",
+        invokeMode: "post",
+        enabled: false,
+        reason: "No active or resumable batch available",
+        commandPreview: "/orch-integrate",
+        confirmation: null,
+      },
+    };
+  }
+
+  const phase = batchState.phase || "unknown";
+  const enabled = phase === "completed";
+  return {
+    integrate: {
+      id: "integrate",
+      label: "Integrate batch",
+      invokeMode: "post",
+      enabled,
+      reason: enabled ? null : `Integration is available only after completion (current phase: ${phase})`,
+      commandPreview: "/orch-integrate",
+      confirmation: enabled ? `Integrate batch ${batchState.batchId}?` : null,
+    },
+  };
+}
+
 function buildBacklogItem(packet, context) {
   const blockedDependencies = Array.isArray(context?.blockedDependencies)
     ? context.blockedDependencies.filter(Boolean)
@@ -1986,7 +2089,7 @@ function buildBacklogItem(packet, context) {
 
   const batchScopedWaiting = Boolean(currentTask) && (status.key === "waiting" || status.key === "running");
 
-  return {
+  const item = {
     taskId: packet.taskId,
     title: packet.title,
     summary: packet.summary || null,
@@ -2038,7 +2141,11 @@ function buildBacklogItem(packet, context) {
       statusPath: packet.statusPath || null,
       taskFolder: packet.taskFolder || null,
     },
+    actions: null,
   };
+
+  item.actions = buildTaskActionContract(item, context?.batchState || null);
+  return item;
 }
 
 function loadHistory() {

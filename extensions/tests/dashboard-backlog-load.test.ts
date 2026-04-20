@@ -390,6 +390,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				loadSupervisorData: () => null,
 				loadHistory: () => [],
 				loadBacklogData: () => ({ items: [{ taskId: "TP-300" }], summary: { total: 1 }, loadState: { kind: "ready" } }),
+				buildBatchActionContract: () => ({ integrate: { enabled: false } }),
 				Date,
 			},
 		) as () => any;

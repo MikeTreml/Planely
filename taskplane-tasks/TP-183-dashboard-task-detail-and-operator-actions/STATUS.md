@@ -1,10 +1,10 @@
 # TP-183: Dashboard Task Detail and Operator Actions — Status
 
-**Current Step:** Step 2: Operator actions contract
+**Current Step:** Step 3: Frontend/server implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 1
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** L
 
@@ -27,15 +27,15 @@
 ---
 
 ### Step 2: Operator actions contract
-**Status:** 🟨 In Progress
-- [ ] Define command/action invocation model
-- [ ] Add action gating and confirmations
-- [ ] Respect batch/task state rules
+**Status:** ✅ Complete
+- [x] Define command/action invocation model
+- [x] Add action gating and confirmations
+- [x] Respect batch/task state rules
 
 ---
 
 ### Step 3: Frontend/server implementation
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Implement action UI affordances
 - [ ] Implement minimal server support
 - [ ] Handle disabled/error/unsupported states
@@ -79,6 +79,11 @@
 | 2026-04-20 19:59 | Detail navigation wired | Backlog cards, live task rows, and history task links now select the shared task detail panel |
 | 2026-04-20 20:00 | Step 1 completed | Task detail panel shipped with enriched backlog metadata |
 | 2026-04-20 20:00 | Step 2 started | Operator actions contract |
+| 2026-04-20 20:14 | Action contract added | Server now emits task/batch action descriptors with invoke mode, command previews, and confirmation copy |
+| 2026-04-20 20:14 | Action guardrails modeled | Start/integrate require explicit confirmation text and recovery actions carry fallback-only warnings when direct execution is unavailable |
+| 2026-04-20 20:15 | State-aware availability shipped | Action contracts now disable launch during active batches, gate recovery on paused/stopped phases, and expose integrate only for completed batches |
+| 2026-04-20 20:15 | Step 2 completed | Operator action contract and gating metadata added |
+| 2026-04-20 20:15 | Step 3 started | Frontend/server implementation |
 
 ---
 
@@ -96,3 +101,5 @@ Builds the first true operator-control interactions into the dashboard.
 - 2026-04-20 preflight: safest v1 dashboard action surface is command-mediated POST endpoints that shell into existing `taskplane`/`pi` command paths instead of mutating batch files directly. Direct-trigger candidates: start selected tasks (via `/orch <paths>`/equivalent CLI entry) and integrate completed batch. Riskier recovery actions (retry/skip) need stronger gating and a confirmation layer because they modify persisted batch state; if direct invocation proves brittle, fallback should be a copyable command string shown in the detail/action UI.
 - 2026-04-20 preflight: required server glue is minimal but concrete: enrich `/api/state` backlog/live/history items with task-detail payloads already derivable from PROMPT/STATUS parsing, add a POST action endpoint with allowlisted action names + payload validation, resolve task selections to packet paths/IDs on the server, and return `supported/disabled/reason/commandPreview` metadata so the frontend can render guarded buttons even when direct execution is unavailable.
 | 2026-04-20 19:15 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 19:23 | Review R002 | code Step 1: APPROVE |
+| 2026-04-20 19:25 | Review R003 | plan Step 2: APPROVE |

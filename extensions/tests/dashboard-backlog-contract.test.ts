@@ -27,12 +27,13 @@ describe("TP-182 dashboard backlog contract", () => {
 		"function loadHistory()",
 	);
 
-	const { buildBacklogDisplayStatus, buildBacklogItem } = vm.runInNewContext(
-		`${fnBlock}; ({ buildBacklogDisplayStatus, buildBacklogItem });`,
+	const { buildBacklogDisplayStatus, buildBacklogItem, buildBatchActionContract } = vm.runInNewContext(
+		`${fnBlock}; ({ buildBacklogDisplayStatus, buildBacklogItem, buildBatchActionContract });`,
 		{},
 	) as {
 		buildBacklogDisplayStatus: (packet: any, context: any) => any;
 		buildBacklogItem: (packet: any, context: any) => any;
+		buildBatchActionContract: (batchState: any) => any;
 	};
 
 	it("maps dependency blockers to a blocked backlog status", () => {
@@ -134,6 +135,7 @@ describe("TP-182 dashboard backlog contract", () => {
 			completedDependencies: [],
 			blockedDependencies: [],
 			historyEntry: { batchId: "batch-old", status: "completed", endedAt: 1700000000000 },
+			batchState: null,
 		});
 
 		expect(item.status.key).toBe("ready");
@@ -144,5 +146,17 @@ describe("TP-182 dashboard backlog contract", () => {
 		expect(item.navigation.promptPath).toContain("PROMPT.md");
 		expect(item.navigation.statusPath).toContain("STATUS.md");
 		expect(item.navigation.taskFolder).toContain("TP-103-ready-task");
+		expect(item.actions.start.enabled).toBe(true);
+		expect(item.actions.retry.invokeMode).toBe("copy");
+	});
+
+	it("disables integrate until the batch is completed", () => {
+		const running = buildBatchActionContract({ batchId: "batch-9", phase: "executing" });
+		const completed = buildBatchActionContract({ batchId: "batch-9", phase: "completed" });
+
+		expect(running.integrate.enabled).toBe(false);
+		expect(running.integrate.reason).toContain("executing");
+		expect(completed.integrate.enabled).toBe(true);
+		expect(completed.integrate.commandPreview).toBe("/orch-integrate");
 	});
 });
