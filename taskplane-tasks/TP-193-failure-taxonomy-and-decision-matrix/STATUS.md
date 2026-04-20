@@ -97,6 +97,8 @@
 | 2026-04-20 19:53 | Clarity checklist added | Reviewed the taxonomy/matrix together and added an operator clarity checklist to ensure each recommendation names evidence, owner, next action, retry condition, and whether the packet should stop or continue. |
 | 2026-04-20 19:54 | Open questions logged | Added implementation-facing open questions on batch-level evidence thresholds, flaky-vs-runtime disambiguation, stale-doc subclassing, and when recurring incidents should trigger systemic follow-up tasks. |
 | 2026-04-20 19:55 | Task complete | Status updated to complete after taxonomy, decision matrix, verification checklist, and open questions were finalized. |
+| 2026-04-20 19:23 | Worker iter 1 | done in 698s, tools: 89 |
+| 2026-04-20 19:23 | Task complete | .DONE created |
 
 ---
 
