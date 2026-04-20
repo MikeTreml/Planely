@@ -60,6 +60,7 @@
 | R002 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 | R003 | plan | 2 | APPROVE | `.reviews/R003-plan-step2.md` |
 | R004 | plan | 3 | REVISE | `.reviews/R004-plan-step3.md` |
+| R005 | plan | 3 | APPROVE | `.reviews/R005-plan-step3.md` |
 
 ---
 
@@ -128,6 +129,3 @@ Reviewer notes:
 - Step 2 must define compact status lookup contracts, not just push notifications and approvals.
 - Step 2 must either define the bounded stop/cancel request contract or explicitly mark what is deferred pending the Step 3 safety model.
 - Step 3 must cover rate limiting, Slack identity/authorization constraints, and restate why Slack can never own canonical run state.
-| 2026-04-20 16:46 | Review R003 | plan Step 2: APPROVE |
-| 2026-04-20 16:50 | Review R004 | plan Step 3: REVISE |
-| 2026-04-20 16:51 | Review R005 | plan Step 3: APPROVE |
