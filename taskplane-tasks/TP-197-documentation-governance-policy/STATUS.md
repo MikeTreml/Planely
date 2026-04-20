@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -36,15 +36,15 @@
 ---
 
 ### Step 3: Connect docs to project progress
-**Status:** 🟨 In Progress
-- [ ] Capture task-distance review thinking
-- [ ] Explain why date-only freshness is insufficient
-- [ ] Suggest initial review windows by doc type
+**Status:** ✅ Complete
+- [x] Capture task-distance review thinking
+- [x] Explain why date-only freshness is insufficient
+- [x] Suggest initial review windows by doc type
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify practicality and low-churn governance
 - [ ] Log metadata/audit follow-up tasks
 
@@ -83,6 +83,8 @@
 | 2026-04-20 19:36 | Step 2 started | Define governance rules |
 | 2026-04-20 19:42 | Step 2 completed | Authority classes, supersession rules, stale citation guidance, and filename rationale documented |
 | 2026-04-20 19:42 | Step 3 started | Connect docs to project progress |
+| 2026-04-20 19:44 | Step 3 completed | Task-distance freshness model and review windows documented |
+| 2026-04-20 19:44 | Step 4 started | Verification & Delivery |
 
 ---
 
@@ -114,6 +116,10 @@ Step 0 evidence:
 - Added supersession rules that require explicit replacement links and prefer bidirectional `supersedes` / `supersededBy` recording for future indexing.
 - Added citation rules for future task packets so stale-suspect, superseded, archived, and historical docs are not treated as silent primary authority.
 - Strengthened the filename-governance section so metadata/provenance are explicitly primary and task packets are told not to infer trust from filenames alone.
+- Step 3 includes task-distance review heuristics so freshness is judged by related project movement, not just elapsed calendar time.
+- Added an explicit date-only critique covering slow-changing docs, fast-moving areas, historical records, and superficial edits.
+- Suggested initial review windows for reference/operator docs, active specs, migration notes, investigation logs, and historical specs.
 | 2026-04-20 19:24 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 19:27 | Review R002 | plan Step 2: REVISE |
 | 2026-04-20 19:28 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 19:29 | Review R004 | plan Step 3: APPROVE |
