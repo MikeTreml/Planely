@@ -1,40 +1,40 @@
 # EXAMPLE-001: Hello World — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
+**Current Step:** Step 3: Delivery
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 0
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** S
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 
-- [ ] Verify PROMPT.md is readable
-- [ ] Verify STATUS.md exists
+- [x] Verify PROMPT.md is readable
+- [x] Verify STATUS.md exists
 
 ---
 
 ### Step 1: Create Hello File
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 
-- [ ] Create `hello-taskplane.md` in project root
-- [ ] Add title, date, and task ID (EXAMPLE-001)
+- [x] Create `hello-taskplane.md` in project root
+- [x] Add title, date, and task ID (EXAMPLE-001)
 
 ---
 
 ### Step 2: Verification
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 
-- [ ] Verify file exists and matches expected content
+- [x] Verify file exists and matches expected content
 
 ---
 
 ### Step 3: Delivery
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 
 
 
@@ -59,6 +59,13 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-20 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 16:26 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 16:26 | Step 0 started | Preflight |
+| 2026-04-20 16:27 | Step 1 completed | Created `hello-taskplane.md` in project root |
+| 2026-04-20 16:27 | Step 2 completed | Verified file exists with title, task ID, and date |
+| 2026-04-20 16:27 | Task completed | Delivery finished |
+| 2026-04-20 16:28 | Worker iter 1 | done in 88s, tools: 22 |
+| 2026-04-20 16:28 | Task complete | .DONE created |
 
 ---
 

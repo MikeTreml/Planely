@@ -26,7 +26,7 @@ describe("dashboard loadHistory", () => {
 
 		const fnSource = extractFunction(
 			source,
-			"function loadHistory()",
+			"function loadHistory(root = getActiveProjectRoot())",
 			"/** GET /api/history",
 		);
 
@@ -41,7 +41,8 @@ describe("dashboard loadHistory", () => {
 		try {
 			const context = {
 				fs,
-				BATCH_HISTORY_PATH: historyPath,
+				getActiveProjectRoot: () => root,
+				batchHistoryPathForRoot: () => historyPath,
 			};
 			const loadHistory = vm.runInNewContext(`${fnSource}; loadHistory;`, context) as () => Array<{ batchId: string }>;
 			const history = loadHistory();

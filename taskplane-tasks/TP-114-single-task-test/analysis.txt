@@ -1,0 +1,11 @@
+Exported function count in `extensions/taskplane/lane-runner.ts`: 8
+
+Functions:
+1. getStepsForRepoId
+2. getSegmentCheckboxes
+3. isSegmentComplete
+4. executeTaskV2
+5. hasPendingExpansionRequestFiles
+6. mapLaneTaskStatusToTerminalSnapshotStatus
+7. mapLaneSnapshotStatusToWorkerStatus
+8. readReviewerTelemetrySnapshot

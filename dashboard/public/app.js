@@ -221,9 +221,62 @@ const $errorsPanel    = $("errors-panel");
 const $errorsBody     = $("errors-body");
 const $footerInfo     = $("footer-info");
 const $content        = $("content");
+const $projectSidebar = $("project-sidebar");
+const $projectSidebarBody = $("project-sidebar-body");
+const $projectSidebarSubtitle = $("project-sidebar-subtitle");
 const $historySelect  = $("history-select");
 const $historyPanel   = $("history-panel");
 const $historyBody    = $("history-body");
+const $viewTabBacklog = $("view-tab-backlog");
+const $viewTabLive    = $("view-tab-live");
+const $backlogPanel   = $("backlog-panel");
+const $backlogBody    = $("backlog-body");
+const $backlogSearch  = $("backlog-search");
+const $backlogStatusFilter = $("backlog-status-filter");
+const $backlogQueryPending = $("backlog-query-pending");
+const $backlogQueryAll = $("backlog-query-all");
+const $backlogRefreshButton = $("backlog-refresh-button");
+const $backlogRefreshStatus = $("backlog-refresh-status");
+const $backlogScopeLine = $("backlog-scope-line");
+const $backlogClearFilters = $("backlog-clear-filters");
+const $taskDetailPanel = $("task-detail-panel");
+const $taskDetailTitle = $("task-detail-title");
+const $taskDetailSubtitle = $("task-detail-subtitle");
+const $taskDetailBody = $("task-detail-body");
+const $taskAuthoringShell = $("task-authoring-shell");
+const $taskAuthoringSubtitle = $("task-authoring-subtitle");
+const $taskAuthoringForm = $("task-authoring-form");
+const $taskAuthoringArea = $("task-authoring-area");
+const $taskAuthoringTitleInput = $("task-authoring-title");
+const $taskAuthoringMission = $("task-authoring-mission");
+const $taskAuthoringSize = $("task-authoring-size");
+const $taskAuthoringReviewLevel = $("task-authoring-review-level");
+const $taskAuthoringScoreBlastRadius = $("task-authoring-score-blast-radius");
+const $taskAuthoringScorePatternNovelty = $("task-authoring-score-pattern-novelty");
+const $taskAuthoringScoreSecurity = $("task-authoring-score-security");
+const $taskAuthoringScoreReversibility = $("task-authoring-score-reversibility");
+const $taskAuthoringDependencies = $("task-authoring-dependencies");
+const $taskAuthoringContextRefs = $("task-authoring-context-refs");
+const $taskAuthoringFileScope = $("task-authoring-file-scope");
+const $taskAuthoringPreviewButton = $("task-authoring-preview-button");
+const $taskAuthoringCreateButton = $("task-authoring-create-button");
+const $taskAuthoringResetButton = $("task-authoring-reset");
+const $taskAuthoringFeedback = $("task-authoring-feedback");
+const $taskAuthoringErrors = $("task-authoring-errors");
+const $taskAuthoringMeta = $("task-authoring-meta");
+const $taskAuthoringPromptPreview = $("task-authoring-prompt-preview");
+const $taskAuthoringStatusPreview = $("task-authoring-status-preview");
+
+const taskAuthoringState = {
+  metadata: null,
+  loading: false,
+  pendingAction: "",
+  preview: null,
+  previewFingerprint: "",
+  dirty: true,
+  lastTone: "neutral",
+  lastMessage: "Preview a task packet to inspect generated files.",
+};
 
 // ─── Repo Filter State ──────────────────────────────────────────────────────
 
@@ -236,6 +289,20 @@ let repoFilterVisible = false;
 
 let historyList = [];  // compact batch summaries
 let viewingHistoryId = null; // batchId if viewing history, null if live
+let activePrimaryView = "backlog";
+let preferredPrimaryView = null; // null = auto (batch-aware default)
+let selectedBacklogTaskId = null;
+let backlogSearchQuery = "";
+let backlogStatusKey = "";
+let backlogQueryMode = "all";
+const backlogRefreshState = {
+  pending: false,
+  tone: "neutral",
+  message: "Live updates on",
+};
+let activeHistoryEntry = null;
+let selectedProjectId = null;
+let projectSwitchInFlight = false;
 
 // ─── Viewer State ───────────────────────────────────────────────────────────
 
@@ -267,6 +334,23 @@ function buildRepoSet(batch) {
   }
   const sorted = Array.from(repos).sort();
   return sorted.length >= 2 ? sorted : [];
+}
+
+function buildBacklogRepoSet(backlog) {
+  if (!backlog || backlog.scope?.mode !== "workspace") return [];
+  const repos = Array.isArray(backlog.scope?.configuredRepoIds) && backlog.scope.configuredRepoIds.length > 0
+    ? backlog.scope.configuredRepoIds
+    : (Array.isArray(backlog.scope?.repoIds) ? backlog.scope.repoIds : []);
+  const sorted = [...new Set(repos.filter(Boolean))].sort();
+  return sorted.length >= 2 ? sorted : [];
+}
+
+function resolveRepoSetForView(data) {
+  if (data?.batch) {
+    const batchRepos = buildRepoSet(data.batch);
+    if (batchRepos.length > 0) return batchRepos;
+  }
+  return buildBacklogRepoSet(data?.backlog);
 }
 
 /**
@@ -403,6 +487,410 @@ function laneActiveSegmentInfo(v2snap, laneTasks, segmentStatusMap) {
   };
 }
 
+function syncPrimaryView(data) {
+  const hasBatch = Boolean(data?.batch);
+  const nextView = preferredPrimaryView || (hasBatch ? "live" : "backlog");
+  activePrimaryView = nextView === "live" && !hasBatch ? "backlog" : nextView;
+  if ($viewTabBacklog) $viewTabBacklog.classList.toggle("active", activePrimaryView === "backlog");
+  if ($viewTabLive) {
+    $viewTabLive.classList.toggle("active", activePrimaryView === "live");
+    $viewTabLive.disabled = !hasBatch;
+  }
+}
+
+function applyPrimaryViewVisibility(data) {
+  const hasBatch = Boolean(data?.batch);
+  const showBacklog = activePrimaryView === "backlog";
+  if ($backlogPanel) $backlogPanel.style.display = showBacklog ? "" : "none";
+
+  const livePanelIds = ["lanes-tasks-panel", "merge-panel", "agents-panel", "messages-panel", "supervisor-panel"];
+  for (const panelId of livePanelIds) {
+    const panel = document.getElementById(panelId);
+    if (!panel) continue;
+    panel.style.display = !showBacklog && hasBatch ? "" : "none";
+  }
+  if ($errorsPanel) {
+    $errorsPanel.style.display = !showBacklog && hasBatch && $errorsBody.innerHTML.trim() ? "" : "none";
+  }
+  if ($historyPanel && showBacklog && hasBatch) {
+    $historyPanel.style.display = "none";
+  }
+}
+
+function renderBacklogControls() {
+  if ($backlogQueryPending) {
+    const active = backlogQueryMode === "pending";
+    $backlogQueryPending.classList.toggle("active", active);
+    $backlogQueryPending.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+  if ($backlogQueryAll) {
+    const active = backlogQueryMode === "all";
+    $backlogQueryAll.classList.toggle("active", active);
+    $backlogQueryAll.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+  if ($backlogRefreshButton) {
+    $backlogRefreshButton.disabled = backlogRefreshState.pending;
+    $backlogRefreshButton.textContent = backlogRefreshState.pending ? "Refreshing…" : "Refresh now";
+  }
+  if ($backlogRefreshStatus) {
+    $backlogRefreshStatus.textContent = backlogRefreshState.message;
+    $backlogRefreshStatus.className = `backlog-refresh-status tone-${backlogRefreshState.tone || "neutral"}`;
+  }
+}
+
+function isTerminalBacklogStatus(statusKey) {
+  return ["succeeded", "skipped"].includes(String(statusKey || ""));
+}
+
+function backlogMatchesQueryMode(item, queryMode) {
+  if (queryMode !== "pending") return true;
+  return !isTerminalBacklogStatus(item?.status?.key);
+}
+
+function projectBadgeHtml(badge) {
+  if (!badge?.label) return "";
+  const tone = escapeHtml(badge.tone || "neutral");
+  return `<span class="project-badge tone-${tone}">${escapeHtml(badge.label)}</span>`;
+}
+
+function projectMetaText(item) {
+  if (item?.warnings?.length) return item.warnings[0];
+  if (item?.lastActivityAt) return relativeTime(item.lastActivityAt);
+  if (item?.configPath) return item.mode === "workspace" ? "Workspace project" : "Repo project";
+  return item?.rootPath || "Known project";
+}
+
+function renderProjectSidebar(data) {
+  if (!$projectSidebarBody) return;
+  const sidebar = data?.projectSidebar || null;
+  selectedProjectId = sidebar?.selectedProjectId || data?.currentProject?.id || selectedProjectId;
+  if ($projectSidebarSubtitle) {
+    $projectSidebarSubtitle.textContent = data?.currentProject?.name
+      ? `${data.currentProject.name}${projectSwitchInFlight ? " · switching…" : ""}`
+      : (projectSwitchInFlight ? "Switching projects…" : "Current workspace");
+  }
+
+  if (!sidebar || !Array.isArray(sidebar.sections) || sidebar.sections.length === 0) {
+    $projectSidebarBody.innerHTML = `<div class="empty-state">${escapeHtml(sidebar?.emptyMessage || "No known Taskplane projects yet.")}</div>`;
+    return;
+  }
+
+  $projectSidebarBody.innerHTML = sidebar.sections.map((section) => `
+    <section class="project-section project-section-${escapeHtml(section.key || "other")}">
+      <div class="project-section-header">${escapeHtml(section.label || "Projects")}</div>
+      <div class="project-section-list">
+        ${(section.items || []).map((item) => `
+          <button
+            class="project-row${item.selected ? " selected" : ""}${item.archived ? " archived" : ""}${item.warnings?.length ? " warning" : ""}"
+            type="button"
+            data-project-id="${escapeHtml(item.id || "")}"
+            ${projectSwitchInFlight ? "disabled" : ""}
+          >
+            <div class="project-row-main">
+              <span class="project-row-name">${escapeHtml(item.name || item.rootPath || "Project")}</span>
+              <span class="project-row-meta">${escapeHtml(projectMetaText(item))}</span>
+            </div>
+            <div class="project-row-badges">${(item.badges || []).map(projectBadgeHtml).join("")}</div>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `).join("");
+}
+
+function taskAuthoringFieldValue(element) {
+  return element ? String(element.value || "") : "";
+}
+
+function readTaskAuthoringFormPayload() {
+  return {
+    areaId: taskAuthoringFieldValue($taskAuthoringArea).trim(),
+    title: taskAuthoringFieldValue($taskAuthoringTitleInput).trim(),
+    mission: taskAuthoringFieldValue($taskAuthoringMission).trim(),
+    size: taskAuthoringFieldValue($taskAuthoringSize).trim().toUpperCase(),
+    reviewLevel: taskAuthoringFieldValue($taskAuthoringReviewLevel).trim(),
+    complexity: {
+      blastRadius: taskAuthoringFieldValue($taskAuthoringScoreBlastRadius),
+      patternNovelty: taskAuthoringFieldValue($taskAuthoringScorePatternNovelty),
+      security: taskAuthoringFieldValue($taskAuthoringScoreSecurity),
+      reversibility: taskAuthoringFieldValue($taskAuthoringScoreReversibility),
+    },
+    dependencies: taskAuthoringFieldValue($taskAuthoringDependencies),
+    contextRefs: taskAuthoringFieldValue($taskAuthoringContextRefs),
+    fileScope: taskAuthoringFieldValue($taskAuthoringFileScope),
+  };
+}
+
+function taskAuthoringFingerprint(payload) {
+  return JSON.stringify(payload || {});
+}
+
+function resetTaskAuthoringState(options = {}) {
+  const preserveMetadata = options?.preserveMetadata === true;
+  const preservedMetadata = preserveMetadata ? taskAuthoringState.metadata : null;
+  taskAuthoringState.metadata = preservedMetadata;
+  taskAuthoringState.loading = false;
+  taskAuthoringState.pendingAction = "";
+  taskAuthoringState.preview = null;
+  taskAuthoringState.previewFingerprint = "";
+  taskAuthoringState.dirty = true;
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Preview a task packet to inspect generated files.";
+
+  if ($taskAuthoringArea) $taskAuthoringArea.innerHTML = preserveMetadata ? "" : '<option value="">Loading…</option>';
+  if ($taskAuthoringTitleInput) $taskAuthoringTitleInput.value = "";
+  if ($taskAuthoringMission) $taskAuthoringMission.value = "";
+  if ($taskAuthoringSize) $taskAuthoringSize.value = "M";
+  if ($taskAuthoringReviewLevel) $taskAuthoringReviewLevel.value = "1";
+  if ($taskAuthoringScoreBlastRadius) $taskAuthoringScoreBlastRadius.value = "1";
+  if ($taskAuthoringScorePatternNovelty) $taskAuthoringScorePatternNovelty.value = "1";
+  if ($taskAuthoringScoreSecurity) $taskAuthoringScoreSecurity.value = "0";
+  if ($taskAuthoringScoreReversibility) $taskAuthoringScoreReversibility.value = "0";
+  if ($taskAuthoringDependencies) $taskAuthoringDependencies.value = "";
+  if ($taskAuthoringContextRefs) $taskAuthoringContextRefs.value = "";
+  if ($taskAuthoringFileScope) $taskAuthoringFileScope.value = "";
+  if (preservedMetadata) applyTaskAuthoringMetadata(preservedMetadata);
+}
+
+function applyTaskAuthoringMetadata(metadata) {
+  taskAuthoringState.metadata = metadata || null;
+  const areas = Array.isArray(metadata?.areas) ? metadata.areas : [];
+  if ($taskAuthoringArea) {
+    $taskAuthoringArea.innerHTML = areas.length > 0
+      ? areas.map((area) => `<option value="${escapeHtml(area.id)}">${escapeHtml(area.id)} · ${escapeHtml(area.nextTaskId || area.prefix || "pending")}</option>`).join("")
+      : '<option value="">No task areas</option>';
+  }
+  if ($taskAuthoringArea && metadata?.defaultAreaId) $taskAuthoringArea.value = metadata.defaultAreaId;
+  if ($taskAuthoringSize && metadata?.defaults?.size) $taskAuthoringSize.value = metadata.defaults.size;
+  if ($taskAuthoringReviewLevel && metadata?.defaults?.reviewLevel != null) $taskAuthoringReviewLevel.value = String(metadata.defaults.reviewLevel);
+  if ($taskAuthoringScoreBlastRadius && metadata?.defaults?.complexity?.blastRadius != null) $taskAuthoringScoreBlastRadius.value = String(metadata.defaults.complexity.blastRadius);
+  if ($taskAuthoringScorePatternNovelty && metadata?.defaults?.complexity?.patternNovelty != null) $taskAuthoringScorePatternNovelty.value = String(metadata.defaults.complexity.patternNovelty);
+  if ($taskAuthoringScoreSecurity && metadata?.defaults?.complexity?.security != null) $taskAuthoringScoreSecurity.value = String(metadata.defaults.complexity.security);
+  if ($taskAuthoringScoreReversibility && metadata?.defaults?.complexity?.reversibility != null) $taskAuthoringScoreReversibility.value = String(metadata.defaults.complexity.reversibility);
+}
+
+function renderTaskAuthoringPanel() {
+  if (!$taskAuthoringShell) return;
+  const preview = taskAuthoringState.preview;
+  const errors = Array.isArray(preview?.errors) ? preview.errors : [];
+  const currentFingerprint = taskAuthoringFingerprint(readTaskAuthoringFormPayload());
+  const createReady = preview?.ok === true && !taskAuthoringState.dirty && taskAuthoringState.previewFingerprint === currentFingerprint && !taskAuthoringState.pendingAction;
+  const areas = Array.isArray(taskAuthoringState.metadata?.areas) ? taskAuthoringState.metadata.areas : [];
+  const selectedArea = areas.find((area) => area.id === taskAuthoringFieldValue($taskAuthoringArea)) || areas[0] || null;
+
+  if ($taskAuthoringSubtitle) {
+    if (taskAuthoringState.loading) {
+      $taskAuthoringSubtitle.textContent = "Loading task authoring defaults…";
+    } else if (selectedArea?.nextTaskId) {
+      $taskAuthoringSubtitle.textContent = `Next ${selectedArea.id} task: ${selectedArea.nextTaskId}`;
+    } else {
+      $taskAuthoringSubtitle.textContent = "Draft a canonical Taskplane packet from the dashboard.";
+    }
+  }
+
+  if ($taskAuthoringPreviewButton) {
+    $taskAuthoringPreviewButton.disabled = taskAuthoringState.loading || taskAuthoringState.pendingAction === "create";
+    $taskAuthoringPreviewButton.textContent = taskAuthoringState.pendingAction === "preview" ? "Previewing…" : "Preview packet";
+  }
+  if ($taskAuthoringCreateButton) {
+    $taskAuthoringCreateButton.disabled = !createReady;
+    $taskAuthoringCreateButton.textContent = taskAuthoringState.pendingAction === "create" ? "Writing…" : "Write task packet";
+    $taskAuthoringCreateButton.title = createReady
+      ? "Write the previewed packet to disk"
+      : "Run Preview packet after your latest form edits before writing.";
+  }
+
+  if ($taskAuthoringFeedback) {
+    $taskAuthoringFeedback.className = `task-authoring-feedback tone-${taskAuthoringState.lastTone || "neutral"}`;
+    $taskAuthoringFeedback.textContent = taskAuthoringState.lastMessage || "Preview a task packet to inspect generated files.";
+  }
+
+  if ($taskAuthoringErrors) {
+    $taskAuthoringErrors.innerHTML = errors.length > 0
+      ? errors.map((error) => `<div class="task-authoring-error tone-${escapeHtml(error.kind === "server" ? "danger" : "warn")}"><span class="mono">${escapeHtml(error.field || "field")}</span> · ${escapeHtml(error.message || "Validation issue")}</div>`).join("")
+      : "";
+  }
+
+  if ($taskAuthoringMeta) {
+    const metaBits = [];
+    if (preview?.derived?.taskId) metaBits.push(`<span class="task-authoring-pill">${escapeHtml(preview.derived.taskId)}</span>`);
+    if (preview?.derived?.folderName) metaBits.push(`<span class="task-authoring-pill">${escapeHtml(preview.derived.folderName)}</span>`);
+    if (preview?.derived?.reviewLabel != null && preview?.derived?.scoreTotal != null) metaBits.push(`<span class="task-authoring-pill">Review ${escapeHtml(String(preview.derived.reviewLevel))} · Score ${escapeHtml(String(preview.derived.scoreTotal))}/8</span>`);
+    if (preview?.derived?.contextPath) metaBits.push(`<span class="task-authoring-pill mono">${escapeHtml(preview.derived.contextPath)}</span>`);
+    $taskAuthoringMeta.innerHTML = metaBits.join("");
+  }
+
+  if ($taskAuthoringPromptPreview) {
+    $taskAuthoringPromptPreview.textContent = preview?.preview?.promptMarkdown || "Preview a packet to inspect generated PROMPT.md.";
+  }
+  if ($taskAuthoringStatusPreview) {
+    $taskAuthoringStatusPreview.textContent = preview?.preview?.statusMarkdown || "Preview a packet to inspect generated STATUS.md.";
+  }
+}
+
+async function ensureTaskAuthoringMetadata(force = false, options = {}) {
+  if (!$taskAuthoringShell) return;
+  if (taskAuthoringState.loading) return;
+  if (taskAuthoringState.metadata && !force) {
+    renderTaskAuthoringPanel();
+    return;
+  }
+  const preserveFeedback = options?.preserveFeedback === true;
+  taskAuthoringState.loading = true;
+  if (!preserveFeedback) {
+    taskAuthoringState.lastTone = "neutral";
+    taskAuthoringState.lastMessage = "Loading task authoring defaults…";
+  }
+  renderTaskAuthoringPanel();
+  try {
+    const response = await fetch("/api/task-authoring");
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload?.error || "Task authoring metadata unavailable.");
+    applyTaskAuthoringMetadata(payload);
+    if (!preserveFeedback) {
+      taskAuthoringState.lastMessage = "Fill the form, preview the packet, then write it to disk.";
+    }
+  } catch (err) {
+    taskAuthoringState.lastTone = "danger";
+    taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
+  } finally {
+    taskAuthoringState.loading = false;
+    renderTaskAuthoringPanel();
+  }
+}
+
+async function requestTaskAuthoringPreview() {
+  const payload = readTaskAuthoringFormPayload();
+  const fingerprint = taskAuthoringFingerprint(payload);
+  taskAuthoringState.pendingAction = "preview";
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Generating packet preview…";
+  renderTaskAuthoringPanel();
+  try {
+    const response = await fetch("/api/task-authoring/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const preview = await response.json();
+    taskAuthoringState.preview = preview;
+    taskAuthoringState.previewFingerprint = fingerprint;
+    taskAuthoringState.dirty = taskAuthoringFingerprint(readTaskAuthoringFormPayload()) !== fingerprint;
+    taskAuthoringState.lastTone = response.ok ? "success" : "warn";
+    taskAuthoringState.lastMessage = response.ok
+      ? `Preview ready for ${preview?.derived?.taskId || "new task"}.`
+      : (preview?.errors?.[0]?.message || "Fix the highlighted fields and preview again.");
+  } catch (err) {
+    taskAuthoringState.preview = null;
+    taskAuthoringState.previewFingerprint = "";
+    taskAuthoringState.lastTone = "danger";
+    taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
+  } finally {
+    taskAuthoringState.pendingAction = "";
+    renderTaskAuthoringPanel();
+  }
+}
+
+async function submitTaskAuthoringCreate() {
+  const payload = readTaskAuthoringFormPayload();
+  const fingerprint = taskAuthoringFingerprint(payload);
+  if (taskAuthoringState.dirty || taskAuthoringState.previewFingerprint !== fingerprint || taskAuthoringState.preview?.ok !== true) {
+    taskAuthoringState.lastTone = "warn";
+    taskAuthoringState.lastMessage = "Preview the current form values before writing the packet.";
+    renderTaskAuthoringPanel();
+    return;
+  }
+
+  taskAuthoringState.pendingAction = "create";
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Writing task packet…";
+  renderTaskAuthoringPanel();
+  try {
+    const response = await fetch("/api/task-authoring/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok || !result?.ok) {
+      taskAuthoringState.preview = result?.preview || taskAuthoringState.preview;
+      taskAuthoringState.lastTone = "danger";
+      taskAuthoringState.lastMessage = result?.error?.message || "Task packet creation failed.";
+      renderTaskAuthoringPanel();
+      return;
+    }
+
+    taskAuthoringState.lastTone = "success";
+    taskAuthoringState.lastMessage = `Created ${result.created?.taskId || "task"} and advanced Next Task ID to ${result.created?.nextTaskId || "the next value"}. Preview the next packet before writing again.`;
+    await ensureTaskAuthoringMetadata(true, { preserveFeedback: true });
+    taskAuthoringState.preview = null;
+    taskAuthoringState.previewFingerprint = "";
+    taskAuthoringState.dirty = true;
+
+    const stateResponse = await fetch("/api/state");
+    const nextState = await stateResponse.json();
+    selectedBacklogTaskId = result.created?.taskId || selectedBacklogTaskId;
+    render(nextState);
+  } catch (err) {
+    taskAuthoringState.lastTone = "danger";
+    taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
+  } finally {
+    taskAuthoringState.pendingAction = "";
+    renderTaskAuthoringPanel();
+  }
+}
+
+function clearProjectScopedUiState(nextData) {
+  resetTaskAuthoringState();
+  selectedRepo = "";
+  if ($repoFilter) $repoFilter.value = "";
+  selectedBacklogTaskId = null;
+  backlogSearchQuery = "";
+  backlogStatusKey = "";
+  backlogQueryMode = "all";
+  backlogRefreshState.pending = false;
+  backlogRefreshState.tone = "neutral";
+  backlogRefreshState.message = "Live updates on";
+  if ($backlogSearch) $backlogSearch.value = "";
+  if ($backlogStatusFilter) $backlogStatusFilter.value = "";
+  renderBacklogControls();
+  viewingHistoryId = null;
+  activeHistoryEntry = null;
+  if ($historySelect) $historySelect.value = "";
+  if (viewerMode) closeViewer();
+  if (!nextData?.batch && preferredPrimaryView === "live") {
+    preferredPrimaryView = "backlog";
+  }
+}
+
+async function selectProject(projectId) {
+  if (!projectId || projectSwitchInFlight || projectId === selectedProjectId) return;
+  projectSwitchInFlight = true;
+  if ($projectSidebarSubtitle) $projectSidebarSubtitle.textContent = "Switching projects…";
+  try {
+    const response = await fetch("/api/projects/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.state) {
+      throw new Error(payload?.error || "Project switch failed.");
+    }
+    clearProjectScopedUiState(payload.state);
+    selectedProjectId = projectId;
+    historyList = [];
+    render(payload.state);
+    loadHistoryList();
+  } catch (err) {
+    console.error("Failed to switch project:", err);
+    if ($projectSidebarSubtitle) $projectSidebarSubtitle.textContent = err?.message || "Project switch failed";
+  } finally {
+    projectSwitchInFlight = false;
+    if (currentData) renderProjectSidebar(currentData);
+  }
+}
+
 // Repo filter change handler
 $repoFilter.addEventListener("change", (e) => {
   selectedRepo = e.target.value;
@@ -410,10 +898,216 @@ $repoFilter.addEventListener("change", (e) => {
   if (currentData) {
     const batch = currentData.batch;
     const sessions = currentData.sessions ?? currentData.tmuxSessions ?? [];
+    renderBacklog(currentData.backlog);
     if (batch) {
       renderLanesTasks(batch, sessions);
       renderMergeAgents(batch, sessions);
     }
+  }
+});
+
+$viewTabBacklog?.addEventListener("click", () => {
+  preferredPrimaryView = "backlog";
+  if (currentData) render(currentData);
+});
+
+$viewTabLive?.addEventListener("click", () => {
+  preferredPrimaryView = "live";
+  if (currentData) render(currentData);
+});
+
+$projectSidebarBody?.addEventListener("click", (event) => {
+  const button = event.target.closest?.("[data-project-id]");
+  if (!button) return;
+  const projectId = button.getAttribute("data-project-id");
+  if (projectId) selectProject(projectId);
+});
+
+$backlogSearch?.addEventListener("input", (e) => {
+  backlogSearchQuery = String(e.target.value || "").trim().toLowerCase();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogStatusFilter?.addEventListener("change", (e) => {
+  backlogStatusKey = String(e.target.value || "");
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogQueryPending?.addEventListener("click", () => {
+  backlogQueryMode = "pending";
+  renderBacklogControls();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogQueryAll?.addEventListener("click", () => {
+  backlogQueryMode = "all";
+  renderBacklogControls();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogRefreshButton?.addEventListener("click", async () => {
+  if (backlogRefreshState.pending) return;
+  backlogRefreshState.pending = true;
+  backlogRefreshState.tone = "info";
+  backlogRefreshState.message = "Requesting a fresh snapshot…";
+  renderBacklogControls();
+
+  try {
+    const response = await fetch(`/api/state?manualRefresh=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Refresh failed (${response.status})`);
+    }
+    const nextState = await response.json();
+    backlogRefreshState.tone = "success";
+    backlogRefreshState.message = "Fresh snapshot loaded";
+    render(nextState);
+  } catch (err) {
+    backlogRefreshState.tone = "danger";
+    backlogRefreshState.message = err instanceof Error ? err.message : String(err);
+    renderBacklogControls();
+  } finally {
+    backlogRefreshState.pending = false;
+    renderBacklogControls();
+  }
+});
+
+$backlogClearFilters?.addEventListener("click", () => {
+  backlogSearchQuery = "";
+  backlogStatusKey = "";
+  backlogQueryMode = "all";
+  if ($backlogSearch) $backlogSearch.value = "";
+  if ($backlogStatusFilter) $backlogStatusFilter.value = "";
+  renderBacklogControls();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$taskAuthoringForm?.addEventListener("input", () => {
+  taskAuthoringState.dirty = true;
+  renderTaskAuthoringPanel();
+});
+
+$taskAuthoringForm?.addEventListener("change", () => {
+  taskAuthoringState.dirty = true;
+  renderTaskAuthoringPanel();
+});
+
+$taskAuthoringPreviewButton?.addEventListener("click", () => {
+  requestTaskAuthoringPreview();
+});
+
+$taskAuthoringForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  submitTaskAuthoringCreate();
+});
+
+$taskAuthoringResetButton?.addEventListener("click", () => {
+  resetTaskAuthoringState({ preserveMetadata: true });
+  taskAuthoringState.lastMessage = "Task authoring form reset to project defaults.";
+  renderTaskAuthoringPanel();
+});
+
+function selectTask(taskId) {
+  if (!taskId) return;
+  selectedBacklogTaskId = taskId;
+  if (currentData) render(currentData);
+}
+
+$backlogBody?.addEventListener("click", (event) => {
+  const viewStatusBtn = event.target.closest?.("[data-backlog-open-status]");
+  if (viewStatusBtn) {
+    const taskId = viewStatusBtn.getAttribute("data-backlog-open-status");
+    if (taskId) viewStatusMd(taskId);
+    return;
+  }
+
+  const detailBtn = event.target.closest?.("[data-open-task-detail]");
+  if (detailBtn) {
+    const taskId = detailBtn.getAttribute("data-open-task-detail");
+    if (taskId) selectTask(taskId);
+    return;
+  }
+
+  const card = event.target.closest?.(".backlog-card[data-task-id]");
+  if (!card) return;
+  selectTask(card.getAttribute("data-task-id"));
+});
+
+$lanesTasksBody?.addEventListener("click", (event) => {
+  const detailBtn = event.target.closest?.("[data-open-task-detail]");
+  if (!detailBtn) return;
+  const taskId = detailBtn.getAttribute("data-open-task-detail");
+  if (taskId) selectTask(taskId);
+});
+
+$historyBody?.addEventListener("click", (event) => {
+  const detailBtn = event.target.closest?.("[data-open-task-detail]");
+  if (!detailBtn) return;
+  const taskId = detailBtn.getAttribute("data-open-task-detail");
+  if (taskId) selectTask(taskId);
+});
+
+$taskDetailBody?.addEventListener("click", async (event) => {
+  const viewStatusBtn = event.target.closest?.("[data-backlog-open-status]");
+  if (viewStatusBtn) {
+    const taskId = viewStatusBtn.getAttribute("data-backlog-open-status");
+    if (taskId) viewStatusMd(taskId);
+    return;
+  }
+
+  const actionBtn = event.target.closest?.("[data-dashboard-action]");
+  if (!actionBtn) return;
+
+  const actionId = actionBtn.getAttribute("data-dashboard-action");
+  const taskId = actionBtn.getAttribute("data-task-id") || selectedBacklogTaskId || "";
+  const batchScoped = actionBtn.getAttribute("data-batch-action") === "true";
+  const backlogItem = taskId ? findBacklogItem(taskId) : null;
+  const action = batchScoped
+    ? (currentData?.batchActions?.[actionId] || null)
+    : (backlogItem?.actions?.[actionId] || null);
+  if (!action) return;
+
+  if (action.confirmation && !window.confirm(action.confirmation)) {
+    return;
+  }
+
+  if (action.invokeMode === "copy") {
+    try {
+      await copyText(action.commandPreview || "");
+      dashboardActionState.lastTone = "success";
+      dashboardActionState.lastMessage = `${action.label} copied to clipboard.`;
+    } catch (err) {
+      dashboardActionState.lastTone = "danger";
+      dashboardActionState.lastMessage = `Failed to copy command: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    renderTaskDetail();
+    return;
+  }
+
+  dashboardActionState.pendingKey = `${action.id}:${batchScoped ? "batch" : taskId}`;
+  dashboardActionState.lastTone = "info";
+  dashboardActionState.lastMessage = `${action.label} requested…`;
+  renderTaskDetail();
+
+  try {
+    const response = await fetch("/api/actions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: actionId, taskId, confirmed: true }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.error || `Request failed (${response.status})`);
+    }
+    dashboardActionState.lastTone = "success";
+    dashboardActionState.lastMessage = payload?.output || `${action.label} completed.`;
+    fetch("/api/state").then((r) => r.json()).then(render).catch(() => renderTaskDetail());
+  } catch (err) {
+    dashboardActionState.lastTone = "danger";
+    dashboardActionState.lastMessage = err instanceof Error ? err.message : String(err);
+    renderTaskDetail();
+  } finally {
+    dashboardActionState.pendingKey = "";
+    renderTaskDetail();
   }
 });
 
@@ -433,13 +1127,30 @@ function renderHeader(batch) {
 
 // ─── Render: Summary ────────────────────────────────────────────────────────
 
-function renderSummary(batch) {
+function renderBacklogSummary(backlog) {
+  const summary = backlog?.summary || {};
+  const total = summary.total || 0;
+  const ready = summary.ready || 0;
+  const running = summary.running || 0;
+  const blocked = summary.blocked || 0;
+  const done = summary.succeeded || 0;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  $progressBarBg.innerHTML = `<div class="wave-seg wave-seg-current" style="width:100%" title="Backlog completion"><div class="wave-seg-fill ${pct >= 100 ? "pct-hi" : pct > 50 ? "pct-mid" : pct > 0 ? "pct-low" : "pct-0"}" style="width:${pct}%"></div><span class="wave-seg-label">Backlog</span></div>`;
+  $overallPct.textContent = `${pct}%`;
+  $summaryCounts.innerHTML = `
+    <span class="count-chip count-succeeded"><span class="count-num">${ready}</span><span class="count-icon">✓ ready</span></span>
+    <span class="count-chip count-running"><span class="count-num">${running}</span><span class="count-icon">▶ active</span></span>
+    <span class="count-chip count-stalled"><span class="count-num">${blocked}</span><span class="count-icon">⏸ blocked</span></span>
+    <span class="count-chip count-pending"><span class="count-num">${done}</span><span class="count-icon">◎ done</span></span>
+    <span class="count-total">/ ${total}</span>`;
+  const scopeMode = backlog?.scope?.mode === "workspace" ? "workspace" : "repo";
+  $summaryElapsed.textContent = `${scopeMode} view · ${backlog?.scope?.taskAreaCount || 0} task area${(backlog?.scope?.taskAreaCount || 0) === 1 ? "" : "s"}`;
+  $summaryWaves.innerHTML = `<span class="wave-chip">Backlog</span>${historyList.length > 0 ? `<span class="wave-chip">${historyList.length} history</span>` : ""}`;
+}
+
+function renderSummary(batch, backlog) {
   if (!batch) {
-    $progressBarBg.innerHTML = "";
-    $overallPct.textContent = "0%";
-    $summaryCounts.innerHTML = "";
-    $summaryElapsed.textContent = "—";
-    $summaryWaves.innerHTML = "";
+    renderBacklogSummary(backlog);
     return;
   }
 
@@ -857,11 +1568,12 @@ function renderLanesTasks(batch, sessions) {
       const eyeHtml = task.status !== 'pending'
         ? `<button class="viewer-eye-btn${isViewingStatus ? ' active' : ''}" onclick="viewStatusMd('${escapeHtml(task.taskId)}')" title="View STATUS.md">👁</button>`
         : '';
+      const detailHtml = `<button class="viewer-eye-btn" type="button" data-open-task-detail="${escapeHtml(task.taskId)}" title="Inspect task detail">ℹ</button>`;
 
       html += `
         <div class="task-row">
           <span class="task-icon"><span class="status-dot ${task.status}"></span></span>
-          <span class="task-actions">${eyeHtml}</span>
+          <span class="task-actions">${detailHtml}${eyeHtml}</span>
           <span class="task-id status-${task.status}">${escapeHtml(task.taskId)}${showRepos ? repoBadgeHtml(tRepo, "repo-badge-task") : ""}</span>
           <span><span class="status-badge status-${task.status}"><span class="status-dot ${task.status}"></span> ${task.status}</span></span>
           <span class="task-duration">${dur}</span>
@@ -1274,6 +1986,366 @@ function renderErrors(batch) {
   $errorsBody.innerHTML = html;
 }
 
+// ─── Render: Backlog ────────────────────────────────────────────────────────
+
+function backlogStatusChip(item) {
+  const key = item?.status?.key || "unknown";
+  const label = item?.status?.label || key;
+  return `<span class="backlog-status-chip status-${escapeHtml(key)}">${escapeHtml(label)}</span>`;
+}
+
+function backlogScopeText(backlog) {
+  const configuredRepoCount = Array.isArray(backlog?.scope?.configuredRepoIds) ? backlog.scope.configuredRepoIds.length : 0;
+  const repoCount = configuredRepoCount || knownRepos.length || (backlog?.scope?.repoIds?.length || 1) || 1;
+  const areaCount = backlog?.scope?.taskAreaCount || 0;
+  if (backlog?.scope?.mode === "workspace") {
+    return `${repoCount} repo${repoCount === 1 ? "" : "s"} · ${areaCount} task area${areaCount === 1 ? "" : "s"}`;
+  }
+  return `${areaCount} task area${areaCount === 1 ? "" : "s"} · single-repo scope`;
+}
+
+function backlogSummaryStripHtml(summary, filteredCount, totalCount) {
+  const filterChip = filteredCount !== totalCount
+    ? `<span class="count-chip count-pending">${filteredCount} shown</span>`
+    : "";
+  return `
+    <div class="backlog-summary-strip">
+      <span class="count-chip">${summary.total || 0} total</span>
+      <span class="count-chip count-succeeded">${summary.ready || 0} ready</span>
+      <span class="count-chip count-stalled">${summary.blocked || 0} blocked</span>
+      <span class="count-chip count-running">${summary.running || 0} running</span>
+      <span class="count-chip count-pending">${summary.waiting || 0} waiting</span>
+      <span class="count-chip">${summary.succeeded || 0} done</span>
+      ${filterChip}
+    </div>`;
+}
+
+function backlogCanOpenStatus(item) {
+  if (!item || !currentData?.batch || !item.execution?.batchId) return false;
+  if (currentData.batch.batchId && item.execution.batchId !== currentData.batch.batchId) return false;
+  return (currentData.batch.tasks || []).some((task) => task.taskId === item.taskId);
+}
+
+function backlogSelectionHtml(item, outOfFilter) {
+  if (!item) return "";
+  const deps = Array.isArray(item.readiness?.blockedBy) ? item.readiness.blockedBy : [];
+  const depText = deps.length > 0
+    ? deps.map(dep => escapeHtml(dep.label || dep.id || "Unknown")).join(", ")
+    : "None";
+  const activityText = item.lastActivityAt ? relativeTime(item.lastActivityAt) : "No recent activity";
+  const outOfFilterBadge = outOfFilter
+    ? '<span class="backlog-selection-badge">Outside current repo/filter view</span>'
+    : '';
+  const canOpenStatus = backlogCanOpenStatus(item);
+  const actionHtml = canOpenStatus
+    ? `<button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(item.taskId)}">View STATUS.md</button>`
+    : '<span class="backlog-selection-hint">STATUS viewer available when this task is part of the active batch.</span>';
+  return `
+    <div class="backlog-selection-card">
+      <div class="backlog-selection-header">
+        <div class="backlog-selection-title">Selected: ${escapeHtml(item.taskId)} — ${escapeHtml(item.title || "Untitled")}</div>
+        <div class="backlog-selection-actions">
+          ${outOfFilterBadge}
+          ${actionHtml}
+        </div>
+      </div>
+      <div class="backlog-selection-grid">
+        <div><span class="label">Area</span><span>${escapeHtml(item.area || "—")}</span></div>
+        <div><span class="label">Repo</span><span>${escapeHtml(item.repoId || "—")}</span></div>
+        <div><span class="label">Status</span><span>${escapeHtml(item.status?.label || "Unknown")}</span></div>
+        <div><span class="label">Waiting on</span><span>${escapeHtml(item.readiness?.waitingOn || "—")}</span></div>
+        <div><span class="label">Last activity</span><span>${escapeHtml(activityText)}</span></div>
+        <div><span class="label">Execution</span><span>${escapeHtml(item.execution?.batchId ? `Batch ${item.execution.batchId}` : "Not in active batch")}</span></div>
+        <div><span class="label">Prompt</span><span class="mono">${escapeHtml(item.navigation?.promptPath || item.promptPath || "—")}</span></div>
+        <div><span class="label">Status file</span><span class="mono">${escapeHtml(item.navigation?.statusPath || item.statusPath || "—")}</span></div>
+      </div>
+      <div class="backlog-selection-note">Blocked by: ${depText}</div>
+    </div>`;
+}
+
+function findBacklogItem(taskId) {
+  const items = Array.isArray(currentData?.backlog?.items) ? currentData.backlog.items : [];
+  return items.find((item) => item.taskId === taskId) || null;
+}
+
+function findLiveTask(taskId) {
+  const tasks = Array.isArray(currentData?.batch?.tasks) ? currentData.batch.tasks : [];
+  return tasks.find((task) => task.taskId === taskId) || null;
+}
+
+function findHistoryTask(taskId) {
+  const tasks = Array.isArray(activeHistoryEntry?.tasks) ? activeHistoryEntry.tasks : [];
+  return tasks.find((task) => task.taskId === taskId) || null;
+}
+
+const dashboardActionState = {
+  pendingKey: "",
+  lastMessage: "",
+  lastTone: "info",
+};
+
+function copyText(text) {
+  if (!text) return Promise.reject(new Error("Nothing to copy"));
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    try {
+      const input = document.createElement("textarea");
+      input.value = text;
+      input.setAttribute("readonly", "true");
+      input.style.position = "absolute";
+      input.style.left = "-9999px";
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      resolve();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function taskActionButtonHtml(action, taskId, batchScoped) {
+  if (!action) return "";
+  const actionKey = `${action.id}:${batchScoped ? "batch" : (taskId || "task")}`;
+  const isPending = dashboardActionState.pendingKey === actionKey;
+  const isCopy = action.invokeMode === "copy";
+  const disabled = !isCopy && (!action.enabled || isPending);
+  const label = isCopy ? `Copy ${action.label}` : action.label;
+  const reason = action.reason ? `<div class="task-action-reason">${escapeHtml(action.reason)}</div>` : "";
+  const preview = action.commandPreview ? `<div class="task-action-preview"><code>${escapeHtml(action.commandPreview)}</code></div>` : "";
+  return `
+    <div class="task-action-card ${disabled ? "is-disabled" : ""}">
+      <button class="session-view-btn task-action-btn" type="button" data-dashboard-action="${escapeHtml(action.id)}" ${taskId ? `data-task-id="${escapeHtml(taskId)}"` : ""} ${batchScoped ? 'data-batch-action="true"' : ""} ${disabled ? "disabled" : ""}>${escapeHtml(isPending ? `${label}…` : label)}</button>
+      ${reason}
+      ${preview}
+    </div>`;
+}
+
+function renderTaskDetail() {
+  if (!$taskDetailPanel || !$taskDetailBody || !$taskDetailTitle || !$taskDetailSubtitle) return;
+  const taskId = selectedBacklogTaskId;
+  const backlogItem = taskId ? findBacklogItem(taskId) : null;
+  const historyTask = taskId ? findHistoryTask(taskId) : null;
+  const liveTask = taskId ? findLiveTask(taskId) : null;
+
+  if (!taskId || (!backlogItem && !historyTask && !liveTask)) {
+    $taskDetailPanel.style.display = "none";
+    $taskDetailBody.innerHTML = "";
+    return;
+  }
+
+  const title = backlogItem?.title || historyTask?.taskId || liveTask?.taskId || taskId;
+  const mission = backlogItem?.detail?.mission || backlogItem?.summary || null;
+  const dependencies = Array.isArray(backlogItem?.detail?.dependencies) ? backlogItem.detail.dependencies : [];
+  const fileScope = Array.isArray(backlogItem?.detail?.fileScope) ? backlogItem.detail.fileScope : [];
+  const latestExecution = backlogItem?.detail?.latestExecution || null;
+  const currentStep = backlogItem?.detail?.currentStep || backlogItem?.status?.reason || null;
+  const lastActivityText = backlogItem?.lastActivityAt
+    ? `${relativeTime(backlogItem.lastActivityAt)} · ${backlogItem.lastActivitySummary || "Recent activity"}`
+    : (historyTask?.endedAt ? `${relativeTime(historyTask.endedAt)} · Completed in history` : "No recent activity captured");
+  const executionSummary = liveTask
+    ? `Live batch ${liveTask.batchId || currentData?.batch?.batchId || "—"} · ${liveTask.status || "unknown"}${liveTask.laneNumber != null ? ` · Lane ${liveTask.laneNumber}` : ""}`
+    : (historyTask
+      ? `History batch ${activeHistoryEntry?.batchId || "—"} · ${historyTask.status || "unknown"}${historyTask.wave != null ? ` · Wave ${historyTask.wave}` : ""}${historyTask.lane != null ? ` · Lane ${historyTask.lane}` : ""}`
+      : (backlogItem?.execution?.batchId ? `Active batch ${backlogItem.execution.batchId}` : "Not in active batch"));
+  const progressText = backlogItem?.detail?.progress != null && backlogItem?.counts
+    ? `${backlogItem.detail.progress}% · ${backlogItem.detail.currentStep || "Current step unavailable"}`
+    : (currentStep || "No step metadata yet");
+  const latestExecutionHtml = latestExecution
+    ? `<div class="task-detail-exec-log"><span class="label">Latest execution log</span><div>${escapeHtml(latestExecution.timestamp || "—")} · ${escapeHtml(latestExecution.action || "Update")} · ${escapeHtml(latestExecution.outcome || "—")}</div></div>`
+    : "";
+  const dependenciesHtml = dependencies.length > 0
+    ? `<ul class="task-detail-list">${dependencies.map((dep) => `<li>${escapeHtml(dep)}</li>`).join("")}</ul>`
+    : '<div class="task-detail-empty">No declared dependencies</div>';
+  const fileScopeHtml = fileScope.length > 0
+    ? `<ul class="task-detail-list">${fileScope.map((entry) => `<li><code>${escapeHtml(entry)}</code></li>`).join("")}</ul>`
+    : '<div class="task-detail-empty">No file scope listed in PROMPT.md</div>';
+  const canOpenStatus = backlogCanOpenStatus(backlogItem);
+  const statusAction = canOpenStatus
+    ? `<button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(taskId)}">View STATUS.md</button>`
+    : '<span class="backlog-selection-hint">STATUS viewer available when this task is part of the active batch.</span>';
+  const taskActions = backlogItem?.actions || null;
+  const batchIntegrateAction = currentData?.batchActions?.integrate || null;
+  const actionNotice = dashboardActionState.lastMessage
+    ? `<div class="task-action-notice tone-${escapeHtml(dashboardActionState.lastTone)}">${escapeHtml(dashboardActionState.lastMessage)}</div>`
+    : "";
+  const actionButtonsHtml = [
+    taskActionButtonHtml(taskActions?.start, taskId, false),
+    taskActionButtonHtml(taskActions?.retry, taskId, false),
+    taskActionButtonHtml(taskActions?.skip, taskId, false),
+    taskActionButtonHtml(batchIntegrateAction, taskId, true),
+  ].filter(Boolean).join("");
+
+  $taskDetailPanel.style.display = "";
+  $taskDetailTitle.textContent = `${taskId} — ${title}`;
+  $taskDetailSubtitle.textContent = backlogItem?.status?.label || historyTask?.status || liveTask?.status || "Task detail";
+  $taskDetailBody.innerHTML = `
+    <div class="task-detail-toolbar">
+      <div class="task-detail-badges">
+        ${backlogItem ? backlogStatusChip(backlogItem) : ""}
+        ${backlogItem?.repoId ? repoBadgeHtml(backlogItem.repoId, "backlog-repo-badge") : ""}
+        ${backlogItem?.readiness?.waitingOn ? `<span class="backlog-card-pill">${escapeHtml(backlogItem.readiness.waitingOn)}</span>` : ""}
+      </div>
+      <div class="task-detail-actions">${statusAction}</div>
+    </div>
+    <div class="task-detail-grid">
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Mission</div>
+        <div class="task-detail-copy">${mission ? escapeHtml(mission) : "Mission summary unavailable"}</div>
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Latest execution</div>
+        <div class="task-detail-copy">${escapeHtml(executionSummary)}</div>
+        <div class="task-detail-copy task-detail-muted">${escapeHtml(lastActivityText)}</div>
+        ${latestExecutionHtml}
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Prompt + status</div>
+        <div class="task-detail-kv"><span class="label">Current step</span><span>${escapeHtml(progressText)}</span></div>
+        <div class="task-detail-kv"><span class="label">Review level</span><span>${escapeHtml(backlogItem?.detail?.reviewLevel != null ? String(backlogItem.detail.reviewLevel) : "—")}</span></div>
+        <div class="task-detail-kv"><span class="label">Prompt</span><span class="mono">${escapeHtml(backlogItem?.navigation?.promptPath || backlogItem?.promptPath || "—")}</span></div>
+        <div class="task-detail-kv"><span class="label">Status</span><span class="mono">${escapeHtml(backlogItem?.navigation?.statusPath || backlogItem?.statusPath || "—")}</span></div>
+        <div class="task-detail-kv"><span class="label">Task folder</span><span class="mono">${escapeHtml(backlogItem?.navigation?.taskFolder || backlogItem?.taskFolder || "—")}</span></div>
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Dependencies</div>
+        ${dependenciesHtml}
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Operator actions</div>
+        ${actionNotice}
+        <div class="task-action-grid">${actionButtonsHtml || '<div class="task-detail-empty">No operator actions available for this selection</div>'}</div>
+      </div>
+      <div class="task-detail-section task-detail-section-wide">
+        <div class="task-detail-section-title">File scope</div>
+        ${fileScopeHtml}
+      </div>
+    </div>`;
+}
+
+function renderBacklog(backlog) {
+  if (!$backlogBody) return;
+  renderBacklogControls();
+  if (!backlog) {
+    if ($backlogScopeLine) $backlogScopeLine.textContent = "Backlog unavailable";
+    $backlogBody.innerHTML = '<div class="empty-state">Backlog unavailable</div>';
+    return;
+  }
+
+  const items = Array.isArray(backlog.items) ? backlog.items : [];
+  const summary = backlog.summary || {};
+  const loadState = backlog.loadState || { kind: "ready", message: null };
+  const scopeText = backlogScopeText(backlog);
+  if ($backlogScopeLine) {
+    const repoScope = selectedRepo ? `Filtered to repo ${selectedRepo}` : scopeText;
+    $backlogScopeLine.textContent = loadState.kind === "error"
+      ? `Scan error · ${scopeText}`
+      : repoScope;
+  }
+
+  const filtered = items.filter((item) => {
+    const queryOk = backlogMatchesQueryMode(item, backlogQueryMode);
+    const repoOk = !selectedRepo || item.repoId === selectedRepo;
+    const statusOk = !backlogStatusKey || item.status?.key === backlogStatusKey;
+    const haystack = [item.taskId, item.title, item.summary, item.area, item.repoId, item.status?.label]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const textOk = !backlogSearchQuery || haystack.includes(backlogSearchQuery);
+    return queryOk && repoOk && statusOk && textOk;
+  });
+
+  const selectedItemInAll = items.find((item) => item.taskId === selectedBacklogTaskId) || null;
+  if (!selectedBacklogTaskId && items[0]) {
+    selectedBacklogTaskId = items[0].taskId;
+  }
+  const selectedItem = filtered.find((item) => item.taskId === selectedBacklogTaskId) || filtered[0] || selectedItemInAll || null;
+  const selectedOutOfFilter = Boolean(selectedItem && !filtered.some((item) => item.taskId === selectedItem.taskId));
+
+  const activeFilterSummary = [];
+  if (backlogQueryMode === "pending") activeFilterSummary.push("query: pending");
+  if (selectedRepo) activeFilterSummary.push(`repo: ${selectedRepo}`);
+  if (backlogStatusKey) activeFilterSummary.push(`status: ${backlogStatusKey}`);
+  if (backlogSearchQuery) activeFilterSummary.push(`search: “${backlogSearchQuery}”`);
+  if ($backlogClearFilters) {
+    $backlogClearFilters.disabled = activeFilterSummary.length === 0;
+    $backlogClearFilters.title = activeFilterSummary.length === 0 ? "No backlog filters active" : "Clear backlog filters";
+  }
+  const filterHint = activeFilterSummary.length > 0
+    ? `Showing ${filtered.length} of ${items.length} tasks · ${activeFilterSummary.join(" · ")}`
+    : (loadState.message || scopeText);
+
+  const cardsHtml = filtered.map((item) => {
+    const selectedCls = item.taskId === selectedItem?.taskId ? " selected" : "";
+    const blocked = Array.isArray(item.readiness?.blockedBy) ? item.readiness.blockedBy : [];
+    const blockedText = blocked.length > 0
+      ? `Blocked by ${blocked.map(dep => dep.label || dep.id || "Unknown").join(", ")}`
+      : (item.status?.reason || "Ready to launch");
+    const activityText = item.lastActivityAt ? relativeTime(item.lastActivityAt) : "No recent activity";
+    const summaryText = item.summary ? `<div class="backlog-card-summary">${escapeHtml(item.summary)}</div>` : "";
+    const repoBadge = repoBadgeHtml(item.repoId, "backlog-repo-badge");
+    const waitingOn = item.readiness?.waitingOn ? `<span class="backlog-card-pill">${escapeHtml(item.readiness.waitingOn)}</span>` : "";
+    return `
+      <button class="backlog-card${selectedCls}" type="button" data-task-id="${escapeHtml(item.taskId)}" aria-pressed="${item.taskId === selectedItem?.taskId ? "true" : "false"}">
+        <div class="backlog-card-top">
+          <div>
+            <div class="backlog-card-title-row">
+              <span class="backlog-card-id">${escapeHtml(item.taskId)}</span>
+              ${repoBadge}
+              ${backlogStatusChip(item)}
+              ${waitingOn}
+            </div>
+            <div class="backlog-card-title">${escapeHtml(item.title || "Untitled task")}</div>
+          </div>
+          <div class="backlog-card-area">${escapeHtml(item.area || "general")}</div>
+        </div>
+        ${summaryText}
+        <div class="backlog-card-meta">${escapeHtml(blockedText)}</div>
+        <div class="backlog-card-footer">
+          <span>${escapeHtml(activityText)}</span>
+          <span>${escapeHtml(item.execution?.batchId ? `Batch ${item.execution.batchId}` : scopeText)}</span>
+        </div>
+      </button>`;
+  }).join("");
+
+  if (filtered.length === 0) {
+    const emptyTitle = loadState.kind === "error"
+      ? "Backlog unavailable"
+      : (activeFilterSummary.length > 0 ? "No tasks match the current filters" : "Backlog empty");
+    const hint = loadState.kind === "error"
+      ? (loadState.message || "Backlog scan failed")
+      : activeFilterSummary.length > 0
+        ? "Try switching to All or clearing one or more filters to widen the backlog view."
+        : loadState.kind === "partial"
+          ? "Only malformed task packets were found during the scan."
+          : (loadState.message || "No backlog items found.");
+    $backlogBody.innerHTML = `
+      ${backlogSummaryStripHtml(summary, filtered.length, items.length)}
+      <div class="backlog-state state-${escapeHtml(loadState.kind || "ready")}">
+        <div class="backlog-state-title">${escapeHtml(emptyTitle)}</div>
+        <div>${escapeHtml(hint)}</div>
+        <div class="backlog-state-meta">${escapeHtml(filterHint)}</div>
+      </div>
+      ${selectedItem ? backlogSelectionHtml(selectedItem, true) : ""}`;
+    return;
+  }
+
+  const errorSummary = Array.isArray(backlog.errors) && backlog.errors.length > 0
+    ? `<div class="backlog-state-meta">${escapeHtml(`${backlog.errors.length} task packet${backlog.errors.length === 1 ? "" : "s"} could not be parsed`)}</div>`
+    : "";
+
+  $backlogBody.innerHTML = `
+    ${backlogSummaryStripHtml(summary, filtered.length, items.length)}
+    <div class="backlog-state state-${escapeHtml(loadState.kind || "ready")}">
+      <div class="backlog-state-title">${escapeHtml(loadState.kind === "partial" ? "Backlog partially loaded" : loadState.kind === "ready" ? "Backlog ready" : (loadState.message || "Backlog state"))}</div>
+      <div>${escapeHtml(filterHint)}</div>
+      ${errorSummary}
+    </div>
+    <div class="backlog-list">${cardsHtml}</div>
+    ${backlogSelectionHtml(selectedItem, selectedOutOfFilter)}`;
+}
+
 // ─── Render: No Batch ───────────────────────────────────────────────────────
 
 let noBatchRendered = false;
@@ -1281,9 +2353,6 @@ let noBatchRendered = false;
 function renderNoBatch() {
   if (noBatchRendered) return;
   noBatchRendered = true;
-
-  // Hide repo filter when no batch
-  updateRepoFilter([]);
 
   // Hide live panels, show history panel
   const $lanesPanel = document.getElementById("lanes-tasks-panel");
@@ -1316,7 +2385,6 @@ function ensureContentPanels() {
     const $mergePanel = document.getElementById("merge-panel");
     if ($lanesPanel) $lanesPanel.style.display = "";
     if ($mergePanel) $mergePanel.style.display = "";
-    if ($errorsPanel) $errorsPanel.style.display = "";
     $historyPanel.style.display = "none";
     viewingHistoryId = null;
     // Re-render with current data
@@ -1614,17 +2682,26 @@ function render(data) {
   const sessions = data.sessions ?? data.tmuxSessions ?? [];
 
   $lastUpdate.textContent = new Date().toLocaleTimeString();
+  renderProjectSidebar(data);
+  ensureTaskAuthoringMetadata();
+  renderTaskAuthoringPanel();
+  syncPrimaryView(data);
+  updateRepoFilter(resolveRepoSetForView(data));
+  renderBacklog(data.backlog);
+  renderTaskDetail();
 
   if (!batch) {
     // TP-178: Clear viewer when batch disappears (#487)
     if (lastBatchId && viewerMode) closeViewer();
     lastBatchId = null;
     renderHeader(null);
-    renderSummary(null);
+    renderSummary(null, data.backlog);
     renderSupervisor(data);
     // Refresh history list (batch may have just finished)
     if (!noBatchRendered) loadHistoryList();
     renderNoBatch();
+    applyPrimaryViewVisibility(data);
+    $footerInfo.textContent = `${(data.backlog?.summary?.total || 0)} backlog tasks`;
     return;
   }
 
@@ -1637,6 +2714,7 @@ function render(data) {
   // Live batch is running — hide history panel, reset viewing state
   if (viewingHistoryId) {
     viewingHistoryId = null;
+    activeHistoryEntry = null;
     $historyPanel.style.display = "none";
     $historySelect.value = "";
   }
@@ -1648,11 +2726,6 @@ function render(data) {
 
   renderHeader(batch);
   renderSummary(batch);
-
-  // Update repo filter based on current batch data
-  const repos = buildRepoSet(batch);
-  updateRepoFilter(repos);
-
   renderSupervisor(data);
   renderLanesTasks(batch, sessions);
   renderMergeAgents(batch, sessions);
@@ -1660,6 +2733,7 @@ function render(data) {
   renderAgentsPanel(data.runtimeRegistry);
   renderMessagesPanel(data.mailbox);
   renderErrors(batch);
+  applyPrimaryViewVisibility(data);
 
   const taskCount = (batch.tasks || []).length;
   const laneCount = (batch.lanes || []).length;
@@ -2389,7 +3463,9 @@ function renderHistoryDropdown() {
 function viewHistoryEntry(batchId) {
   if (!batchId) {
     viewingHistoryId = null;
+    activeHistoryEntry = null;
     $historyPanel.style.display = "none";
+    renderTaskDetail();
     return;
   }
   viewingHistoryId = batchId;
@@ -2397,15 +3473,23 @@ function viewHistoryEntry(batchId) {
     .then(r => r.json())
     .then(entry => {
       if (entry.error) {
+        activeHistoryEntry = null;
         $historyBody.innerHTML = `<div class="empty-state">${escapeHtml(entry.error)}</div>`;
       } else {
+        activeHistoryEntry = entry;
         renderHistorySummary(entry);
+        if (!selectedBacklogTaskId && Array.isArray(entry.tasks) && entry.tasks[0]?.taskId) {
+          selectedBacklogTaskId = entry.tasks[0].taskId;
+        }
+        renderTaskDetail();
       }
       $historyPanel.style.display = "";
     })
     .catch(() => {
+      activeHistoryEntry = null;
       $historyBody.innerHTML = '<div class="empty-state">Failed to load batch details</div>';
       $historyPanel.style.display = "";
+      renderTaskDetail();
     });
 }
 
@@ -2492,7 +3576,7 @@ function renderHistorySummary(entry) {
       let tTokenStr = `↑${formatTokens(tTotalIn)} ↓${formatTokens(tTok.output || 0)}`;
       const statusCls = `status-${t.status}`;
       html += `<tr>
-        <td>${escapeHtml(t.taskId)}</td>
+        <td><button class="history-task-link" type="button" data-open-task-detail="${escapeHtml(t.taskId)}">${escapeHtml(t.taskId)}</button></td>
         <td><span class="status-badge ${statusCls}">${t.status}</span></td>
         <td>W${t.wave}</td>
         <td>L${t.lane}</td>

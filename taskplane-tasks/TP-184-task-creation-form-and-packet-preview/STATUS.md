@@ -1,53 +1,61 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
-**Last Updated:** 2026-04-19
+**Current Step:** Step 4: Verification & Delivery
+**Status:** ✅ Complete
+**Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 0
-**Iteration:** 0
+**Review Counter:** 13
+**Iteration:** 1
 **Size:** L
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Read packet creation skill and examples
-- [ ] Define minimum task-authoring fields
-- [ ] Decide preview/write architecture
+**Status:** ✅ Complete
+- [x] Read packet creation skill and examples
+- [x] Define minimum task-authoring fields
+- [x] Decide preview/write architecture
 
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** ⬜ Not Started
-- [ ] Define form and preview shapes
-- [ ] Define validation rules
-- [ ] Preserve packet compatibility
+**Status:** ✅ Complete
+- [x] Define form and preview shapes
+- [x] Define validation rules
+- [x] Define complexity assessment contract
+- [x] Preserve packet compatibility
+- [x] Align generated PROMPT/STATUS preview with canonical template sections
+- [x] Update preview contract tests to enforce canonical packet invariants
+- [x] Add remaining canonical template invariants (targeted tests, artifacts, commit conventions, guardrails, STATUS hydration note)
 
 ---
 
 ### Step 2: Write path and safety semantics
-**Status:** ⬜ Not Started
-- [ ] Implement safe packet write flow
-- [ ] Update Next Task ID safely
-- [ ] Block duplicates/overwrites
+**Status:** ✅ Complete
+- [x] Implement safe packet write flow
+- [x] Update Next Task ID safely
+- [x] Block duplicates/overwrites
+- [x] Make failure states explicit and recoverable
+- [x] Handle rename-race conflicts without deleting existing task folders
 
 ---
 
 ### Step 3: UI implementation
-**Status:** ⬜ Not Started
-- [ ] Add create-task form UI
-- [ ] Add preview UI
-- [ ] Add success/failure navigation and feedback
+**Status:** ✅ Complete
+- [x] Add create-task form UI
+- [x] Add preview UI
+- [x] Add success/failure navigation and feedback
+- [x] Fix reset/default restoration and invalidate stale preview after successful create
+- [x] Preserve success feedback across post-create metadata refresh
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
-- [ ] Test validation and duplicate cases
-- [ ] Verify generated packets are orch-launchable
-- [ ] Update docs if shipped
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Test validation and duplicate cases
+- [x] Verify generated packets are orch-launchable
+- [x] Update docs if shipped
+- [x] Log discoveries
 
 ---
 
@@ -62,6 +70,7 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Shared preview/write generation keeps packet bytes aligned, but the section builders still live inline in `dashboard/server.cjs` | Follow-up candidate for shared template helpers if packet rules evolve again | `dashboard/server.cjs` |
 
 ---
 
@@ -70,6 +79,31 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 20:18 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 20:18 | Step 0 started | Preflight |
+| 2026-04-20 20:24 | Step 0 completed | Packet inputs, preview/write approach, and safety rules scoped |
+| 2026-04-20 20:24 | Step 1 started | Creation data model and preview contract |
+| 2026-04-20 20:25 | Review R001 | plan Step 1 returned REVISE; complexity rubric contract missing |
+| 2026-04-20 20:39 | Step 1 progress | Added server-authored task authoring metadata/preview contract plus targeted tests |
+| 2026-04-20 20:39 | Step 1 completed | Preview generator now emits canonical packet markdown and validation metadata |
+| 2026-04-20 20:39 | Step 2 started | Write path and safety semantics |
+| 2026-04-20 20:41 | Review R003 | code Step 1 returned REVISE; preview/template parity incomplete |
+| 2026-04-20 20:46 | Step 1 revise | Added canonical Testing & Verification plus Documentation & Delivery preview sections |
+| 2026-04-20 20:46 | Step 1 review fixes complete | Preview contract tests now enforce canonical packet invariants |
+| 2026-04-20 20:48 | Review R004 | code Step 1 returned REVISE; additional template invariants still missing |
+| 2026-04-20 20:52 | Step 1 revise | Added targeted-test/artifact blocks, canonical commit guardrails, and STATUS hydration/testing wording |
+| 2026-04-20 20:54 | Review R006 | plan Step 2 returned REVISE; failure handling outcome added to plan |
+| 2026-04-20 21:04 | Step 2 progress | Added create endpoint, counter update safeguards, duplicate blocking, and rollback/error handling tests |
+| 2026-04-20 21:06 | Review R008 | code Step 2 returned REVISE; rename-race cleanup must not delete concurrent writes |
+| 2026-04-20 21:10 | Step 2 revise | Added rename-race conflict handling and preserved concurrently-created folders |
+| 2026-04-20 21:24 | Step 3 progress | Added authoring form, preview surface, and create feedback that reselects the new task in backlog detail |
+| 2026-04-20 21:27 | Review R011 | code Step 3 returned REVISE; reset/create preview state needs hardening |
+| 2026-04-20 21:31 | Step 3 revise | Reset now restores project defaults and successful create invalidates stale preview state |
+| 2026-04-20 21:34 | Review R012 | code Step 3 returned REVISE; success banner is lost during metadata refresh |
+| 2026-04-20 21:37 | Step 3 revise | Preserved success feedback while metadata refreshes after create |
+| 2026-04-20 21:46 | Step 4 verification | Targeted authoring contract/write/UI tests and full extensions suite passed |
+| 2026-04-20 21:47 | Step 4 completed | Docs updated and discoveries logged for shipped dashboard authoring flow |
+| 2026-04-20 21:47 | Task completed | Verification and delivery finished |
 
 ---
 
@@ -82,3 +116,19 @@
 ## Notes
 
 Brings structured task authoring into the Operator Console.
+
+Preflight findings:
+- Minimum authoring inputs should cover area, title, mission, size, explicit complexity rubric inputs (blast radius, pattern novelty, security, reversibility), optional override review level notes if needed, optional dependencies, optional context refs, and optional file scope; server can derive task ID, folder slug, timestamps, assessment prose, score breakdown, canonical paths, and initial STATUS scaffolding.
+- Preview/write should be server-authored from a shared generator so the dashboard does not fork packet formatting; client submits form data, server returns rendered PROMPT.md/STATUS.md preview plus derived task metadata, then a confirmed write uses the same generation path.
+- Safety rules should include reading area config from `.pi/taskplane-config.json`, reserving the current `Next Task ID` from `CONTEXT.md`, rejecting duplicate task IDs/folder names, creating the new folder only when absent, writing canonical files explicitly, and updating `Next Task ID` only after successful packet creation.
+- Reviewer suggestions to keep in mind: preview payload should return both rendered markdown and structured derived metadata; validation should separate operator-fixable field errors from server-side generation failures.
+- Step 1 implementation now exposes `/api/task-authoring` metadata and `/api/task-authoring/preview` so the UI can load area defaults and request server-authored PROMPT.md/STATUS.md previews from one shared generator.
+- Code review follow-up: the preview generator must emit canonical `Testing & Verification` plus `Documentation & Delivery` sections and tests must enforce those template invariants.
+- Additional review follow-up: preview output still needs Step 1 targeted-test/artifact content, fuller testing/build wording, canonical `test(...)` commit entry, standard Do NOT bullets, and STATUS hydration/testing language.
+- Step 2 review follow-up: write flow must surface duplicate/conflict/partial-write failures explicitly and keep preview/write output byte-aligned from the shared generator.
+- Step 2 implementation now exposes `/api/task-authoring/create`, writes packet files from the shared preview generator, stages files in a temp folder before final placement, and seeds an empty `.reviews/` directory in the created packet.
+- Code review follow-up for Step 2: rename collisions must return a recoverable conflict and must never delete a folder this request did not create.
+- Step 3 implementation adds a backlog-embedded task authoring form with area, mission, size, review, complexity, dependency, context, and file-scope inputs grounded in the shared server contract.
+- Code review follow-up for Step 3: Reset must preserve loaded metadata/defaults, and successful create must invalidate stale preview state until the operator previews the next derived packet.
+- Additional Step 3 review follow-up: metadata refresh after create must not clobber the operator-visible success confirmation.
+| 2026-04-20 20:59 | Review R013 | code Step 3: APPROVE |
