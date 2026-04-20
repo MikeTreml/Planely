@@ -57,6 +57,10 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | plan | 1 | APPROVE | .reviews/R001-plan-step1.md |
+| R002 | plan | 2 | APPROVE | .reviews/R002-plan-step2.md |
+| R003 | plan | 3 | REVISE | .reviews/R003-plan-step3.md |
+| R004 | plan | 3 | APPROVE | .reviews/R004-plan-step3.md |
 
 ---
 
@@ -96,7 +100,3 @@ Preflight fit summary:
 - Clean fit today: template-driven flow setup, bounded block composition, human approvals, and multi-agent execution that compiles down to existing task packets, orchestrator plans, waves/lanes, and review boundaries.
 - Needs deferral: arbitrary canvas automation, runtime-mutating scripts, unconstrained branching, dynamic fan-out loops, and any model where the UI becomes a second execution scheduler or state authority.
 - R003 suggestion logged: keep saved-flow definition, bounded intermediate JSON, and launch-time Taskplane artifacts as separate concepts in the compile model.
-| 2026-04-20 19:14 | Review R001 | plan Step 1: APPROVE |
-| 2026-04-20 19:16 | Review R002 | plan Step 2: APPROVE |
-| 2026-04-20 19:18 | Review R003 | plan Step 3: REVISE |
-| 2026-04-20 19:19 | Review R004 | plan Step 3: APPROVE |
