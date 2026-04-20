@@ -251,6 +251,32 @@ The links should point to dashboard views such as:
 The link should encode target identity and desired focus, not duplicate state payloads.
 The dashboard should resolve fresh canonical state when opened.
 
+## Action Mapping to Real Taskplane Surfaces
+
+Slack companion v1 should only expose actions that can be grounded in Taskplane's real runtime or dashboard surfaces.
+
+| Slack capability | Backing Taskplane surface | Notes |
+|---|---|---|
+| Status lookup | Dashboard/runtime read models such as current batch state, history, and task `STATUS.md` views | Read-only; should resolve fresh canonical state at request time |
+| Approve / reject | Future canonical approval record handling tied to Taskplane task/run/batch state | Must write a real decision record rather than update Slack message state only |
+| Stop / cancel request | A bounded Taskplane stop primitive, likely routed through dashboard/orchestrator pause-abort handling | Use only when a safe canonical backend path exists |
+| Deep links | Dashboard batch/history/task/approval routes | Slack should point operators back to the web console for richer context |
+
+Existing orchestrator commands such as `/orch-pause`, `/orch-abort`, `/orch-resume`, `/orch-retry-task`, `/orch-skip-task`, `/orch-force-merge`, and `/orch-integrate` help clarify the safety boundary:
+- stop-like behavior can potentially map to the pause/abort family,
+- recovery-heavy actions already exist but are intentionally kept out of Slack v1,
+- integration remains a dashboard/supervisor concern rather than a Slack button.
+
+## Follow-up Implementation Tasks
+
+This design leaves several concrete implementation tasks for later packets:
+
+1. Add stable dashboard deep-link routing for `batchId`, historical batch, `taskId`, and `approvalId` focus states.
+2. Implement canonical approval records and mutation endpoints that Slack and the dashboard can share.
+3. Define Slack actor-to-operator identity mapping and authorization policy loading.
+4. Add rate-limited Slack action handlers for approve/reject and bounded stop requests.
+5. Add notification emitters that derive summaries from canonical batch/task/run state without creating shadow state.
+
 ## Incremental Delivery Boundary
 
 Slack companion v1 should be implementable without building a generalized chatops platform.

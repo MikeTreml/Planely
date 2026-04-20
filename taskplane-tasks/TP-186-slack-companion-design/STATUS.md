@@ -1,7 +1,7 @@
 # TP-186: Slack Companion Design — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 5
@@ -45,10 +45,10 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify the design is bounded and incremental
-- [ ] Ensure actions map to real orchestrator/app commands
-- [ ] Log follow-up implementation tasks
+**Status:** ✅ Complete
+- [x] Verify the design is bounded and incremental
+- [x] Ensure actions map to real orchestrator/app commands
+- [x] Log follow-up implementation tasks
 
 ---
 
@@ -67,6 +67,9 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Dashboard needs stable deep-link routing for live batch, historical batch, task, and approval focus states so Slack can link to durable targets instead of ad-hoc UI state. | Follow-up implementation task | `docs/specifications/operator-console/slack-companion.md`, `docs/specifications/operator-console/slack-message-contracts.md` |
+| Slack approve/reject and bounded stop actions require a shared canonical action/approval backend with actor mapping, idempotency keys, and audit logging before any UI integration should ship. | Follow-up implementation task | `docs/specifications/operator-console/slack-message-contracts.md`, `docs/specifications/operator-console/slack-safety-model.md` |
+| Slack identity-to-operator authorization policy and rate-limiting behavior need dedicated implementation work before mutating Slack actions can be enabled safely. | Follow-up implementation task | `docs/specifications/operator-console/slack-safety-model.md` |
 
 ---
 
@@ -97,6 +100,10 @@
 | 2026-04-20 17:24 | Canonical-state rationale captured | Safety doc explicitly explains why Slack messages cannot become the run-state ledger or second execution authority |
 | 2026-04-20 17:25 | Failure handling defined | Added explicit stale, unauthorized, unavailable, rate-limited, and dashboard-confirmation fallback responses |
 | 2026-04-20 17:25 | Step 3 complete | Ready to verify bounded scope and log follow-up implementation work |
+| 2026-04-20 17:29 | Scope verification | Re-read the three Slack specs together and added explicit bounded-delivery/follow-up sections to keep v1 limited to notifications, lookup, decisions, and deep links |
+| 2026-04-20 17:30 | Command mapping check | Grounded Slack actions against current dashboard/runtime reads plus orchestrator pause/abort and explicitly kept retry/skip/force-merge/resume/integrate out of Slack v1 |
+| 2026-04-20 17:31 | Follow-up work logged | Added implementation follow-ups for deep-link routing, canonical Slack action backend, and identity/rate-limit enforcement |
+| 2026-04-20 17:31 | Step 4 complete | Slack companion design verified and follow-up implementation tasks recorded |
 
 ---
 
