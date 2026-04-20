@@ -1,10 +1,10 @@
 # TP-180: Operator Console Product Brief — Status
 
-**Current Step:** Step 1: Product brief
+**Current Step:** Step 2: Domain model
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -31,10 +31,10 @@
 ---
 
 ### Step 2: Domain model
-**Status:** ⬜ Not Started
-- [ ] Define entities and relationships
-- [ ] Distinguish canonical files vs derived views
-- [ ] Define source-of-truth rules
+**Status:** ✅ Complete
+- [x] Define entities and relationships
+- [x] Distinguish canonical files vs derived views
+- [x] Define source-of-truth rules
 
 ---
 
@@ -84,6 +84,7 @@
 | 2026-04-20 01:56 | Preflight summary | Captured current strengths, likely gaps, and guardrail non-goals in STATUS notes |
 | 2026-04-20 01:57 | Review R001 | plan Step 1 returned REVISE; added explicit product-brief outcomes and grounding guardrails |
 | 2026-04-20 02:02 | Product brief drafted | Created `docs/specifications/operator-console/product-brief.md` with current-state summary, problem statement, personas, rationale, scope, and success criteria |
+| 2026-04-20 02:05 | Domain model drafted | Created `docs/specifications/operator-console/domain-model.md` covering core entities, planning/execution boundaries, and relationships |
 
 ---
 
@@ -103,3 +104,4 @@ Preflight summary:
 - Non-goals for TP-180: no new runtime/orchestration engine, no Slack-first control surface, no database-first architecture, and no promise that currently referenced dashboard/runtime files already provide future Operator Console features.
 - Reviewer suggestion: open the brief with the preflight strengths/gaps/non-goals summary and tie personas/use cases back to concrete Taskplane concepts such as task packets, batches, lanes, reviews, and dashboard state.
 | 2026-04-20 01:44 | Review R002 | plan Step 1: APPROVE |
+| 2026-04-20 01:47 | Review R003 | plan Step 2: APPROVE |
