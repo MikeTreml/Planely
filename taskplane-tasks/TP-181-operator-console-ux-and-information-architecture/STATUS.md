@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -40,6 +40,7 @@
 - [ ] Define start-batch flow
 - [ ] Define inspect-task flow
 - [ ] Define retry/skip/integrate flow
+- [ ] Define notification/history deep-link flow
 - [ ] Define guardrails
 
 ---
@@ -60,6 +61,7 @@
 | 1 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
 | 2 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 | 3 | plan | 2 | APPROVE | `.reviews/R003-plan-step2.md` |
+| 4 | plan | 3 | REVISE | `.reviews/R004-plan-step3.md` |
 
 ---
 
@@ -107,6 +109,8 @@ IA task for the Operator Console v1 UI layer.
 - Current dashboard IA starts as a single live-batch surface with optional history inspection and a viewer drawer; it already supports runtime-centric supervision well, so v1 should extend it rather than replace it.
 - Proposed minimum navigation for v1: workspace/repo scope in the header, primary nav for Backlog / Live Batch / Approvals / History, and a task-detail drill-in reachable from backlog rows, live tasks, messages, and history.
 - R002 suggestion: keep scope labels explicit in each view model, separate informational batch summary from recommended operator actions, and note the minimum evidence required near each action affordance.
+- R004 suggestion: tie action flows back to the Step 2 affordance model, cover empty/partial-data branches explicitly, and distinguish destructive/high-blast-radius actions from navigation-only transitions.
 | 2026-04-20 16:25 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 16:28 | Review R002 | plan Step 2: REVISE |
 | 2026-04-20 16:29 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 16:32 | Review R004 | plan Step 3: REVISE |
