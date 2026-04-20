@@ -22,6 +22,7 @@
 **Status:** 🟨 In Progress
 - [ ] Define backlog row shape
 - [ ] Map canonical states to backlog statuses
+- [ ] Include task-detail navigation metadata
 - [ ] Add server-side shaping tests
 
 ---
