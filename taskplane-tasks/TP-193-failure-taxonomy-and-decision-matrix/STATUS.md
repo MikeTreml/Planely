@@ -1,20 +1,20 @@
 # TP-193: Failure Taxonomy and Decision Matrix — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
+**Current Step:** Step 0: Preflight
+**Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** M
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Review TP-192 and recent incident patterns
-- [ ] Separate failure classes cleanly
-- [ ] Gather concrete evidence examples
+**Status:** ✅ Complete
+- [x] Review TP-192 and recent incident patterns
+- [x] Separate failure classes cleanly
+- [x] Gather concrete evidence examples
 
 ---
 
@@ -68,6 +68,9 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-20 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 19:11 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 19:11 | Step 0 started | Preflight |
+| 2026-04-20 19:16 | Preflight evidence review | Read TP-192 brief/status, recent supervisor summaries, and diagnostic reports; confirmed recurring incident themes: missing snapshot files / lane checkout gaps, repo-state mismatches, merge-verification assumption mismatches, and stale doc/spec grounding. |
 
 ---
 
@@ -80,3 +83,5 @@
 ## Notes
 
 Defines the evidence-driven recovery classification system for future helpdesk behavior.
+- Preflight distinction: implementation failures should be separated from repo-state/worktree integrity, config/environment mismatches, stale documentation/spec grounding, planning mismatch, and orchestrator/runtime faults because the same symptom (missing file, failed verification, task stall) implies different owners and actions.
+- Concrete evidence examples gathered for the taxonomy: `.pi/supervisor/treml-20260419T215723-summary.md` documents blocked workers caused by prompt-scoped files absent from the repo snapshot; `.pi/diagnostics/treml-20260420T094622-report.md` shows a failed task within an otherwise successful batch; TP-192 notes cite post-merge verification mismatches such as `extensions dir not found` and stale docs/spec assumptions.
