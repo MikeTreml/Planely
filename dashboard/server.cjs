@@ -1317,6 +1317,177 @@ function broadcastState() {
 
 // BATCH_HISTORY_PATH is initialized in main() alongside REPO_ROOT.
 
+function buildBacklogDisplayStatus(packet, context) {
+  const blockedDependencies = Array.isArray(context?.blockedDependencies)
+    ? context.blockedDependencies.filter(Boolean)
+    : [];
+  const currentTask = context?.activeTask || null;
+  const statusText = String(packet?.statusData?.status || "").trim();
+
+  if (currentTask?.status === "running") {
+    return {
+      key: "running",
+      label: "Running",
+      tone: "info",
+      reason: currentTask.batchId ? `Running in batch ${currentTask.batchId}` : "Running in active batch",
+      source: ["batch-state"],
+    };
+  }
+
+  if (currentTask?.status === "failed") {
+    return {
+      key: "failed",
+      label: "Failed",
+      tone: "danger",
+      reason: "Failed in the active batch",
+      source: ["batch-state"],
+    };
+  }
+
+  if (currentTask?.status === "stalled") {
+    return {
+      key: "stalled",
+      label: "Stalled",
+      tone: "warning",
+      reason: "Stalled in the active batch",
+      source: ["batch-state"],
+    };
+  }
+
+  if (currentTask?.status === "skipped") {
+    return {
+      key: "skipped",
+      label: "Skipped",
+      tone: "warning",
+      reason: "Skipped in the active batch",
+      source: ["batch-state"],
+    };
+  }
+
+  if (currentTask && (currentTask.status === "pending" || currentTask.status === "unknown")) {
+    return {
+      key: "waiting",
+      label: "Queued",
+      tone: "neutral",
+      reason: currentTask.batchId ? `Queued in batch ${currentTask.batchId}` : "Queued in active batch",
+      source: ["batch-state"],
+    };
+  }
+
+  if (packet?.doneFileFound || /^✅/.test(statusText) || /complete/i.test(statusText)) {
+    return {
+      key: "succeeded",
+      label: "Done",
+      tone: "success",
+      reason: packet?.doneFileFound ? ".DONE marker present" : "STATUS.md reports completion",
+      source: packet?.doneFileFound ? [".DONE", "STATUS.md"] : ["STATUS.md"],
+    };
+  }
+
+  if (/^❌/.test(statusText) || /failed|error/i.test(statusText)) {
+    return {
+      key: "failed",
+      label: "Failed",
+      tone: "danger",
+      reason: statusText || "STATUS.md reports failure",
+      source: ["STATUS.md"],
+    };
+  }
+
+  if (/^🚧/.test(statusText) || /blocked/i.test(statusText) || blockedDependencies.length > 0) {
+    return {
+      key: "blocked",
+      label: "Blocked",
+      tone: "warning",
+      reason: blockedDependencies.length > 0
+        ? `Waiting on ${blockedDependencies.length} dependency${blockedDependencies.length === 1 ? "" : "ies"}`
+        : (statusText || "Blocked by prerequisites"),
+      source: blockedDependencies.length > 0 ? ["PROMPT.md", "STATUS.md"] : ["STATUS.md"],
+    };
+  }
+
+  if (/in progress/i.test(statusText) || /^🟡/.test(statusText)) {
+    return {
+      key: "waiting",
+      label: "In Progress",
+      tone: "info",
+      reason: "Packet is already in progress outside the active batch",
+      source: ["STATUS.md"],
+    };
+  }
+
+  return {
+    key: "ready",
+    label: "Ready",
+    tone: "success",
+    reason: blockedDependencies.length === 0 ? "All known dependencies satisfied" : null,
+    source: ["PROMPT.md", "STATUS.md"],
+  };
+}
+
+function buildBacklogItem(packet, context) {
+  const blockedDependencies = Array.isArray(context?.blockedDependencies)
+    ? context.blockedDependencies.filter(Boolean)
+    : [];
+  const completedDependencies = Array.isArray(context?.completedDependencies)
+    ? context.completedDependencies.filter(Boolean)
+    : [];
+  const currentTask = context?.activeTask || null;
+  const historyEntry = context?.historyEntry || null;
+  const status = buildBacklogDisplayStatus(packet, context);
+
+  const statusTimestamp = packet?.statusData?.updatedAt || null;
+  const activeTimestamp = currentTask?.endedAt || currentTask?.startedAt || null;
+  const historyTimestamp = historyEntry?.endedAt || historyEntry?.startedAt || null;
+  const lastActivityAt = activeTimestamp || statusTimestamp || historyTimestamp || null;
+  const lastActivitySummary = currentTask
+    ? `Active batch: ${currentTask.status || "unknown"}`
+    : (historyEntry
+      ? `Last batch ${historyEntry.batchId || "unknown"}: ${historyEntry.status || "unknown"}`
+      : status.reason || null);
+
+  return {
+    taskId: packet.taskId,
+    title: packet.title,
+    summary: packet.summary || null,
+    area: packet.area || null,
+    repoId: packet.repoId || null,
+    packetPath: packet.taskFolder || null,
+    promptPath: packet.promptPath || null,
+    statusPath: packet.statusPath || null,
+    taskFolder: packet.taskFolder || null,
+    status,
+    readiness: {
+      isReady: status.key === "ready",
+      blockedBy: blockedDependencies,
+      waitingOn: status.key === "blocked"
+        ? "dependencies"
+        : (status.key === "waiting" || status.key === "running" ? "active-batch" : null),
+    },
+    execution: {
+      batchId: currentTask?.batchId || null,
+      laneNumber: currentTask?.laneNumber ?? null,
+      status: currentTask?.status || null,
+    },
+    lastActivityAt,
+    lastActivitySummary,
+    counts: {
+      dependencyCount: Array.isArray(packet.dependencies) ? packet.dependencies.length : 0,
+      completedDependencyCount: completedDependencies.length,
+      reviewCount: packet?.statusData?.reviews || 0,
+      artifactCount: packet?.doneFileFound ? 3 : 2,
+    },
+    navigation: {
+      kind: "task",
+      id: packet.taskId,
+      label: packet.title,
+      promptPath: packet.promptPath || null,
+      statusPath: packet.statusPath || null,
+      taskFolder: packet.taskFolder || null,
+    },
+  };
+}
+
 function loadHistory() {
   try {
     if (!fs.existsSync(BATCH_HISTORY_PATH)) return [];
