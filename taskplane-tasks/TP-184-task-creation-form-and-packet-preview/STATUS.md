@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 2: Write path and safety semantics
+**Current Step:** Step 1: Creation data model and preview contract
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** L
 
@@ -19,13 +19,14 @@
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Define form and preview shapes
 - [x] Define validation rules
 - [x] Define complexity assessment contract
 - [x] Preserve packet compatibility
 - [x] Align generated PROMPT/STATUS preview with canonical template sections
 - [x] Update preview contract tests to enforce canonical packet invariants
+- [ ] Add remaining canonical template invariants (targeted tests, artifacts, commit conventions, guardrails, STATUS hydration note)
 
 ---
 
@@ -84,6 +85,7 @@
 | 2026-04-20 20:41 | Review R003 | code Step 1 returned REVISE; preview/template parity incomplete |
 | 2026-04-20 20:46 | Step 1 revise | Added canonical Testing & Verification plus Documentation & Delivery preview sections |
 | 2026-04-20 20:46 | Step 1 review fixes complete | Preview contract tests now enforce canonical packet invariants |
+| 2026-04-20 20:48 | Review R004 | code Step 1 returned REVISE; additional template invariants still missing |
 
 ---
 
@@ -104,3 +106,4 @@ Preflight findings:
 - Reviewer suggestions to keep in mind: preview payload should return both rendered markdown and structured derived metadata; validation should separate operator-fixable field errors from server-side generation failures.
 - Step 1 implementation now exposes `/api/task-authoring` metadata and `/api/task-authoring/preview` so the UI can load area defaults and request server-authored PROMPT.md/STATUS.md previews from one shared generator.
 - Code review follow-up: the preview generator must emit canonical `Testing & Verification` plus `Documentation & Delivery` sections and tests must enforce those template invariants.
+- Additional review follow-up: preview output still needs Step 1 targeted-test/artifact content, fuller testing/build wording, canonical `test(...)` commit entry, standard Do NOT bullets, and STATUS hydration/testing language.
