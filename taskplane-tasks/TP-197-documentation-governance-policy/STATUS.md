@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -19,15 +19,15 @@
 ---
 
 ### Step 1: Define lifecycle states
-**Status:** 🟨 In Progress
-- [ ] Define doc states and meanings
-- [ ] Define review / archive / supersede handling
-- [ ] Keep the state model practical
+**Status:** ✅ Complete
+- [x] Define doc states and meanings
+- [x] Define review / archive / supersede handling
+- [x] Keep the state model practical
 
 ---
 
 ### Step 2: Define governance rules
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define authoritative vs contextual vs historical docs
 - [ ] Define supersession recording
 - [ ] Define how stale docs should be handled in future planning
@@ -76,6 +76,8 @@
 | 2026-04-20 19:22 | Step 0 started | Preflight |
 | 2026-04-20 19:33 | Step 0 completed | Reviewed docs layout, drift patterns, and governance inputs |
 | 2026-04-20 19:33 | Step 1 started | Define lifecycle states |
+| 2026-04-20 19:36 | Step 1 completed | Lifecycle states, handling, and practical constraints documented |
+| 2026-04-20 19:36 | Step 2 started | Define governance rules |
 
 ---
 
@@ -95,3 +97,7 @@ Step 0 evidence:
 - Confirmed drift patterns: mixed lifecycle cues, supersession sometimes recorded in prose only, and historical docs remaining navigable without uniform authority markers.
 - Compared folder/filename signals (`implemented/`) against in-doc metadata patterns and noted why filename-only freshness would be brittle.
 - Identified likely authority bands for later policy language: operational/reference docs, active design specs, implementation records, and historical investigation/migration logs.
+- Created `docs/specifications/operator-console/documentation-governance-policy.md` with a bounded lifecycle model covering draft, active, review-due, stale-suspect, superseded, archived, and historical states plus expected handling notes.
+- Added state transition rules and explicit guidance for when docs should move into review-due, stale-suspect, superseded, archived, or historical handling.
+- Kept the policy implementation-light by preferring a small shared state set, metadata envelopes, and low-churn maintenance rules rather than mandatory renames or tooling in this task.
+| 2026-04-20 19:24 | Review R001 | plan Step 1: APPROVE |
