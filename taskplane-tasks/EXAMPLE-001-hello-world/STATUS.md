@@ -21,8 +21,8 @@
 ### Step 1: Create Hello File
 **Status:** ⬜ Not Started
 
-- [ ] Create `hello-taskplane.md` in project root
-- [ ] Add title, date, and task ID (EXAMPLE-001)
+- [x] Create `hello-taskplane.md` in project root
+- [x] Add title, date, and task ID (EXAMPLE-001)
 
 ---
 
