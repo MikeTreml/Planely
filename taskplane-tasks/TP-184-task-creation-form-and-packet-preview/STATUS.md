@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 4: Verification & Delivery
+**Current Step:** Step 3: UI implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 10
+**Review Counter:** 11
 **Iteration:** 1
 **Size:** L
 
@@ -41,10 +41,11 @@
 ---
 
 ### Step 3: UI implementation
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Add create-task form UI
 - [x] Add preview UI
 - [x] Add success/failure navigation and feedback
+- [ ] Fix reset/default restoration and invalidate stale preview after successful create
 
 ---
 
@@ -94,6 +95,7 @@
 | 2026-04-20 21:06 | Review R008 | code Step 2 returned REVISE; rename-race cleanup must not delete concurrent writes |
 | 2026-04-20 21:10 | Step 2 revise | Added rename-race conflict handling and preserved concurrently-created folders |
 | 2026-04-20 21:24 | Step 3 progress | Added authoring form, preview surface, and create feedback that reselects the new task in backlog detail |
+| 2026-04-20 21:27 | Review R011 | code Step 3 returned REVISE; reset/create preview state needs hardening |
 
 ---
 
@@ -119,5 +121,4 @@ Preflight findings:
 - Step 2 implementation now exposes `/api/task-authoring/create`, writes packet files from the shared preview generator, stages files in a temp folder before final placement, and seeds an empty `.reviews/` directory in the created packet.
 - Code review follow-up for Step 2: rename collisions must return a recoverable conflict and must never delete a folder this request did not create.
 - Step 3 implementation adds a backlog-embedded task authoring form with area, mission, size, review, complexity, dependency, context, and file-scope inputs grounded in the shared server contract.
-| 2026-04-20 20:46 | Review R009 | code Step 2: APPROVE |
-| 2026-04-20 20:47 | Review R010 | plan Step 3: APPROVE |
+- Code review follow-up for Step 3: Reset must preserve loaded metadata/defaults, and successful create must invalidate stale preview state until the operator previews the next derived packet.
