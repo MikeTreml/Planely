@@ -1,10 +1,10 @@
 # TP-185: Planning Artifact Schema and Storage — Status
 
-**Current Step:** Step 3: Migration and adoption notes
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 4
+**Review Counter:** 5
 **Iteration:** 1
 **Size:** M
 
@@ -39,15 +39,15 @@
 ---
 
 ### Step 3: Migration and adoption notes
-**Status:** 🟨 In Progress
-- [ ] Define incremental adoption path
-- [ ] Explain optionality and no-DB rationale
-- [ ] Capture risks and triggers for future change
+**Status:** ✅ Complete
+- [x] Define incremental adoption path
+- [x] Explain optionality and no-DB rationale
+- [x] Capture risks and triggers for future change
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify mono-repo/workspace practicality
 - [ ] Confirm no duplicate canonical state
 - [ ] Log discoveries
@@ -100,3 +100,4 @@ Preflight findings:
 | 2026-04-20 16:27 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 16:30 | Review R003 | plan Step 2: REVISE |
 | 2026-04-20 16:31 | Review R004 | plan Step 2: APPROVE |
+| 2026-04-20 16:34 | Review R005 | plan Step 3: APPROVE |
