@@ -129,6 +129,8 @@
 | 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
 | 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 | 2026-04-20 17:36 | Worker iter 1 | done in 3461s, tools: 220 |
+| 2026-04-20 17:53 | Worker iter 2 | done in 999s, tools: 102 |
+| 2026-04-20 17:53 | Task complete | .DONE created |
 
 ---
 
