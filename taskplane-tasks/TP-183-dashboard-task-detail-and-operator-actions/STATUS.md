@@ -1,10 +1,10 @@
 # TP-183: Dashboard Task Detail and Operator Actions — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 6
+**Review Counter:** 7
 **Iteration:** 1
 **Size:** L
 
@@ -44,11 +44,11 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Add state-handling tests
-- [ ] Smoke-test inspect and action flows
-- [ ] Update docs if shipped
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Add state-handling tests
+- [x] Smoke-test inspect and action flows
+- [x] Update docs if shipped
+- [x] Log discoveries
 
 ---
 
@@ -63,6 +63,8 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Retry/skip remain copy-command fallbacks in v1 because the dashboard does not yet have a hardened direct executor for supervisor-only tools. | Logged for follow-up | dashboard/public/app.js; dashboard/server.cjs |
+| Dashboard action POSTs remain local-only and unauthenticated; future hardening should add mediation/rate limiting before exposing beyond localhost. | Logged for follow-up | dashboard/server.cjs; docs/tutorials/use-the-dashboard.md |
 
 ---
 
@@ -91,6 +93,12 @@
 | 2026-04-20 20:41 | Error/unsupported handling wired | Disabled actions show reasons, fallback-only actions copy command previews, and action results surface in the detail panel |
 | 2026-04-20 20:41 | Step 3 completed | Dashboard operator controls now have UI + server wiring |
 | 2026-04-20 20:41 | Step 4 started | Verification & Delivery |
+| 2026-04-20 20:49 | Targeted dashboard tests passed | backlog contract/load/UI plus new operator-action coverage all passed under Node test runner |
+| 2026-04-20 20:51 | Dashboard smoke checked | `taskplane` dashboard server returned backlog detail/action payloads and `/api/actions` safely rejected integrate with no active batch |
+| 2026-04-20 20:53 | Dashboard tutorial updated | `docs/tutorials/use-the-dashboard.md` now documents the shared detail panel and direct/copy action behavior |
+| 2026-04-20 20:53 | Discoveries logged | Follow-up gaps recorded for recovery-action execution and dashboard action hardening |
+| 2026-04-20 21:20 | Full test suite passed | `node --experimental-strip-types --experimental-test-module-mocks --no-warnings --import ./tests/loader.mjs --test tests/*.test.ts` |
+| 2026-04-20 21:21 | Step 4 completed | Verification, docs, and discovery logging finished |
 
 ---
 
@@ -114,3 +122,4 @@ Builds the first true operator-control interactions into the dashboard.
 | 2026-04-20 19:30 | Review R004 | code Step 2: REVISE |
 | 2026-04-20 19:33 | Review R005 | code Step 2: APPROVE |
 | 2026-04-20 19:33 | Review R006 | plan Step 3: APPROVE |
+| 2026-04-20 19:39 | Review R007 | code Step 3: APPROVE |

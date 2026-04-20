@@ -7,6 +7,8 @@ preserving the existing live batch workspace during execution.
 ## What it shows
 
 - backlog discovery outside active batches, with readiness/status cards and lightweight filters
+- task detail inspection (mission, dependencies, file scope, current step, latest execution log)
+- operator actions from the task detail panel, including direct start/integrate triggers plus copyable recovery commands when direct execution is not yet supported
 - batch phase and summary counters
 - wave/lane progress
 - task-level status and checkbox progress (from `STATUS.md`)
@@ -65,6 +67,21 @@ Dashboard updates live while orchestration runs.
 When no batch is active, the dashboard lands on **Backlog** and keeps batch
 history available as secondary context. When a batch is active, it defaults to
 **Live Batch** with one-click switching back to Backlog.
+
+Select a task from **Backlog**, **Live Batch**, or **Batch Summary** to open the
+shared **Task Detail** panel. The panel surfaces the task mission, dependency
+state, file scope, current step, and most recent execution log entry without
+opening raw `PROMPT.md` or `STATUS.md` files.
+
+The same detail panel now hosts the first operator controls:
+
+- **Start task** — launches a batch for the selected ready task when no batch is actively running
+- **Integrate batch** — runs `/orch-integrate` when the current batch is completed
+- **Retry/Skip task** — shown as copyable recovery commands today, with inline reasons when the dashboard cannot execute them directly yet
+
+Direct actions always ask for confirmation. Disabled actions explain why they
+are unavailable so the operator can tell whether they need to wait, resume, or
+switch back to the console.
 
 ---
 
