@@ -59,6 +59,9 @@
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
 | R001 | plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
+| R002 | plan | 1 | APPROVE | `.reviews/R002-plan-step1.md` |
+| R003 | plan | 2 | APPROVE | `.reviews/R003-plan-step2.md` |
+| R004 | plan | 3 | APPROVE | `.reviews/R004-plan-step3.md` |
 
 ---
 
@@ -106,6 +109,3 @@ Preflight summary:
 - Gaps: current materials imply weak support for backlog-style discovery, project-level navigation, task detail views, manual operator controls, planning artifacts, and durable operator workflows outside active batches.
 - Non-goals for TP-180: no new runtime/orchestration engine, no Slack-first control surface, no database-first architecture, and no promise that currently referenced dashboard/runtime files already provide future Operator Console features.
 - Reviewer suggestion: open the brief with the preflight strengths/gaps/non-goals summary and tie personas/use cases back to concrete Taskplane concepts such as task packets, batches, lanes, reviews, and dashboard state.
-| 2026-04-20 01:44 | Review R002 | plan Step 1: APPROVE |
-| 2026-04-20 01:47 | Review R003 | plan Step 2: APPROVE |
-| 2026-04-20 01:49 | Review R004 | plan Step 3: APPROVE |
