@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -29,7 +29,8 @@
 ### Step 2: Message/action contracts
 **Status:** 🟨 In Progress
 - [ ] Define message shapes
-- [ ] Define approval/rejection payloads
+- [ ] Define status lookup and decision payloads
+- [ ] Define stop/defer contract boundaries for lightweight control
 - [ ] Define deep-link and idempotency rules
 
 ---
@@ -54,6 +55,8 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
+| R002 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 
 ---
 
@@ -79,6 +82,7 @@
 | 2026-04-20 17:02 | Notification scope defined | Documented v1 Slack notification categories: started, blocked, approval, failure, completion, and integration |
 | 2026-04-20 17:03 | Authority boundary captured | Spec defines Slack as companion-only, with dashboard as rich control surface and Taskplane/planning files as canonical state |
 | 2026-04-20 17:03 | Step 1 complete | Ready to define message and action contracts |
+| 2026-04-20 17:05 | Review R002 | plan Step 2 returned REVISE; expanded Step 2 outcomes for status lookup, bounded stop/cancel treatment, and approval deep-link coverage |
 
 ---
 
@@ -98,4 +102,7 @@ Preflight findings:
 - OpenClaw's relevant guidance matches that posture: Slack should provide notifications, quick status, approve/reject, and cancel, but not own canonical state or complex recovery flows.
 - Safe v1 Slack actions should stay low-risk and map cleanly to existing operator intents: view status, acknowledge/approve/reject a pending decision, and request a bounded batch/task stop. More destructive or recovery-heavy controls such as start, resume, retry, skip, and force-merge should stay deferred to the dashboard until identity, confirmation, and broader context are stronger.
 - Minimum dashboard deep-link targets for Slack are: a live batch view (`batchId`), a historical batch summary (`history/<batchId>`), a task-focused view (`taskId`, likely opening STATUS/task detail), and an approval-focused landing state (`approvalId` plus related batch/task IDs). The links should only identify canonical objects and desired focus; the dashboard should resolve current state from Taskplane files/APIs.
-| 2026-04-20 16:42 | Review R001 | plan Step 1: APPROVE |
+
+Reviewer notes:
+- Step 2 must define compact status lookup contracts, not just push notifications and approvals.
+- Step 2 must either define the bounded stop/cancel request contract or explicitly mark what is deferred pending the Step 3 safety model.
