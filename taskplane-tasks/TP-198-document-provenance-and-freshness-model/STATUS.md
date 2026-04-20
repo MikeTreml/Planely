@@ -90,6 +90,8 @@
 | 2026-04-20 20:41 | Step 3 completed | Added encoding comparison matrix, default metadata priority, and incremental adoption guidance |
 | 2026-04-20 20:41 | Step 4 started | Verification & Delivery |
 | 2026-04-20 20:44 | Step 4 completed | Verified required provenance/freshness sections via grep and logged follow-up implementation/audit tasks |
+| 2026-04-20 20:27 | Worker iter 1 | done in 568s, tools: 80 |
+| 2026-04-20 20:27 | Task complete | .DONE created |
 
 ---
 
@@ -102,10 +104,6 @@
 ## Notes
 
 Provenance/freshness design task for document lifecycle metadata and review heuristics.
-Reviewer suggestions to keep in mind:
+Reviewer suggestions retained in the final docs:
 - Make freshness thresholds concrete enough that future tooling can compute `active`, `review-due`, and `stale-suspect` consistently.
 - Keep freshness tied to substantive review rather than cosmetic edits so typo-only changes do not reset trust signals.
-| 2026-04-20 20:19 | Review R001 | plan Step 1: APPROVE |
-| 2026-04-20 20:22 | Review R002 | plan Step 2: REVISE |
-| 2026-04-20 20:23 | Review R003 | plan Step 2: APPROVE |
-| 2026-04-20 20:25 | Review R004 | plan Step 3: APPROVE |
