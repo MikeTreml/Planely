@@ -95,6 +95,8 @@
 | 2026-04-20 16:55 | Step 3 completed | `project-registry-adoption.md` drafted |
 | 2026-04-20 16:55 | Step 4 started | Verification & Delivery |
 | 2026-04-20 16:57 | Step 4 completed | Verified TP-187/sidebar fit and local-first storage/recovery constraints |
+| 2026-04-20 16:52 | Worker iter 1 | done in 811s, tools: 89 |
+| 2026-04-20 16:52 | Task complete | .DONE created |
 
 ---
 
