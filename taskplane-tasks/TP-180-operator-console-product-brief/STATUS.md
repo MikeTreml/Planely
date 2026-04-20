@@ -1,10 +1,10 @@
 # TP-180: Operator Console Product Brief — Status
 
-**Current Step:** Step 0: Preflight
+**Current Step:** Step 1: Product brief
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -20,10 +20,13 @@
 ---
 
 ### Step 1: Product brief
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Draft product brief
-- [ ] Define personas, problem, and MVP scope
-- [ ] State explicit non-goals
+- [ ] Define personas, problem, MVP scope, and explicit non-goals
+- [ ] Explain why Taskplane remains the execution engine of record
+- [ ] Explain why web UI is primary and Slack is secondary
+- [ ] Define Operator Console v1 success criteria
+- [ ] Separate observed current capabilities from forward-looking MVP proposals
 
 ---
 
@@ -55,6 +58,7 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 
 ---
 
@@ -78,6 +82,7 @@
 | 2026-04-20 01:53 | Dashboard capability scan | Follow-on task prompts indicate the current dashboard is centered on live batch state, lane views, history/supervisor visibility, and incremental server/frontend additions |
 | 2026-04-20 01:55 | OpenClaw scan | Prompt-referenced OpenClaw docs were absent; extracted only the preserved control-plane intent from task descriptions |
 | 2026-04-20 01:56 | Preflight summary | Captured current strengths, likely gaps, and guardrail non-goals in STATUS notes |
+| 2026-04-20 01:57 | Review R001 | plan Step 1 returned REVISE; added explicit product-brief outcomes and grounding guardrails |
 
 ---
 
@@ -95,3 +100,4 @@ Preflight summary:
 - Strengths: Taskplane already has a recognizable execution model centered on task packets, batches, waves/lanes, supervisor visibility, reviews, and a dashboard focused on live operational state.
 - Gaps: current materials imply weak support for backlog-style discovery, project-level navigation, task detail views, manual operator controls, planning artifacts, and durable operator workflows outside active batches.
 - Non-goals for TP-180: no new runtime/orchestration engine, no Slack-first control surface, no database-first architecture, and no promise that currently referenced dashboard/runtime files already provide future Operator Console features.
+- Reviewer suggestion: open the brief with the preflight strengths/gaps/non-goals summary and tie personas/use cases back to concrete Taskplane concepts such as task packets, batches, lanes, reviews, and dashboard state.
