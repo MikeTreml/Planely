@@ -1,10 +1,10 @@
 # TP-182: Dashboard Backlog View — Status
 
-**Current Step:** Step 4: Verification & Delivery
+**Current Step:** Step 3: Frontend implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 14
+**Review Counter:** 15
 **Iteration:** 2
 **Size:** L
 
@@ -45,18 +45,19 @@
 ---
 
 ### Step 3: Frontend implementation
-**Status:** ✅ Complete
+**Status:** 🟨 In Progress
 - [x] Integrate backlog into dashboard shell/view state
 - [x] Add backlog panel/view
 - [x] Render rows/cards and selection behavior
 - [x] Add lightweight filtering/search affordances
 - [x] Render backlog empty/partial/error and scope states
 - [x] Preserve existing dashboard usability
+- [ ] Make backlog task detail action degrade safely outside the active batch
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
+**Status:** ⬜ Not Started
 - [ ] Test empty/mixed/workspace states
 - [ ] Perform manual smoke verification
 - [ ] Update docs if shipped
@@ -79,6 +80,7 @@
 | R009 | code | 2 | REVISE | `.reviews/R009-code-step2.md` |
 | R010 | code | 2 | REVISE | `.reviews/R010-code-step2.md` |
 | R011 | code | 2 | REVISE | `.reviews/R011-code-step2.md` |
+| R015 | code | 3 | REVISE | `.reviews/R015-code-step3.md` |
 
 ---
 
@@ -133,6 +135,7 @@
 ## Notes
 
 First implementation task in the Operator Console initiative.
+- R015 suggestion: if backlog actions stay scoped to live-batch tasks, make repo-filter persistence more explicit near the scope line/clear button in a follow-up.
 
 Preflight decisions:
 - Keep backlog file-backed and read-only: scan configured task packet directories instead of inventing dashboard-owned state.
@@ -152,3 +155,4 @@ Preflight decisions:
 | 2026-04-20 17:27 | Review R012 | code Step 2: APPROVE |
 | 2026-04-20 17:29 | Review R013 | plan Step 3: REVISE |
 | 2026-04-20 17:30 | Review R014 | plan Step 3: APPROVE |
+| 2026-04-20 17:44 | Review R015 | code Step 3: REVISE |
