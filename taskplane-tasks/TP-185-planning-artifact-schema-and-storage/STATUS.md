@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -32,6 +32,8 @@
 **Status:** 🟨 In Progress
 - [ ] Define on-disk layout
 - [ ] Define naming/ID conventions
+- [ ] Define discovery/indexing/rendering rules for canonical planning files
+- [ ] Define repo-mode vs workspace-mode placement and root resolution
 - [ ] Define coexistence with task/runtime state
 
 ---
@@ -57,6 +59,8 @@
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
 | 1 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
+| 2 | Plan | 1 | APPROVE | `.reviews/R002-plan-step1.md` |
+| 3 | Plan | 2 | REVISE | `.reviews/R003-plan-step2.md` |
 
 ---
 
@@ -91,5 +95,7 @@ Preflight findings:
 - Current planning intent is implicit across task packet titles, mission/dependencies sections, operator-console brief/domain docs, area `CONTEXT.md`, and append-only packet history in `STATUS.md` rather than first-class project artifacts.
 - Planning-layer requirements captured for this spec: canonical files must remain human-inspectable; planning artifacts may describe intent but cannot redefine packet/run/batch truth; links must favor stable IDs/paths over embedded copies; history should be append-only where possible; discovery must work in mono-repo and workspace layouts without requiring a database or always-on service.
 - Plan review suggestion to fold into Step 1 doc: include a short "not stored here" / non-goals section so later implementation tasks can see duplicate-authority boundaries at a glance.
+- Step 2 plan review asks for an explicit matrix covering repo, monorepo, and workspace mode plus discovery/indexing rules that keep any registry/cache derived from canonical planning files.
 | 2026-04-20 16:26 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 16:27 | Review R002 | plan Step 1: APPROVE |
+| 2026-04-20 16:30 | Review R003 | plan Step 2: REVISE |
