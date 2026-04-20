@@ -1,7 +1,7 @@
 # TP-198: Document Provenance and Freshness Model — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 4
@@ -44,9 +44,9 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify practicality and tooling readiness
-- [ ] Log follow-up tasks
+**Status:** ✅ Complete
+- [x] Verify practicality and tooling readiness
+- [x] Log follow-up tasks
 
 ---
 
@@ -65,6 +65,8 @@
 
 | Discovery | Disposition | Location |
 |-----------|-------------|----------|
+| Current docs already rely on stable filenames like `README.md` and mixed in-doc status conventions rather than frontmatter, so any provenance model must support both inline metadata and exceptions. | Use inline metadata as the default, but allow sidecars for presentation-sensitive docs and READMEs. | `README.md`, `docs/README.md`, `docs/specifications/README.md`, `docs/specifications/**/*.md` |
+| Governance policy and spec corpus patterns align around task-distance review thinking, which makes provenance fields like `lastReviewedTask` and `reviewWindowTasks` practical inputs for future tooling. | Carry the task-distance model into the freshness spec and follow up with schema/audit automation tasks rather than filename renames. | `docs/specifications/operator-console/documentation-governance-policy.md`, `docs/specifications/operator-console/document-provenance-model.md`, `docs/specifications/operator-console/document-freshness-model.md` |
 
 ---
 
@@ -87,6 +89,7 @@
 | 2026-04-20 20:38 | Review R004 | plan Step 3: APPROVE |
 | 2026-04-20 20:41 | Step 3 completed | Added encoding comparison matrix, default metadata priority, and incremental adoption guidance |
 | 2026-04-20 20:41 | Step 4 started | Verification & Delivery |
+| 2026-04-20 20:44 | Step 4 completed | Verified required provenance/freshness sections via grep and logged follow-up implementation/audit tasks |
 
 ---
 

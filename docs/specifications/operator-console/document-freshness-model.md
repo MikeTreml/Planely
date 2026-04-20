@@ -247,6 +247,15 @@ The model is designed so future tooling can:
 - distinguish historical docs from neglected active docs,
 - and produce audit views without forcing filename-based conventions.
 
+## Follow-up Implementation Tasks
+
+This design intentionally stops at the model layer. Likely follow-up tasks are:
+1. **Metadata schema + parser support** — define exact machine-readable field names/format for inline blocks and sidecars.
+2. **Doc audit tooling** — scan the corpus, classify documents, detect missing provenance, and compute initial freshness states.
+3. **Task-history linkage** — map doc `ownerArea` and task IDs so task-distance windows can be computed consistently.
+4. **Index/dashboard surfacing** — expose lifecycle, authority, and freshness state in doc indexes or operator tooling.
+5. **Task-packet citation warnings** — flag when packets rely on `review-due`, `stale-suspect`, or superseded docs without caveats.
+
 ## Interaction with Encoding Choices
 
 Freshness metadata should be stored using the provenance model's preferred encoding posture:
