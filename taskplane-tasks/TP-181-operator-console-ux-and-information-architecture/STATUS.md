@@ -1,10 +1,10 @@
 # TP-181: Operator Console UX and Information Architecture — Status
 
-**Current Step:** Step 2: View models
+**Current Step:** Step 3: Interaction flows
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -27,16 +27,16 @@
 ---
 
 ### Step 2: View models
-**Status:** 🟨 In Progress
-- [ ] Define backlog view model
-- [ ] Define task detail view model
-- [ ] Define summary/action view models
-- [ ] Define empty/loading/error state variants
+**Status:** ✅ Complete
+- [x] Define backlog view model
+- [x] Define task detail view model
+- [x] Define summary/action view models
+- [x] Define empty/loading/error state variants
 
 ---
 
 ### Step 3: Interaction flows
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define start-batch flow
 - [ ] Define inspect-task flow
 - [ ] Define retry/skip/integrate flow
@@ -57,7 +57,9 @@
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
 | 1 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
+| 1 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
 | 2 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
+| 3 | plan | 2 | APPROVE | `.reviews/R003-plan-step2.md` |
 
 ---
 
@@ -85,6 +87,10 @@
 | 2026-04-20 16:38 | Authored UX IA spec | Added primary view definitions for Backlog, Task Detail, Live Batch, History, and Approvals. |
 | 2026-04-20 16:39 | Defined navigation hierarchy | Documented top-level tabs, entry points, breadcrumbs, and drill-in behavior in `ux-ia.md`. |
 | 2026-04-20 16:39 | Defined filter and scope behavior | Captured workspace, repo, batch, and task scoping rules plus empty-state fallback behavior in `ux-ia.md`. |
+| 2026-04-20 16:46 | Authored view model spec | Defined workspace-scoped backlog collection, grouping, item, and recommendation shapes in `view-models.md`. |
+| 2026-04-20 16:46 | Defined task detail model | Added task-scoped packet, readiness, runtime, approvals, artifact, and relationship shapes in `view-models.md`. |
+| 2026-04-20 16:47 | Defined summary and action models | Captured batch summary, recommended action, approval inbox, and shared action affordance shapes in `view-models.md`. |
+| 2026-04-20 16:47 | Defined state variants | Added explicit empty/loading/partial/error models and fallback rules for backlog, task detail, approvals, and batch summary surfaces. |
 
 ---
 
@@ -103,3 +109,4 @@ IA task for the Operator Console v1 UI layer.
 - R002 suggestion: keep scope labels explicit in each view model, separate informational batch summary from recommended operator actions, and note the minimum evidence required near each action affordance.
 | 2026-04-20 16:25 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 16:28 | Review R002 | plan Step 2: REVISE |
+| 2026-04-20 16:29 | Review R003 | plan Step 2: APPROVE |
