@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -31,6 +31,7 @@
 - [ ] Define authoritative vs contextual vs historical docs
 - [ ] Define supersession recording
 - [ ] Define how stale docs should be handled in future planning
+- [ ] Explain why filename encoding is insufficient as the primary mechanism
 
 ---
 
@@ -53,6 +54,8 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| 1 | Plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
+| 2 | Plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 
 ---
 
@@ -90,6 +93,10 @@
 ## Notes
 
 Policy task for keeping documentation trustworthy as project assumptions evolve.
+Reviewer suggestions to keep in mind:
+- Make authority and lifecycle separate dimensions in the policy language.
+- Prefer bidirectional supersession links where practical.
+- Require explicit caveats or follow-up review when stale/historical docs are cited.
 
 Step 0 evidence:
 - Reviewed `docs/` layout and `docs/specifications/README.md` index structure.
@@ -100,4 +107,6 @@ Step 0 evidence:
 - Created `docs/specifications/operator-console/documentation-governance-policy.md` with a bounded lifecycle model covering draft, active, review-due, stale-suspect, superseded, archived, and historical states plus expected handling notes.
 - Added state transition rules and explicit guidance for when docs should move into review-due, stale-suspect, superseded, archived, or historical handling.
 - Kept the policy implementation-light by preferring a small shared state set, metadata envelopes, and low-churn maintenance rules rather than mandatory renames or tooling in this task.
+- Reviewer R002 required Step 2 to explicitly track the filename-insufficiency rationale inside the checklist, not only in Step 0 notes.
 | 2026-04-20 19:24 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 19:27 | Review R002 | plan Step 2: REVISE |
