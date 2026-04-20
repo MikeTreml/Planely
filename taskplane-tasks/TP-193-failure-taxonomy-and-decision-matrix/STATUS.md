@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -27,12 +27,12 @@
 ---
 
 ### Step 2: Decision matrix
-**Status:** 🟨 In Progress
-- [ ] Define action choices by class
-- [ ] Define retry vs retry-after-fix vs redirect vs replan conditions
-- [ ] Define skip and split-task conditions
-- [ ] Cover doc-drift and planning-mismatch cases
-- [ ] Define batch-level pause vs abort vs restart triggers
+**Status:** ✅ Complete
+- [x] Define action choices by class
+- [x] Define retry vs retry-after-fix vs redirect vs replan conditions
+- [x] Define skip and split-task conditions
+- [x] Cover doc-drift and planning-mismatch cases
+- [x] Define batch-level pause vs abort vs restart triggers
 
 ---
 
@@ -82,6 +82,12 @@
 | 2026-04-20 19:29 | Taxonomy overlap guidance added | Added false-positive guidance for missing-file, flaky, test-vs-implementation, merge-vs-repo-state, stale-spec-vs-planning, and config-vs-runtime overlaps plus evidence quality rules. |
 | 2026-04-20 19:30 | Step 2 started | Decision matrix |
 | 2026-04-20 19:31 | Review R002 | plan Step 2: REVISE |
+| 2026-04-20 19:33 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 19:35 | Decision matrix skeleton drafted | Created `recovery-decision-matrix.md` with decision priorities and an immediate-action table mapping each failure class to signals, default owners, and actions to avoid. |
+| 2026-04-20 19:38 | Retry decision branches added | Added explicit conditions for plain retry, retry-after-fix, redirect, and replan with evidence-driven rules about packet validity, owner boundaries, and when unchanged re-execution is unsafe. |
+| 2026-04-20 19:40 | Skip and split guidance added | Added explicit rules for when to skip a packet with justification versus splitting repair/grounding work from later implementation work. |
+| 2026-04-20 19:41 | Doc-drift handling added | Added separate decision rules for archiving/reviewing stale docs/specs versus replanning packets whose scope or ownership is wrong even when the source material is current. |
+| 2026-04-20 19:43 | Batch escalation guidance added | Added pause/abort/restart triggers and escalation thresholds so repeated shared failures do not stay trapped inside task-level retry loops. |
 
 ---
 
@@ -97,3 +103,4 @@ Defines the evidence-driven recovery classification system for future helpdesk b
 - Preflight distinction: implementation failures should be separated from repo-state/worktree integrity, config/environment mismatches, stale documentation/spec grounding, planning mismatch, and orchestrator/runtime faults because the same symptom (missing file, failed verification, task stall) implies different owners and actions.
 - Concrete evidence examples gathered for the taxonomy: `.pi/supervisor/treml-20260419T215723-summary.md` documents blocked workers caused by prompt-scoped files absent from the repo snapshot; `.pi/diagnostics/treml-20260420T094622-report.md` shows a failed task within an otherwise successful batch; TP-192 notes cite post-merge verification mismatches such as `extensions dir not found` and stale docs/spec assumptions.
 - R002 suggestion: keep Step 2 matrix branches keyed to observable signals and include escalation thresholds where repeated task-level failures should trigger batch-level intervention.
+| 2026-04-20 19:17 | Review R003 | plan Step 2: APPROVE |
