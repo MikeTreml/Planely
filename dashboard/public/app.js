@@ -585,8 +585,10 @@ function taskAuthoringFingerprint(payload) {
   return JSON.stringify(payload || {});
 }
 
-function resetTaskAuthoringState() {
-  taskAuthoringState.metadata = null;
+function resetTaskAuthoringState(options = {}) {
+  const preserveMetadata = options?.preserveMetadata === true;
+  const preservedMetadata = preserveMetadata ? taskAuthoringState.metadata : null;
+  taskAuthoringState.metadata = preservedMetadata;
   taskAuthoringState.loading = false;
   taskAuthoringState.pendingAction = "";
   taskAuthoringState.preview = null;
@@ -595,7 +597,7 @@ function resetTaskAuthoringState() {
   taskAuthoringState.lastTone = "neutral";
   taskAuthoringState.lastMessage = "Preview a task packet to inspect generated files.";
 
-  if ($taskAuthoringArea) $taskAuthoringArea.innerHTML = '<option value="">Loading…</option>';
+  if ($taskAuthoringArea) $taskAuthoringArea.innerHTML = preserveMetadata ? "" : '<option value="">Loading…</option>';
   if ($taskAuthoringTitleInput) $taskAuthoringTitleInput.value = "";
   if ($taskAuthoringMission) $taskAuthoringMission.value = "";
   if ($taskAuthoringSize) $taskAuthoringSize.value = "M";
@@ -607,6 +609,7 @@ function resetTaskAuthoringState() {
   if ($taskAuthoringDependencies) $taskAuthoringDependencies.value = "";
   if ($taskAuthoringContextRefs) $taskAuthoringContextRefs.value = "";
   if ($taskAuthoringFileScope) $taskAuthoringFileScope.value = "";
+  if (preservedMetadata) applyTaskAuthoringMetadata(preservedMetadata);
 }
 
 function applyTaskAuthoringMetadata(metadata) {
@@ -772,12 +775,12 @@ async function submitTaskAuthoringCreate() {
       return;
     }
 
-    taskAuthoringState.preview = result.preview || taskAuthoringState.preview;
-    taskAuthoringState.previewFingerprint = fingerprint;
-    taskAuthoringState.dirty = false;
     taskAuthoringState.lastTone = "success";
-    taskAuthoringState.lastMessage = `Created ${result.created?.taskId || "task"} and advanced Next Task ID to ${result.created?.nextTaskId || "the next value"}.`;
+    taskAuthoringState.lastMessage = `Created ${result.created?.taskId || "task"} and advanced Next Task ID to ${result.created?.nextTaskId || "the next value"}. Preview the next packet before writing again.`;
     await ensureTaskAuthoringMetadata(true);
+    taskAuthoringState.preview = null;
+    taskAuthoringState.previewFingerprint = "";
+    taskAuthoringState.dirty = true;
 
     const stateResponse = await fetch("/api/state");
     const nextState = await stateResponse.json();
@@ -908,11 +911,8 @@ $taskAuthoringForm?.addEventListener("submit", (event) => {
 });
 
 $taskAuthoringResetButton?.addEventListener("click", () => {
-  resetTaskAuthoringState();
-  if (taskAuthoringState.metadata) {
-    applyTaskAuthoringMetadata(taskAuthoringState.metadata);
-    taskAuthoringState.lastMessage = "Task authoring form reset to project defaults.";
-  }
+  resetTaskAuthoringState({ preserveMetadata: true });
+  taskAuthoringState.lastMessage = "Task authoring form reset to project defaults.";
   renderTaskAuthoringPanel();
 });
 

@@ -1,6 +1,6 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 3: UI implementation
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
@@ -41,11 +41,11 @@
 ---
 
 ### Step 3: UI implementation
-**Status:** 🟨 In Progress
+**Status:** ✅ Complete
 - [x] Add create-task form UI
 - [x] Add preview UI
 - [x] Add success/failure navigation and feedback
-- [ ] Fix reset/default restoration and invalidate stale preview after successful create
+- [x] Fix reset/default restoration and invalidate stale preview after successful create
 
 ---
 
@@ -96,6 +96,7 @@
 | 2026-04-20 21:10 | Step 2 revise | Added rename-race conflict handling and preserved concurrently-created folders |
 | 2026-04-20 21:24 | Step 3 progress | Added authoring form, preview surface, and create feedback that reselects the new task in backlog detail |
 | 2026-04-20 21:27 | Review R011 | code Step 3 returned REVISE; reset/create preview state needs hardening |
+| 2026-04-20 21:31 | Step 3 revise | Reset now restores project defaults and successful create invalidates stale preview state |
 
 ---
 

@@ -34,6 +34,9 @@ describe("TP-184 dashboard task authoring UI", () => {
 		expect(app).toContain('fetch("/api/task-authoring/preview"');
 		expect(app).toContain('fetch("/api/task-authoring/create"');
 		expect(app).toContain("selectedBacklogTaskId = result.created?.taskId || selectedBacklogTaskId;");
+		expect(app).toContain("resetTaskAuthoringState({ preserveMetadata: true });");
+		expect(app).toContain("taskAuthoringState.preview = null;");
+		expect(app).toContain("Preview the next packet before writing again.");
 	});
 
 	it("styles authoring cards, feedback, and preview panes", () => {
