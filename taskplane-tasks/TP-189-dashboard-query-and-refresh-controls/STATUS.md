@@ -1,20 +1,21 @@
 # TP-189: Dashboard Query and Refresh Controls — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
-**Last Updated:** 2026-04-19
+**Current Step:** Step 0: Preflight
+**Status:** 🟡 In Progress
+**Last Updated:** 2026-04-20
 **Review Level:** 2
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** M
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Review current refresh/poll/SSE model
 - [ ] Identify auto vs manual refresh needs
 - [ ] Define safe manual controls
+- [ ] Separate true actions from local view/filter controls
 
 ---
 
@@ -63,6 +64,8 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 21:03 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 21:03 | Step 0 started | Preflight |
 
 ---
 
