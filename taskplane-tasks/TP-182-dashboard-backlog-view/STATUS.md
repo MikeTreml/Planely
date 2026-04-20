@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 11
+**Review Counter:** 12
 **Iteration:** 1
 **Size:** L
 
@@ -48,6 +48,7 @@
 **Status:** 🟨 In Progress
 - [ ] Add backlog panel/view
 - [ ] Render rows/cards and selection behavior
+- [ ] Add lightweight filtering/search affordances
 - [ ] Preserve existing dashboard usability
 
 ---
@@ -142,3 +143,4 @@ Preflight decisions:
 | 2026-04-20 17:15 | Review R009 | code Step 2: REVISE |
 | 2026-04-20 17:19 | Review R010 | code Step 2: REVISE |
 | 2026-04-20 17:23 | Review R011 | code Step 2: REVISE |
+| 2026-04-20 17:27 | Review R012 | code Step 2: APPROVE |
