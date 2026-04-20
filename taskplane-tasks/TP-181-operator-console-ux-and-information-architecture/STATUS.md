@@ -1,10 +1,10 @@
 # TP-181: Operator Console UX and Information Architecture — Status
 
-**Current Step:** Step 1: Information architecture
+**Current Step:** Step 2: View models
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -19,15 +19,15 @@
 ---
 
 ### Step 1: Information architecture
-**Status:** 🟨 In Progress
-- [ ] Define primary views
-- [ ] Define navigation hierarchy
-- [ ] Define filter and scope behavior
+**Status:** ✅ Complete
+- [x] Define primary views
+- [x] Define navigation hierarchy
+- [x] Define filter and scope behavior
 
 ---
 
 ### Step 2: View models
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define backlog view model
 - [ ] Define task detail view model
 - [ ] Define summary/action view models
@@ -79,6 +79,9 @@
 | 2026-04-20 16:28 | Reviewed TP-180 outputs | Product brief and domain model captured Operator Console goals, constraints, and canonical-vs-derived rules for this IA task. |
 | 2026-04-20 16:31 | Inventory current dashboard | Confirmed reusable live panels and identified missing operator-facing views and navigation needs. |
 | 2026-04-20 16:33 | Defined minimum nav model | Chose lightweight primary tabs plus scoped drill-in detail rather than a dashboard rewrite. |
+| 2026-04-20 16:38 | Authored UX IA spec | Added primary view definitions for Backlog, Task Detail, Live Batch, History, and Approvals. |
+| 2026-04-20 16:39 | Defined navigation hierarchy | Documented top-level tabs, entry points, breadcrumbs, and drill-in behavior in `ux-ia.md`. |
+| 2026-04-20 16:39 | Defined filter and scope behavior | Captured workspace, repo, batch, and task scoping rules plus empty-state fallback behavior in `ux-ia.md`. |
 
 ---
 
@@ -94,3 +97,4 @@ IA task for the Operator Console v1 UI layer.
 - TP-180 baseline: preserve the current runtime monitor strengths, keep Taskplane as execution authority, and add operator-friendly backlog/detail/approval/history projections rather than a second source of truth.
 - Current dashboard IA starts as a single live-batch surface with optional history inspection and a viewer drawer; it already supports runtime-centric supervision well, so v1 should extend it rather than replace it.
 - Proposed minimum navigation for v1: workspace/repo scope in the header, primary nav for Backlog / Live Batch / Approvals / History, and a task-detail drill-in reachable from backlog rows, live tasks, messages, and history.
+| 2026-04-20 16:25 | Review R001 | plan Step 1: APPROVE |
