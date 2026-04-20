@@ -1,10 +1,10 @@
 # TP-198: Document Provenance and Freshness Model — Status
 
-**Current Step:** Step 2: Freshness model
+**Current Step:** Step 3: Encoding options and recommendation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -27,16 +27,16 @@
 ---
 
 ### Step 2: Freshness model
-**Status:** 🟨 In Progress
-- [ ] Define task-distance freshness rules
-- [ ] Define review windows by doc type and authority level
-- [ ] Define derived freshness states
-- [ ] Explain why date-only freshness is insufficient
+**Status:** ✅ Complete
+- [x] Define task-distance freshness rules
+- [x] Define review windows by doc type and authority level
+- [x] Define derived freshness states
+- [x] Explain why date-only freshness is insufficient
 
 ---
 
 ### Step 3: Encoding options and recommendation
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Compare frontmatter, sidecar, and manifest options
 - [ ] Recommend a default approach
 - [ ] Define migration/adoption guidance
@@ -56,6 +56,7 @@
 |---|------|------|---------|------|
 | 1 | Plan | 1 | APPROVE | _inline_ |
 | 2 | Plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
+| 3 | Plan | 2 | APPROVE | _inline_ |
 
 ---
 
@@ -79,6 +80,9 @@
 | 2026-04-20 20:31 | Step 1 completed | Documented provenance fields, required/optional rules, encoding guidance, and README-safe handling |
 | 2026-04-20 20:31 | Step 2 started | Freshness model |
 | 2026-04-20 20:31 | Review R002 | plan Step 2: REVISE |
+| 2026-04-20 20:33 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 20:37 | Step 2 completed | Documented task-distance freshness rules, authority-aware review windows, derived states, and date-only limitations |
+| 2026-04-20 20:37 | Step 3 started | Encoding options and recommendation |
 
 ---
 
@@ -96,3 +100,4 @@ Reviewer suggestions to keep in mind:
 - Keep freshness tied to substantive review rather than cosmetic edits so typo-only changes do not reset trust signals.
 | 2026-04-20 20:19 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 20:22 | Review R002 | plan Step 2: REVISE |
+| 2026-04-20 20:23 | Review R003 | plan Step 2: APPROVE |
