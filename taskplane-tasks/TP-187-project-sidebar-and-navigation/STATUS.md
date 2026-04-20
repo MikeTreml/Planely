@@ -1,10 +1,10 @@
 # TP-187: Project Sidebar and Navigation — Status
 
-**Current Step:** Step 3: Integration behavior
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 5
+**Review Counter:** 6
 **Iteration:** 1
 **Size:** M
 
@@ -39,17 +39,17 @@
 ---
 
 ### Step 3: Integration behavior
-**Status:** 🟨 In Progress
-- [ ] Wire selection into dashboard loading/state
-- [ ] Refresh project recency data on successful switches (or explicitly defer Recent)
-- [ ] Show project-level status badges if safe and grounded in real data
-- [ ] Handle missing/stale data gracefully
-- [ ] Keep archived projects accessible but de-emphasized
+**Status:** ✅ Complete
+- [x] Wire selection into dashboard loading/state
+- [x] Refresh project recency data on successful switches (or explicitly defer Recent)
+- [x] Show project-level status badges if safe and grounded in real data
+- [x] Handle missing/stale data gracefully
+- [x] Keep archived projects accessible but de-emphasized
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify active vs archived navigation
 - [ ] Verify no regression to existing monitoring
 - [ ] Update docs if shipped
@@ -66,6 +66,7 @@
 | 3 | Plan | 2 | APPROVE | n/a |
 | 4 | Code | 2 | APPROVE | `.reviews/R004-code-step2.md` |
 | 5 | Plan | 3 | REVISE | `.reviews/R005-plan-step3.md` |
+| 6 | Plan | 3 | APPROVE | n/a |
 
 ---
 
@@ -97,6 +98,9 @@
 | 2026-04-20 20:01 | Step 3 started | Integration behavior |
 | 2026-04-20 20:02 | Step 3 hydrated | Added explicit project-badge outcome for integration behavior |
 | 2026-04-20 20:02 | Step 3 plan review | REVISE; add recency-update outcome for successful project switches |
+| 2026-04-20 20:06 | Step 3 plan review | APPROVE after recency outcome added |
+| 2026-04-20 20:06 | Step 3 completed | Project switching now re-scopes server/client state and refreshes recency safely |
+| 2026-04-20 20:06 | Step 4 started | Verification & Delivery |
 
 ---
 
@@ -118,3 +122,4 @@ Sidebar/navigation task for multi-project operator UX.
 | 2026-04-20 19:51 | Review R003 | plan Step 2: APPROVE |
 | 2026-04-20 20:03 | Review R004 | code Step 2: APPROVE |
 | 2026-04-20 20:05 | Review R005 | plan Step 3: REVISE |
+| 2026-04-20 20:08 | Review R006 | plan Step 3: APPROVE |

@@ -41,7 +41,9 @@ describe("TP-187 dashboard project sidebar", () => {
 		expect(server).toContain("function buildProjectSidebar(root = getActiveProjectRoot(), state = null)");
 		expect(server).toContain("projectSidebar: buildProjectSidebar");
 		expect(server).toContain("function handleProjectSelection(req, res)");
+		expect(server).toContain("function refreshProjectRecency(projectId, rootPath)");
 		expect(server).toContain('pathname === "/api/projects/select" && req.method === "POST"');
 		expect(server).toContain("SELECTED_PROJECT_ROOT = path.resolve(project.rootPath);");
+		expect(server).toContain("const recencyUpdated = refreshProjectRecency(projectId, SELECTED_PROJECT_ROOT);");
 	});
 });

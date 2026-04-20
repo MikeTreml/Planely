@@ -1577,6 +1577,41 @@ function loadProjectRegistry() {
   }
 }
 
+function writeProjectRegistry(projects) {
+  const registryPath = userProjectRegistryPath();
+  const dir = path.dirname(registryPath);
+  const payload = {
+    schemaVersion: 1,
+    updatedAt: new Date().toISOString(),
+    projects,
+  };
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tempPath = `${registryPath}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(payload, null, 2) + "\n", "utf-8");
+  fs.renameSync(tempPath, registryPath);
+}
+
+function refreshProjectRecency(projectId, rootPath) {
+  if (!projectId || !rootPath || !fs.existsSync(rootPath)) return false;
+  const projects = loadProjectRegistry();
+  let changed = false;
+  const now = new Date().toISOString();
+  const updated = projects.map((project) => {
+    if (String(project?.id || "").trim() !== projectId) return project;
+    changed = true;
+    return {
+      ...project,
+      rootPath: path.resolve(project.rootPath || rootPath),
+      lastOpenedAt: now,
+      updatedAt: now,
+    };
+  });
+  if (changed) {
+    writeProjectRegistry(updated);
+  }
+  return changed;
+}
+
 function buildProjectSidebar(root = getActiveProjectRoot(), state = null) {
   const normalizedRoot = normalizeProjectRoot(root);
   const registryProjects = loadProjectRegistry();
@@ -2636,9 +2671,11 @@ function handleProjectSelection(req, res) {
 
     SELECTED_PROJECT_ID = projectId;
     SELECTED_PROJECT_ROOT = path.resolve(project.rootPath);
+    const recencyUpdated = refreshProjectRecency(projectId, SELECTED_PROJECT_ROOT);
     sendJson(res, 200, {
       ok: true,
       projectId,
+      recencyUpdated,
       state: buildDashboardState(SELECTED_PROJECT_ROOT),
     });
   });
