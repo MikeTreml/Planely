@@ -1,7 +1,7 @@
 # TP-188: Project Registry, Recent, and Archive State — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 5
@@ -46,10 +46,10 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify support for TP-187 sidebar needs
-- [ ] Verify local-first inspectable design
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Verify support for TP-187 sidebar needs
+- [x] Verify local-first inspectable design
+- [x] Log discoveries
 
 ---
 
@@ -71,6 +71,8 @@
 |-----------|-------------|----------|
 | Dashboard server currently resolves a single `REPO_ROOT` from `--root`/cwd and reads one `.pi/` sidecar namespace at a time. | Use this as the baseline constraint for registry/sidebar design. | `dashboard/server.cjs` |
 | CLI init/config flows still assume one active project root from `process.cwd()`, with one project config and one default `taskRunner.project`/`paths.tasks` target per invocation. | Registry must layer above current root-based commands instead of redefining them. | `bin/taskplane.mjs` |
+| A user-scoped canonical registry file best fits multi-project sidebar navigation because it can remember unrelated roots before any specific project is opened. | Adopted in storage proposal as `~/.pi/agent/taskplane/project-registry.json`; keep project-local `.pi/` and `.taskplane/` files authoritative once a project is selected. | `docs/specifications/operator-console/project-registry-storage.md` |
+| Recent should remain a derived overlay from canonical timestamps rather than a separate recent-project store. | Supports TP-187 sidebar sections without creating competing project truth. | `docs/specifications/operator-console/project-registry.md`, `docs/specifications/operator-console/project-registry-adoption.md` |
 
 ---
 
@@ -92,6 +94,7 @@
 | 2026-04-20 16:53 | Step 3 plan reviewed | R005 approve |
 | 2026-04-20 16:55 | Step 3 completed | `project-registry-adoption.md` drafted |
 | 2026-04-20 16:55 | Step 4 started | Verification & Delivery |
+| 2026-04-20 16:57 | Step 4 completed | Verified TP-187/sidebar fit and local-first storage/recovery constraints |
 
 ---
 
@@ -117,6 +120,11 @@ Minimum registry requirements:
 - The registry must stay inspectable and local-first, with one canonical record store and only reproducible derived views/caches around it.
 - Reviewer suggestion noted: tie identity rules back to current root-based CLI/dashboard behavior and make “recent” explicitly derived from timestamps on the canonical project record.
 - Reviewer suggestion noted for Step 2: reuse the canonical-vs-derived storage boundary language from `planning-storage-layout.md` and explicitly layer the registry above current root/pointer behavior.
+
+Verification notes:
+- TP-187 sidebar requirements are directly supported: `project-registry.md` defines active/archived/recent grouping, row-level derived fields such as `lastActivityAt`/`isMissing`, and ordering guidance for sidebar rendering.
+- `project-registry-adoption.md` keeps archived projects discoverable but de-emphasized, defines recent-pruning for the rendered view only, and preserves missing/stale project visibility for graceful UI handling.
+- `project-registry-storage.md` keeps the design local-first and inspectable by using a user-scoped JSON registry plus optional reproducible caches, atomic temp-and-rename writes, and explicit corrupt/missing-file recovery behavior.
 | 2026-04-20 16:41 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 16:42 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 16:45 | Review R003 | plan Step 2: REVISE |
