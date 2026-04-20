@@ -33,7 +33,7 @@ describe("TP-183 dashboard operator actions", () => {
 		expect(server).toContain("function buildTaskActionContract(item, batchState)");
 		expect(server).toContain("function buildBatchActionContract(batchState)");
 		expect(server).toContain("function handleDashboardAction(req, res)");
-		expect(server).toContain("runDashboardPiPrompt(promptText, callback)");
+		expect(server).toContain("function runDashboardPiPrompt(promptText, callback");
 		expect(server).toContain('pathname === "/api/actions" && req.method === "POST"');
 	});
 });

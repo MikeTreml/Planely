@@ -24,7 +24,7 @@ describe("TP-182 dashboard backlog contract", () => {
 	const fnBlock = extractFunctionBlock(
 		source,
 		"function buildBacklogDisplayStatus(packet, context)",
-		"function loadHistory()",
+		"function loadHistory(root = getActiveProjectRoot())",
 	);
 
 	const { buildBacklogDisplayStatus, buildBacklogItem, buildBatchActionContract } = vm.runInNewContext(

@@ -1,10 +1,10 @@
 # TP-187: Project Sidebar and Navigation — Status
 
 **Current Step:** Step 4: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 6
+**Review Counter:** 7
 **Iteration:** 1
 **Size:** M
 
@@ -49,11 +49,11 @@
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Verify active vs archived navigation
-- [ ] Verify no regression to existing monitoring
-- [ ] Update docs if shipped
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Verify active vs archived navigation
+- [x] Verify no regression to existing monitoring
+- [x] Update docs if shipped
+- [x] Log discoveries
 
 ---
 
@@ -67,6 +67,7 @@
 | 4 | Code | 2 | APPROVE | `.reviews/R004-code-step2.md` |
 | 5 | Plan | 3 | REVISE | `.reviews/R005-plan-step3.md` |
 | 6 | Plan | 3 | APPROVE | n/a |
+| 7 | Code | 3 | APPROVE | n/a |
 
 ---
 
@@ -76,6 +77,7 @@
 |-----------|-------------|----------|
 | Current dashboard shell is single-column (`.content` flex column) with header, summary bar, two top-level tabs, and stacked panels; adding a sidebar will require restructuring the main shell rather than dropping a list into an existing rail. | Use a new split layout that keeps the current panels inside the main content region. | `dashboard/public/index.html`, `dashboard/public/style.css`, `dashboard/public/app.js` |
 | Current `/api/state` payload is scoped to one open root and returns batch/backlog/runtime data but no multi-project registry payload. | Step 3 will likely need TP-188-style registry data or a safe temporary sidebar model added in `dashboard/server.cjs`. | `dashboard/server.cjs` |
+| Sidebar switching now depends on the user-scoped project registry when present, but the server still synthesizes the current root as a fallback item so single-project launches stay usable without registry seeding. | Shipped with fallback; follow-on work can add richer add/archive/unarchive controls and startup registry upserts. | `dashboard/server.cjs`, `dashboard/public/app.js` |
 
 ---
 
@@ -101,6 +103,10 @@
 | 2026-04-20 20:06 | Step 3 plan review | APPROVE after recency outcome added |
 | 2026-04-20 20:06 | Step 3 completed | Project switching now re-scopes server/client state and refreshes recency safely |
 | 2026-04-20 20:06 | Step 4 started | Verification & Delivery |
+| 2026-04-20 20:07 | Step 3 code review | APPROVE |
+| 2026-04-20 20:12 | Step 4 verification | Full extensions test suite passed; dashboard server/app syntax checks passed |
+| 2026-04-20 20:12 | Step 4 docs | Updated dashboard tutorial for sidebar/project switching |
+| 2026-04-20 20:12 | Step 4 completed | Verification, docs, and discoveries logged |
 
 ---
 
@@ -123,3 +129,4 @@ Sidebar/navigation task for multi-project operator UX.
 | 2026-04-20 20:03 | Review R004 | code Step 2: APPROVE |
 | 2026-04-20 20:05 | Review R005 | plan Step 3: REVISE |
 | 2026-04-20 20:08 | Review R006 | plan Step 3: APPROVE |
+| 2026-04-20 20:10 | Review R007 | code Step 3: APPROVE |
