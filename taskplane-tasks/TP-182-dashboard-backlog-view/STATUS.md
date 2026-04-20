@@ -1,25 +1,25 @@
 # TP-182: Dashboard Backlog View — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
-**Last Updated:** 2026-04-19
+**Current Step:** Step 1: Backlog data contract
+**Status:** 🟡 In Progress
+**Last Updated:** 2026-04-20
 **Review Level:** 2
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** L
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Read TP-180 and TP-181 outputs
-- [ ] Trace current dashboard data flow
-- [ ] Decide backlog data source and payload strategy
+**Status:** ✅ Complete
+- [x] Read TP-180 and TP-181 outputs
+- [x] Trace current dashboard data flow
+- [x] Decide backlog data source and payload strategy
 
 ---
 
 ### Step 1: Backlog data contract
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define backlog row shape
 - [ ] Map canonical states to backlog statuses
 - [ ] Add server-side shaping tests
@@ -70,6 +70,11 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 16:38 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 16:38 | Step 0 started | Preflight |
+| 2026-04-20 16:51 | Step 1 started | Backlog data contract |
+| 2026-04-20 16:46 | Preflight readout | Reviewed TP-180/TP-181 outputs plus current dashboard data flow: server serves `/api/state` from `.pi/batch-state.json` + runtime/telemetry/mailbox sidecars and `/api/history*`; frontend boots from `/api/state`, polls history separately, and streams live updates via SSE only for batch-centric data. |
+| 2026-04-20 16:50 | Backlog strategy chosen | Implement backlog as a derived server projection over task packet folders from `.pi/taskplane-config.json` task areas, enriched with STATUS.md, `.DONE`, active batch membership, and batch-history hints, exposed additively in dashboard payloads (prefer `/api/state` + SSE) rather than a second source of truth or DB. |
 
 ---
 
@@ -82,3 +87,8 @@
 ## Notes
 
 First implementation task in the Operator Console initiative.
+
+Preflight decisions:
+- Keep backlog file-backed and read-only: scan configured task packet directories instead of inventing dashboard-owned state.
+- Reuse live batch data for running/in-batch status and batch history for recent completion/activity hints.
+- Prefer additive payload expansion on `/api/state`/SSE so the frontend can switch tabs without stitching multiple independent requests.
