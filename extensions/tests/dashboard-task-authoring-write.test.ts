@@ -8,6 +8,8 @@ import * as path from "path";
 import { tmpdir } from "os";
 import { mkdtempSync } from "fs";
 import vm from "node:vm";
+import { parsePromptForOrchestrator } from "../taskplane/discovery.ts";
+import { parseStatusMd } from "../taskplane/task-executor-core.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -102,6 +104,35 @@ describe("TP-184 dashboard task authoring write flow", () => {
 			expect(readFileSync(promptPath, "utf-8")).toBe(`${result.preview.preview.promptMarkdown.trimEnd()}\n`);
 			expect(readFileSync(statusPath, "utf-8")).toBe(`${result.preview.preview.statusMarkdown.trimEnd()}\n`);
 			expect(readFileSync(join(root, "taskplane-tasks", "CONTEXT.md"), "utf-8")).toContain("**Next Task ID:** TP-401");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
+	it("produces generated packets that parse cleanly for orchestrator launch and status tracking", () => {
+		const root = mkdtempSync(join(tmpdir(), "tp-184-authoring-parse-"));
+		try {
+			writeConfig(root, "TP-400");
+			const context = createContext(root);
+			const { createTaskAuthoringPacket } = vm.runInNewContext(
+				`${helperBlock}; ({ createTaskAuthoringPacket });`,
+				context,
+			) as { createTaskAuthoringPacket: (payload: any, root?: string) => any };
+
+			const result = createTaskAuthoringPacket(authoringPayload(), root);
+			expect(result.ok).toBe(true);
+			const taskFolder = join(root, result.created.folderPath);
+			const promptPath = join(root, result.created.promptPath);
+			const statusPath = join(root, result.created.statusPath);
+			const parsedPrompt = parsePromptForOrchestrator(promptPath, taskFolder, "general");
+			expect(parsedPrompt.error).toBe(null);
+			expect(parsedPrompt.task?.taskId).toBe("TP-400");
+			expect(parsedPrompt.task?.reviewLevel).toBe(2);
+			expect(parsedPrompt.task?.size).toBe("M");
+			const parsedStatus = parseStatusMd(readFileSync(statusPath, "utf-8"));
+			expect(parsedStatus.steps).toHaveLength(4);
+			expect(parsedStatus.steps[2].name).toBe("Testing & Verification");
+			expect(parsedStatus.steps[3].name).toBe("Documentation & Delivery");
 		} finally {
 			rmSync(root, { recursive: true, force: true });
 		}

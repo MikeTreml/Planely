@@ -11,6 +11,7 @@ archived Taskplane roots without losing the main operator-console layout.
 - project sidebar navigation across active, recent, and archived Taskplane projects (when a local project registry exists)
 - backlog discovery outside active batches, with readiness/status cards and lightweight filters
 - task detail inspection (mission, dependencies, file scope, current step, latest execution log)
+- backlog task authoring with canonical packet preview/write for new Taskplane tasks
 - operator actions from the task detail panel, including direct start/integrate triggers plus copyable recovery commands when direct execution is not yet supported
 - batch phase and summary counters
 - wave/lane progress
@@ -77,6 +78,15 @@ open/batch activity, and archived projects stay available in a muted section.
 Switching projects clears stale repo/task/history/viewer selection before the
 new project snapshot renders, so the main content never shows task detail or
 history from the previous root.
+
+Use the **Create task** composer at the top of **Backlog** to draft a new
+Taskplane packet. Fill in the task area, title, mission, size, review/rubric
+inputs, dependencies, context refs, and file scope, then click **Preview
+packet**. The dashboard renders the exact `PROMPT.md` and `STATUS.md` payloads
+it will write, and **Write task packet** stays disabled until the preview
+matches the current form. After a successful write, the backlog refreshes,
+`Next Task ID` advances, and the new task is selected in the shared detail
+panel.
 
 Select a task from **Backlog**, **Live Batch**, or **Batch Summary** to open the
 shared **Task Detail** panel. The panel surfaces the task mission, dependency
