@@ -1,10 +1,10 @@
 # TP-194: Recovery Report Schema and Supervisor Integration — Status
 
-**Current Step:** Step 2: Supervisor integration model
+**Current Step:** Step 3: Escalation and replan behavior
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -27,15 +27,15 @@
 ---
 
 ### Step 2: Supervisor integration model
-**Status:** 🟨 In Progress
-- [ ] Define trigger conditions
-- [ ] Define invocation and relay behavior
-- [ ] Define approval boundaries
+**Status:** ✅ Complete
+- [x] Define trigger conditions
+- [x] Define invocation and relay behavior
+- [x] Define approval boundaries
 
 ---
 
 ### Step 3: Escalation and replan behavior
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define redirect / replan outcomes
 - [ ] Define follow-up task recommendation behavior
 - [ ] Ensure unsafe automation is excluded
@@ -54,6 +54,7 @@
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
 | 1 | Plan | 1 | APPROVE | inline review_step |
+| 2 | Plan | 2 | APPROVE | inline review_step |
 
 ---
 
@@ -81,6 +82,11 @@
 | 2026-04-20 20:40 | Defined field requirements | Captured required vs optional report fields and bounded action vocabulary |
 | 2026-04-20 20:41 | Verified dual-audience schema | Added explicit structured-vs-narrative rules and minimum acceptance checks |
 | 2026-04-20 20:42 | Step 2 started | Supervisor integration model |
+| 2026-04-20 20:43 | Plan review (Step 2) | APPROVE |
+| 2026-04-20 20:50 | Defined supervisor trigger conditions | Added invocation triggers and non-trigger cases in recovery-supervisor-integration.md |
+| 2026-04-20 20:51 | Defined invocation and relay model | Added intake contract, expected response, and operator-facing relay rules |
+| 2026-04-20 20:52 | Defined approval boundaries | Distinguished supervisor-safe, operator-approved, and always-advisory recovery recommendations |
+| 2026-04-20 20:53 | Step 3 started | Escalation and replan behavior |
 
 ---
 
@@ -99,3 +105,4 @@ Preflight synthesis:
 - Future automation needs stable machine fields for classification, decision, ownership, approval requirement, recurrence/systemic follow-up hints, and packet/task identifiers.
 - Human-facing narrative remains appropriate for evidence explanation, why-alternatives-are-worse reasoning, and operator-ready wording.
 | 2026-04-20 20:20 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 20:23 | Review R002 | plan Step 2: APPROVE |
