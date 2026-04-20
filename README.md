@@ -36,7 +36,7 @@ Taskplane works out the dependency map for an entire batch of tasks then orchest
 - **Persistent Worker Context** — Workers handle all steps in a single context, auto-detecting the model's context window. Only iterates on context overflow. Dramatic reduction in spawn count and token cost.
 - **Worker-Driven Inline Reviews** — Workers invoke a `review_step` tool at step boundaries. Reviewer agents spawn with full telemetry. REVISE feedback is addressed inline without losing context.
 - **Supervisor Agent** — Conversational supervisor monitors batch progress, handles failures, and can invoke orchestrator commands autonomously (resume, integrate, pause, abort).
-- **Web Dashboard** — Live browser-based monitoring via `taskplane dashboard`. SSE streaming, lane/task progress, reviewer activity, merge telemetry, batch history.
+- **Web Dashboard** — Live browser-based monitoring via `taskplane dashboard`. Backlog and Live Batch views, SSE streaming, lane/task progress, reviewer activity, merge telemetry, batch history.
 - **Structured Tasks** — PROMPT.md defines the mission, steps, and constraints. STATUS.md tracks progress. Agents follow the plan, not vibes.
 - **Checkpoint Discipline** — Step boundary commits ensure work is never lost, even if a worker crashes mid-task.
 - **Cross-Model Review** — Reviewer agent uses a different model than the worker agent (highly recommended, not enforced). Independent quality gate before merge.
@@ -107,7 +107,7 @@ In a separate terminal:
 taskplane dashboard
 ```
 
-Opens a live web dashboard at `http://localhost:8099` with real-time batch monitoring.
+Opens a live web dashboard at `http://localhost:8099` with backlog-first operator visibility when idle and real-time live batch monitoring during execution.
 
 ### 4. Run your first orchestration
 

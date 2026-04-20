@@ -224,6 +224,14 @@ const $content        = $("content");
 const $historySelect  = $("history-select");
 const $historyPanel   = $("history-panel");
 const $historyBody    = $("history-body");
+const $viewTabBacklog = $("view-tab-backlog");
+const $viewTabLive    = $("view-tab-live");
+const $backlogPanel   = $("backlog-panel");
+const $backlogBody    = $("backlog-body");
+const $backlogSearch  = $("backlog-search");
+const $backlogStatusFilter = $("backlog-status-filter");
+const $backlogScopeLine = $("backlog-scope-line");
+const $backlogClearFilters = $("backlog-clear-filters");
 
 // ─── Repo Filter State ──────────────────────────────────────────────────────
 
@@ -236,6 +244,11 @@ let repoFilterVisible = false;
 
 let historyList = [];  // compact batch summaries
 let viewingHistoryId = null; // batchId if viewing history, null if live
+let activePrimaryView = "backlog";
+let preferredPrimaryView = null; // null = auto (batch-aware default)
+let selectedBacklogTaskId = null;
+let backlogSearchQuery = "";
+let backlogStatusKey = "";
 
 // ─── Viewer State ───────────────────────────────────────────────────────────
 
@@ -267,6 +280,23 @@ function buildRepoSet(batch) {
   }
   const sorted = Array.from(repos).sort();
   return sorted.length >= 2 ? sorted : [];
+}
+
+function buildBacklogRepoSet(backlog) {
+  if (!backlog || backlog.scope?.mode !== "workspace") return [];
+  const repos = Array.isArray(backlog.scope?.configuredRepoIds) && backlog.scope.configuredRepoIds.length > 0
+    ? backlog.scope.configuredRepoIds
+    : (Array.isArray(backlog.scope?.repoIds) ? backlog.scope.repoIds : []);
+  const sorted = [...new Set(repos.filter(Boolean))].sort();
+  return sorted.length >= 2 ? sorted : [];
+}
+
+function resolveRepoSetForView(data) {
+  if (data?.batch) {
+    const batchRepos = buildRepoSet(data.batch);
+    if (batchRepos.length > 0) return batchRepos;
+  }
+  return buildBacklogRepoSet(data?.backlog);
 }
 
 /**
@@ -403,6 +433,36 @@ function laneActiveSegmentInfo(v2snap, laneTasks, segmentStatusMap) {
   };
 }
 
+function syncPrimaryView(data) {
+  const hasBatch = Boolean(data?.batch);
+  const nextView = preferredPrimaryView || (hasBatch ? "live" : "backlog");
+  activePrimaryView = nextView === "live" && !hasBatch ? "backlog" : nextView;
+  if ($viewTabBacklog) $viewTabBacklog.classList.toggle("active", activePrimaryView === "backlog");
+  if ($viewTabLive) {
+    $viewTabLive.classList.toggle("active", activePrimaryView === "live");
+    $viewTabLive.disabled = !hasBatch;
+  }
+}
+
+function applyPrimaryViewVisibility(data) {
+  const hasBatch = Boolean(data?.batch);
+  const showBacklog = activePrimaryView === "backlog";
+  if ($backlogPanel) $backlogPanel.style.display = showBacklog ? "" : "none";
+
+  const livePanelIds = ["lanes-tasks-panel", "merge-panel", "agents-panel", "messages-panel", "supervisor-panel"];
+  for (const panelId of livePanelIds) {
+    const panel = document.getElementById(panelId);
+    if (!panel) continue;
+    panel.style.display = !showBacklog && hasBatch ? "" : "none";
+  }
+  if ($errorsPanel) {
+    $errorsPanel.style.display = !showBacklog && hasBatch && $errorsBody.innerHTML.trim() ? "" : "none";
+  }
+  if ($historyPanel && showBacklog && hasBatch) {
+    $historyPanel.style.display = "none";
+  }
+}
+
 // Repo filter change handler
 $repoFilter.addEventListener("change", (e) => {
   selectedRepo = e.target.value;
@@ -410,11 +470,54 @@ $repoFilter.addEventListener("change", (e) => {
   if (currentData) {
     const batch = currentData.batch;
     const sessions = currentData.sessions ?? currentData.tmuxSessions ?? [];
+    renderBacklog(currentData.backlog);
     if (batch) {
       renderLanesTasks(batch, sessions);
       renderMergeAgents(batch, sessions);
     }
   }
+});
+
+$viewTabBacklog?.addEventListener("click", () => {
+  preferredPrimaryView = "backlog";
+  if (currentData) render(currentData);
+});
+
+$viewTabLive?.addEventListener("click", () => {
+  preferredPrimaryView = "live";
+  if (currentData) render(currentData);
+});
+
+$backlogSearch?.addEventListener("input", (e) => {
+  backlogSearchQuery = String(e.target.value || "").trim().toLowerCase();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogStatusFilter?.addEventListener("change", (e) => {
+  backlogStatusKey = String(e.target.value || "");
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogClearFilters?.addEventListener("click", () => {
+  backlogSearchQuery = "";
+  backlogStatusKey = "";
+  if ($backlogSearch) $backlogSearch.value = "";
+  if ($backlogStatusFilter) $backlogStatusFilter.value = "";
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogBody?.addEventListener("click", (event) => {
+  const viewStatusBtn = event.target.closest?.("[data-backlog-open-status]");
+  if (viewStatusBtn) {
+    const taskId = viewStatusBtn.getAttribute("data-backlog-open-status");
+    if (taskId) viewStatusMd(taskId);
+    return;
+  }
+
+  const card = event.target.closest?.(".backlog-card[data-task-id]");
+  if (!card) return;
+  selectedBacklogTaskId = card.getAttribute("data-task-id");
+  if (currentData) renderBacklog(currentData.backlog);
 });
 
 // ─── Render: Header ─────────────────────────────────────────────────────────
@@ -433,13 +536,30 @@ function renderHeader(batch) {
 
 // ─── Render: Summary ────────────────────────────────────────────────────────
 
-function renderSummary(batch) {
+function renderBacklogSummary(backlog) {
+  const summary = backlog?.summary || {};
+  const total = summary.total || 0;
+  const ready = summary.ready || 0;
+  const running = summary.running || 0;
+  const blocked = summary.blocked || 0;
+  const done = summary.succeeded || 0;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  $progressBarBg.innerHTML = `<div class="wave-seg wave-seg-current" style="width:100%" title="Backlog completion"><div class="wave-seg-fill ${pct >= 100 ? "pct-hi" : pct > 50 ? "pct-mid" : pct > 0 ? "pct-low" : "pct-0"}" style="width:${pct}%"></div><span class="wave-seg-label">Backlog</span></div>`;
+  $overallPct.textContent = `${pct}%`;
+  $summaryCounts.innerHTML = `
+    <span class="count-chip count-succeeded"><span class="count-num">${ready}</span><span class="count-icon">✓ ready</span></span>
+    <span class="count-chip count-running"><span class="count-num">${running}</span><span class="count-icon">▶ active</span></span>
+    <span class="count-chip count-stalled"><span class="count-num">${blocked}</span><span class="count-icon">⏸ blocked</span></span>
+    <span class="count-chip count-pending"><span class="count-num">${done}</span><span class="count-icon">◎ done</span></span>
+    <span class="count-total">/ ${total}</span>`;
+  const scopeMode = backlog?.scope?.mode === "workspace" ? "workspace" : "repo";
+  $summaryElapsed.textContent = `${scopeMode} view · ${backlog?.scope?.taskAreaCount || 0} task area${(backlog?.scope?.taskAreaCount || 0) === 1 ? "" : "s"}`;
+  $summaryWaves.innerHTML = `<span class="wave-chip">Backlog</span>${historyList.length > 0 ? `<span class="wave-chip">${historyList.length} history</span>` : ""}`;
+}
+
+function renderSummary(batch, backlog) {
   if (!batch) {
-    $progressBarBg.innerHTML = "";
-    $overallPct.textContent = "0%";
-    $summaryCounts.innerHTML = "";
-    $summaryElapsed.textContent = "—";
-    $summaryWaves.innerHTML = "";
+    renderBacklogSummary(backlog);
     return;
   }
 
@@ -1274,6 +1394,202 @@ function renderErrors(batch) {
   $errorsBody.innerHTML = html;
 }
 
+// ─── Render: Backlog ────────────────────────────────────────────────────────
+
+function backlogStatusChip(item) {
+  const key = item?.status?.key || "unknown";
+  const label = item?.status?.label || key;
+  return `<span class="backlog-status-chip status-${escapeHtml(key)}">${escapeHtml(label)}</span>`;
+}
+
+function backlogScopeText(backlog) {
+  const configuredRepoCount = Array.isArray(backlog?.scope?.configuredRepoIds) ? backlog.scope.configuredRepoIds.length : 0;
+  const repoCount = configuredRepoCount || knownRepos.length || (backlog?.scope?.repoIds?.length || 1) || 1;
+  const areaCount = backlog?.scope?.taskAreaCount || 0;
+  if (backlog?.scope?.mode === "workspace") {
+    return `${repoCount} repo${repoCount === 1 ? "" : "s"} · ${areaCount} task area${areaCount === 1 ? "" : "s"}`;
+  }
+  return `${areaCount} task area${areaCount === 1 ? "" : "s"} · single-repo scope`;
+}
+
+function backlogSummaryStripHtml(summary, filteredCount, totalCount) {
+  const filterChip = filteredCount !== totalCount
+    ? `<span class="count-chip count-pending">${filteredCount} shown</span>`
+    : "";
+  return `
+    <div class="backlog-summary-strip">
+      <span class="count-chip">${summary.total || 0} total</span>
+      <span class="count-chip count-succeeded">${summary.ready || 0} ready</span>
+      <span class="count-chip count-stalled">${summary.blocked || 0} blocked</span>
+      <span class="count-chip count-running">${summary.running || 0} running</span>
+      <span class="count-chip count-pending">${summary.waiting || 0} waiting</span>
+      <span class="count-chip">${summary.succeeded || 0} done</span>
+      ${filterChip}
+    </div>`;
+}
+
+function backlogCanOpenStatus(item) {
+  if (!item || !currentData?.batch || !item.execution?.batchId) return false;
+  if (currentData.batch.batchId && item.execution.batchId !== currentData.batch.batchId) return false;
+  return (currentData.batch.tasks || []).some((task) => task.taskId === item.taskId);
+}
+
+function backlogSelectionHtml(item, outOfFilter) {
+  if (!item) return "";
+  const deps = Array.isArray(item.readiness?.blockedBy) ? item.readiness.blockedBy : [];
+  const depText = deps.length > 0
+    ? deps.map(dep => escapeHtml(dep.label || dep.id || "Unknown")).join(", ")
+    : "None";
+  const activityText = item.lastActivityAt ? relativeTime(item.lastActivityAt) : "No recent activity";
+  const outOfFilterBadge = outOfFilter
+    ? '<span class="backlog-selection-badge">Outside current repo/filter view</span>'
+    : '';
+  const canOpenStatus = backlogCanOpenStatus(item);
+  const actionHtml = canOpenStatus
+    ? `<button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(item.taskId)}">View STATUS.md</button>`
+    : '<span class="backlog-selection-hint">STATUS viewer available when this task is part of the active batch.</span>';
+  return `
+    <div class="backlog-selection-card">
+      <div class="backlog-selection-header">
+        <div class="backlog-selection-title">Selected: ${escapeHtml(item.taskId)} — ${escapeHtml(item.title || "Untitled")}</div>
+        <div class="backlog-selection-actions">
+          ${outOfFilterBadge}
+          ${actionHtml}
+        </div>
+      </div>
+      <div class="backlog-selection-grid">
+        <div><span class="label">Area</span><span>${escapeHtml(item.area || "—")}</span></div>
+        <div><span class="label">Repo</span><span>${escapeHtml(item.repoId || "—")}</span></div>
+        <div><span class="label">Status</span><span>${escapeHtml(item.status?.label || "Unknown")}</span></div>
+        <div><span class="label">Waiting on</span><span>${escapeHtml(item.readiness?.waitingOn || "—")}</span></div>
+        <div><span class="label">Last activity</span><span>${escapeHtml(activityText)}</span></div>
+        <div><span class="label">Execution</span><span>${escapeHtml(item.execution?.batchId ? `Batch ${item.execution.batchId}` : "Not in active batch")}</span></div>
+        <div><span class="label">Prompt</span><span class="mono">${escapeHtml(item.navigation?.promptPath || item.promptPath || "—")}</span></div>
+        <div><span class="label">Status file</span><span class="mono">${escapeHtml(item.navigation?.statusPath || item.statusPath || "—")}</span></div>
+      </div>
+      <div class="backlog-selection-note">Blocked by: ${depText}</div>
+    </div>`;
+}
+
+function renderBacklog(backlog) {
+  if (!$backlogBody) return;
+  if (!backlog) {
+    if ($backlogScopeLine) $backlogScopeLine.textContent = "Backlog unavailable";
+    $backlogBody.innerHTML = '<div class="empty-state">Backlog unavailable</div>';
+    return;
+  }
+
+  const items = Array.isArray(backlog.items) ? backlog.items : [];
+  const summary = backlog.summary || {};
+  const loadState = backlog.loadState || { kind: "ready", message: null };
+  const scopeText = backlogScopeText(backlog);
+  if ($backlogScopeLine) {
+    const repoScope = selectedRepo ? `Filtered to repo ${selectedRepo}` : scopeText;
+    $backlogScopeLine.textContent = loadState.kind === "error"
+      ? `Scan error · ${scopeText}`
+      : repoScope;
+  }
+
+  const filtered = items.filter((item) => {
+    const repoOk = !selectedRepo || item.repoId === selectedRepo;
+    const statusOk = !backlogStatusKey || item.status?.key === backlogStatusKey;
+    const haystack = [item.taskId, item.title, item.summary, item.area, item.repoId, item.status?.label]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const textOk = !backlogSearchQuery || haystack.includes(backlogSearchQuery);
+    return repoOk && statusOk && textOk;
+  });
+
+  const selectedItemInAll = items.find((item) => item.taskId === selectedBacklogTaskId) || null;
+  if (!selectedBacklogTaskId && items[0]) {
+    selectedBacklogTaskId = items[0].taskId;
+  }
+  const selectedItem = filtered.find((item) => item.taskId === selectedBacklogTaskId) || filtered[0] || selectedItemInAll || null;
+  const selectedOutOfFilter = Boolean(selectedItem && !filtered.some((item) => item.taskId === selectedItem.taskId));
+
+  const activeFilterSummary = [];
+  if (selectedRepo) activeFilterSummary.push(`repo: ${selectedRepo}`);
+  if (backlogStatusKey) activeFilterSummary.push(`status: ${backlogStatusKey}`);
+  if (backlogSearchQuery) activeFilterSummary.push(`search: “${backlogSearchQuery}”`);
+  if ($backlogClearFilters) {
+    $backlogClearFilters.disabled = activeFilterSummary.length === 0;
+    $backlogClearFilters.title = activeFilterSummary.length === 0 ? "No backlog filters active" : "Clear backlog filters";
+  }
+  const filterHint = activeFilterSummary.length > 0
+    ? `Showing ${filtered.length} of ${items.length} tasks · ${activeFilterSummary.join(" · ")}`
+    : (loadState.message || scopeText);
+
+  const cardsHtml = filtered.map((item) => {
+    const selectedCls = item.taskId === selectedItem?.taskId ? " selected" : "";
+    const blocked = Array.isArray(item.readiness?.blockedBy) ? item.readiness.blockedBy : [];
+    const blockedText = blocked.length > 0
+      ? `Blocked by ${blocked.map(dep => dep.label || dep.id || "Unknown").join(", ")}`
+      : (item.status?.reason || "Ready to launch");
+    const activityText = item.lastActivityAt ? relativeTime(item.lastActivityAt) : "No recent activity";
+    const summaryText = item.summary ? `<div class="backlog-card-summary">${escapeHtml(item.summary)}</div>` : "";
+    const repoBadge = repoBadgeHtml(item.repoId, "backlog-repo-badge");
+    const waitingOn = item.readiness?.waitingOn ? `<span class="backlog-card-pill">${escapeHtml(item.readiness.waitingOn)}</span>` : "";
+    return `
+      <button class="backlog-card${selectedCls}" type="button" data-task-id="${escapeHtml(item.taskId)}" aria-pressed="${item.taskId === selectedItem?.taskId ? "true" : "false"}">
+        <div class="backlog-card-top">
+          <div>
+            <div class="backlog-card-title-row">
+              <span class="backlog-card-id">${escapeHtml(item.taskId)}</span>
+              ${repoBadge}
+              ${backlogStatusChip(item)}
+              ${waitingOn}
+            </div>
+            <div class="backlog-card-title">${escapeHtml(item.title || "Untitled task")}</div>
+          </div>
+          <div class="backlog-card-area">${escapeHtml(item.area || "general")}</div>
+        </div>
+        ${summaryText}
+        <div class="backlog-card-meta">${escapeHtml(blockedText)}</div>
+        <div class="backlog-card-footer">
+          <span>${escapeHtml(activityText)}</span>
+          <span>${escapeHtml(item.execution?.batchId ? `Batch ${item.execution.batchId}` : scopeText)}</span>
+        </div>
+      </button>`;
+  }).join("");
+
+  if (filtered.length === 0) {
+    const emptyTitle = loadState.kind === "error"
+      ? "Backlog unavailable"
+      : (activeFilterSummary.length > 0 ? "No tasks match the current filters" : "Backlog empty");
+    const hint = loadState.kind === "error"
+      ? (loadState.message || "Backlog scan failed")
+      : activeFilterSummary.length > 0
+        ? "Try clearing one or more filters to widen the backlog view."
+        : loadState.kind === "partial"
+          ? "Only malformed task packets were found during the scan."
+          : (loadState.message || "No backlog items found.");
+    $backlogBody.innerHTML = `
+      ${backlogSummaryStripHtml(summary, filtered.length, items.length)}
+      <div class="backlog-state state-${escapeHtml(loadState.kind || "ready")}">
+        <div class="backlog-state-title">${escapeHtml(emptyTitle)}</div>
+        <div>${escapeHtml(hint)}</div>
+        <div class="backlog-state-meta">${escapeHtml(filterHint)}</div>
+      </div>
+      ${selectedItem ? backlogSelectionHtml(selectedItem, true) : ""}`;
+    return;
+  }
+
+  const errorSummary = Array.isArray(backlog.errors) && backlog.errors.length > 0
+    ? `<div class="backlog-state-meta">${escapeHtml(`${backlog.errors.length} task packet${backlog.errors.length === 1 ? "" : "s"} could not be parsed`)}</div>`
+    : "";
+
+  $backlogBody.innerHTML = `
+    ${backlogSummaryStripHtml(summary, filtered.length, items.length)}
+    <div class="backlog-state state-${escapeHtml(loadState.kind || "ready")}">
+      <div class="backlog-state-title">${escapeHtml(loadState.kind === "partial" ? "Backlog partially loaded" : loadState.kind === "ready" ? "Backlog ready" : (loadState.message || "Backlog state"))}</div>
+      <div>${escapeHtml(filterHint)}</div>
+      ${errorSummary}
+    </div>
+    <div class="backlog-list">${cardsHtml}</div>
+    ${backlogSelectionHtml(selectedItem, selectedOutOfFilter)}`;
+}
+
 // ─── Render: No Batch ───────────────────────────────────────────────────────
 
 let noBatchRendered = false;
@@ -1281,9 +1597,6 @@ let noBatchRendered = false;
 function renderNoBatch() {
   if (noBatchRendered) return;
   noBatchRendered = true;
-
-  // Hide repo filter when no batch
-  updateRepoFilter([]);
 
   // Hide live panels, show history panel
   const $lanesPanel = document.getElementById("lanes-tasks-panel");
@@ -1316,7 +1629,6 @@ function ensureContentPanels() {
     const $mergePanel = document.getElementById("merge-panel");
     if ($lanesPanel) $lanesPanel.style.display = "";
     if ($mergePanel) $mergePanel.style.display = "";
-    if ($errorsPanel) $errorsPanel.style.display = "";
     $historyPanel.style.display = "none";
     viewingHistoryId = null;
     // Re-render with current data
@@ -1614,17 +1926,22 @@ function render(data) {
   const sessions = data.sessions ?? data.tmuxSessions ?? [];
 
   $lastUpdate.textContent = new Date().toLocaleTimeString();
+  syncPrimaryView(data);
+  updateRepoFilter(resolveRepoSetForView(data));
+  renderBacklog(data.backlog);
 
   if (!batch) {
     // TP-178: Clear viewer when batch disappears (#487)
     if (lastBatchId && viewerMode) closeViewer();
     lastBatchId = null;
     renderHeader(null);
-    renderSummary(null);
+    renderSummary(null, data.backlog);
     renderSupervisor(data);
     // Refresh history list (batch may have just finished)
     if (!noBatchRendered) loadHistoryList();
     renderNoBatch();
+    applyPrimaryViewVisibility(data);
+    $footerInfo.textContent = `${(data.backlog?.summary?.total || 0)} backlog tasks`;
     return;
   }
 
@@ -1648,11 +1965,6 @@ function render(data) {
 
   renderHeader(batch);
   renderSummary(batch);
-
-  // Update repo filter based on current batch data
-  const repos = buildRepoSet(batch);
-  updateRepoFilter(repos);
-
   renderSupervisor(data);
   renderLanesTasks(batch, sessions);
   renderMergeAgents(batch, sessions);
@@ -1660,6 +1972,7 @@ function render(data) {
   renderAgentsPanel(data.runtimeRegistry);
   renderMessagesPanel(data.mailbox);
   renderErrors(batch);
+  applyPrimaryViewVisibility(data);
 
   const taskCount = (batch.tasks || []).length;
   const laneCount = (batch.lanes || []).length;
