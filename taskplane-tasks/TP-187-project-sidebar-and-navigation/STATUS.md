@@ -1,10 +1,10 @@
 # TP-187: Project Sidebar and Navigation — Status
 
-**Current Step:** Step 1: Sidebar UX contract
+**Current Step:** Step 2: UI implementation
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -20,16 +20,16 @@
 ---
 
 ### Step 1: Sidebar UX contract
-**Status:** 🟨 In Progress
-- [ ] Define sidebar sections and row content
-- [ ] Define selection and empty states
-- [ ] Define project-switch state reset and fallback behavior
-- [ ] Define archive visibility behavior
+**Status:** ✅ Complete
+- [x] Define sidebar sections and row content
+- [x] Define selection and empty states
+- [x] Define project-switch state reset and fallback behavior
+- [x] Define archive visibility behavior
 
 ---
 
 ### Step 2: UI implementation
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Add sidebar shell/layout
 - [ ] Render sectioned project list
 - [ ] Add project selection behavior
@@ -59,6 +59,7 @@
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
 | 1 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
+| 2 | Plan | 1 | APPROVE | n/a |
 
 ---
 
@@ -81,6 +82,9 @@
 | 2026-04-20 19:49 | Step 0 completed | Specs reviewed; current dashboard is single-project and lacks project registry payload |
 | 2026-04-20 19:49 | Step 1 started | Sidebar UX contract |
 | 2026-04-20 19:49 | Step 1 plan review | REVISE; add project-switch state behavior outcome before implementation |
+| 2026-04-20 19:52 | Step 1 plan review | APPROVE after UX contract updates in operator-console docs |
+| 2026-04-20 19:52 | Step 1 completed | Sidebar contract documented in UX IA and view models |
+| 2026-04-20 19:52 | Step 2 started | UI implementation |
 
 ---
 
@@ -97,3 +101,4 @@ Sidebar/navigation task for multi-project operator UX.
 - Current dashboard shell uses header + summary + primary tabs over a single `.content` column. The least disruptive sidebar insertion point is a new split body where the sidebar owns project navigation and the existing backlog/live/history/task-detail panels remain in the main pane.
 - Reviewer suggestions for Step 1: keep row content anchored to registry-grounded fields (`id`, `name`, `rootPath`/`configPath`, `archived`, `lastOpenedAt`, `lastBatchAt`), use ordering consistent with the project-registry spec (current project first, then active recents, then other active, archived collapsed/de-emphasized), and explicitly justify any Recent deferment if the payload is not ready yet.
 | 2026-04-20 19:47 | Review R001 | plan Step 1: REVISE |
+| 2026-04-20 19:49 | Review R002 | plan Step 1: APPROVE |

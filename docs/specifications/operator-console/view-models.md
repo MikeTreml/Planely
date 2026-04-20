@@ -20,6 +20,55 @@ These are **UI-facing view models**, not new canonical storage schemas. Each mod
 
 ## Common Reference Shapes
 
+## Project sidebar view model
+
+**Scope:** user-scoped known-project navigation rendered before or alongside workspace-scoped operator views.
+
+This model keeps project navigation lightweight and file-backed. It is derived from the machine-local project registry plus optional runtime inspection for the currently selected project.
+
+```ts
+interface ProjectSidebarViewModel {
+  selectedProjectId?: string | null;
+  state: ViewLoadState;
+  sections: ProjectSidebarSection[];
+}
+
+interface ProjectSidebarSection {
+  key: "active" | "recent" | "archived";
+  label: string;
+  collapsed?: boolean;
+  items: ProjectSidebarItem[];
+}
+
+interface ProjectSidebarItem {
+  id: string;
+  name: string;
+  rootPath: string;
+  configPath?: string | null;
+  mode: "repo" | "workspace";
+  archived: boolean;
+  selected: boolean;
+  lastOpenedAt?: string | null;
+  lastBatchAt?: string | null;
+  lastActivityAt?: string | null;
+  badges: Array<{
+    key: "current" | "running-batch" | "missing" | "archived";
+    label: string;
+    tone: "neutral" | "info" | "success" | "warning" | "danger";
+  }>;
+  warnings: string[];
+}
+```
+
+### Minimum project-sidebar requirements
+
+- Rows must be renderable from registry-grounded identity fields even when runtime badges are unavailable.
+- **Recent** is derived from `lastActivityAt = max(lastOpenedAt, lastBatchAt)` and may be omitted when those timestamps are unavailable.
+- Archive state must remain explicit and reversible; archived items stay in the model instead of disappearing.
+- Missing-path and running-batch cues are derived decorations, not canonical registry replacements.
+- Selecting a different project resets project-scoped UI state such as repo filters, task/detail selection, viewer state, and history selection before the new workspace snapshot renders.
+
+
 ## Display status
 A UI-friendly status projection used across views.
 
