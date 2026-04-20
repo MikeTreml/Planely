@@ -51,6 +51,10 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| R001 | plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
+| R002 | plan | 1 | APPROVE | — |
+| R003 | plan | 2 | APPROVE | — |
+| R004 | code | 2 | APPROVE | — |
 
 ---
 
@@ -119,7 +123,3 @@ Adds UI-side query/refresh affordances for normal operator use.
 - Operator feedback should be explicit: `Refreshing…` while `/api/state` is in flight, a brief success indicator when a fresh snapshot lands, and an inline error when the manual request fails while SSE/live updates remain connected or reconnecting independently.
 - Backlog rendering should keep three distinct zero-data cases: source empty (`No task packets found`), filter empty (`No tasks match current query/filter`), and load failure (`Backlog scan failed`).
 - Implementation note: manual refresh can stay on the existing `/api/state` route as long as the response is explicitly non-cacheable and the client shows request-state feedback.
-| 2026-04-20 21:07 | Review R001 | plan Step 1: REVISE |
-| 2026-04-20 21:09 | Review R002 | plan Step 1: APPROVE |
-| 2026-04-20 21:11 | Review R003 | plan Step 2: APPROVE |
-| 2026-04-20 21:17 | Review R004 | code Step 2: APPROVE |
