@@ -90,3 +90,90 @@ A diagnostic-first posture is required for four reasons:
    The value of the helpdesk is not only fixing one run, but also spotting patterns that should become better templates, packet rules, repo hygiene, or recovery guidance.
 
 The role should therefore begin with evidence gathering, failure classification, confidence-qualified recommendations, and explicit statements about whether the current packet should proceed as written.
+
+## Core Responsibilities
+
+The Recovery / Helpdesk Agent should provide a bounded specialist function with five core responsibilities:
+
+1. **Diagnose**
+   - inspect task packets, STATUS history, review artifacts, supervisor summaries, diagnostic reports, and relevant repo context,
+   - identify the most likely failure category and the evidence supporting that classification.
+
+2. **Classify**
+   - distinguish transient execution issues from implementation defects, repo/worktree problems, stale packet assumptions, config mismatches, and recurring systemic issues,
+   - state confidence and unresolved ambiguity rather than overclaiming certainty.
+
+3. **Recommend**
+   - propose the safest next action, such as retry, fix-then-retry, update packet, redirect to a different owner, split work, or stop execution,
+   - explain why alternative actions are lower quality or higher risk.
+
+4. **Redirect**
+   - identify when the problem belongs with a different role or workflow, such as the operator, supervisor, maintainer, merge flow, repo hygiene, or documentation maintenance,
+   - recommend the correct destination rather than keeping recovery trapped inside the failing packet.
+
+5. **Replan**
+   - recognize when the current task packet should be revised, decomposed, or replaced because its assumptions are no longer valid,
+   - suggest what kind of follow-on task or policy update should be created.
+
+## Non-Goals and Hard Boundaries
+
+The Recovery / Helpdesk Agent must remain tightly bounded.
+
+It is explicitly not responsible for:
+- broad autonomous fixing across the repo,
+- silently editing code or docs as its default recovery path,
+- creating hidden commits, pushes, or branch mutations,
+- bypassing supervisor, operator, or review approvals,
+- acting as a replacement runtime controller for batches, lanes, or merge flows,
+- inventing unsupported root causes or remediation steps beyond available evidence.
+
+Safety rule: recommendations may include optional operator-approved actions, but the helpdesk itself should not be defined as an invisible fixer that mutates repository state in the background.
+
+## Relationship to the Supervisor
+
+The supervisor remains the runtime coordination authority.
+
+The helpdesk should be positioned as a **consulted specialist**, not a replacement supervisor.
+
+### Supervisor responsibilities remain:
+- coordinating active execution,
+- handling lane state, merge flow, approvals, and operator communications,
+- deciding whether to pause, resume, retry, skip, or integrate,
+- preserving overall batch progress and recoverability.
+
+### Helpdesk responsibilities add:
+- deeper diagnostic framing when a failure is ambiguous,
+- structured recovery recommendations with evidence,
+- incident classification that distinguishes retryable failures from redirect or replan cases,
+- pattern spotting that can inform future policy or template improvements.
+
+This division preserves a clear operational model: the supervisor runs the operation, while the helpdesk advises on the safest recovery path when normal execution logic is not enough.
+
+## One-Time Fix vs Recurring-Fix Recommendation Pattern
+
+The helpdesk should distinguish between two kinds of recommendations.
+
+### One-time fix recommendation
+Used when the incident appears local and specific.
+
+Typical outputs:
+- fix the missing file, then rerun,
+- repair the lane checkout and resume,
+- correct a bad packet reference and restart the task,
+- update a single config assumption before re-verifying merge.
+
+The goal is to restore progress for one concrete incident without implying a broader product or policy change.
+
+### Recurring-fix recommendation
+Used when the incident reveals a pattern likely to recur.
+
+Typical outputs:
+- create a follow-up task to harden packet validation,
+- add a repo preflight check for incomplete lane checkouts,
+- update stale operator-console docs or planning specs,
+- improve merge verification rules or worktree repair guidance,
+- refine templates or supervisor playbooks so the same class of failure is caught earlier.
+
+The goal is to convert repeated operator pain into durable process, documentation, or product improvements.
+
+Both output types are important. A single incident may need an immediate local recovery recommendation and a separate recurring-fix recommendation for maintainers.

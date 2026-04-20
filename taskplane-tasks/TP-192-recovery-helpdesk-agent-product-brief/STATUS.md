@@ -1,10 +1,10 @@
 # TP-192: Recovery / Helpdesk Agent Product Brief — Status
 
-**Current Step:** Step 2: Product shape and boundaries
+**Current Step:** Step 3: Operator value and examples
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -27,10 +27,10 @@
 ---
 
 ### Step 2: Product shape and boundaries
-**Status:** ⬜ Not Started
-- [ ] Define responsibilities and non-goals
-- [ ] Define relationship to supervisor
-- [ ] Define one-time vs recurring fix output pattern
+**Status:** ✅ Complete
+- [x] Define responsibilities and non-goals
+- [x] Define relationship to supervisor
+- [x] Define one-time vs recurring fix output pattern
 
 ---
 
@@ -86,3 +86,4 @@ Initial framing task for a bounded Recovery / Helpdesk Agent.
 - Preflight: Proposed helpdesk role should be a consulted diagnostic specialist distinct from workers (implement), reviewers (evaluate), and supervisors (coordinate/orchestrate); it recommends recovery paths but does not replace batch control or task execution.
 - Preflight: Recent failure patterns include stale or incomplete lane checkouts, repo-state mismatches between packet assumptions and worktree reality, post-merge verification mismatches (for example `extensions dir not found`), and stale docs/spec assumptions; these cases often require redirect, packet edits, repo repair, or replanning instead of blind retry.
 | 2026-04-20 16:57 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 16:59 | Review R002 | plan Step 2: APPROVE |
