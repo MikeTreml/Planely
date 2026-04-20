@@ -1,10 +1,10 @@
 # TP-186: Slack Companion Design — Status
 
-**Current Step:** Step 2: Message/action contracts
+**Current Step:** Step 3: Safety model
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -27,16 +27,16 @@
 ---
 
 ### Step 2: Message/action contracts
-**Status:** 🟨 In Progress
-- [ ] Define message shapes
-- [ ] Define status lookup and decision payloads
-- [ ] Define stop/defer contract boundaries for lightweight control
-- [ ] Define deep-link and idempotency rules
+**Status:** ✅ Complete
+- [x] Define message shapes
+- [x] Define status lookup and decision payloads
+- [x] Define stop/defer contract boundaries for lightweight control
+- [x] Define deep-link and idempotency rules
 
 ---
 
 ### Step 3: Safety model
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define audit and confirmation rules
 - [ ] Define forbidden/deferred actions
 - [ ] Define failure/fallback behavior
@@ -83,6 +83,11 @@
 | 2026-04-20 17:03 | Authority boundary captured | Spec defines Slack as companion-only, with dashboard as rich control surface and Taskplane/planning files as canonical state |
 | 2026-04-20 17:03 | Step 1 complete | Ready to define message and action contracts |
 | 2026-04-20 17:05 | Review R002 | plan Step 2 returned REVISE; expanded Step 2 outcomes for status lookup, bounded stop/cancel treatment, and approval deep-link coverage |
+| 2026-04-20 17:13 | Message contracts drafted | Created `docs/specifications/operator-console/slack-message-contracts.md` with shared envelope and notification message shapes |
+| 2026-04-20 17:14 | Lookup and decision contracts defined | Added compact batch/task status lookup responses plus approve/reject payload semantics and response states |
+| 2026-04-20 17:15 | Lightweight control boundary defined | Documented bounded `request_stop` contract and explicitly kept retry/skip/resume/force-merge outside Slack v1 |
+| 2026-04-20 17:16 | Deep-link rules defined | Spec now covers batch/task/approval link targets plus duplicate delivery, repeated click, and stale action idempotency cases |
+| 2026-04-20 17:16 | Step 2 complete | Ready to define Slack safety and fallback rules |
 
 ---
 
@@ -106,3 +111,4 @@ Preflight findings:
 Reviewer notes:
 - Step 2 must define compact status lookup contracts, not just push notifications and approvals.
 - Step 2 must either define the bounded stop/cancel request contract or explicitly mark what is deferred pending the Step 3 safety model.
+| 2026-04-20 16:46 | Review R003 | plan Step 2: APPROVE |
