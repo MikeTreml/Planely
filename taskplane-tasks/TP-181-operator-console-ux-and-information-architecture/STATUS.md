@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 1
+**Review Counter:** 2
 **Iteration:** 1
 **Size:** M
 
@@ -31,6 +31,7 @@
 - [ ] Define backlog view model
 - [ ] Define task detail view model
 - [ ] Define summary/action view models
+- [ ] Define empty/loading/error state variants
 
 ---
 
@@ -55,6 +56,8 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| 1 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
+| 2 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
 
 ---
 
@@ -97,4 +100,6 @@ IA task for the Operator Console v1 UI layer.
 - TP-180 baseline: preserve the current runtime monitor strengths, keep Taskplane as execution authority, and add operator-friendly backlog/detail/approval/history projections rather than a second source of truth.
 - Current dashboard IA starts as a single live-batch surface with optional history inspection and a viewer drawer; it already supports runtime-centric supervision well, so v1 should extend it rather than replace it.
 - Proposed minimum navigation for v1: workspace/repo scope in the header, primary nav for Backlog / Live Batch / Approvals / History, and a task-detail drill-in reachable from backlog rows, live tasks, messages, and history.
+- R002 suggestion: keep scope labels explicit in each view model, separate informational batch summary from recommended operator actions, and note the minimum evidence required near each action affordance.
 | 2026-04-20 16:25 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 16:28 | Review R002 | plan Step 2: REVISE |
