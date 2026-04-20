@@ -239,6 +239,40 @@ const $taskDetailPanel = $("task-detail-panel");
 const $taskDetailTitle = $("task-detail-title");
 const $taskDetailSubtitle = $("task-detail-subtitle");
 const $taskDetailBody = $("task-detail-body");
+const $taskAuthoringShell = $("task-authoring-shell");
+const $taskAuthoringSubtitle = $("task-authoring-subtitle");
+const $taskAuthoringForm = $("task-authoring-form");
+const $taskAuthoringArea = $("task-authoring-area");
+const $taskAuthoringTitleInput = $("task-authoring-title");
+const $taskAuthoringMission = $("task-authoring-mission");
+const $taskAuthoringSize = $("task-authoring-size");
+const $taskAuthoringReviewLevel = $("task-authoring-review-level");
+const $taskAuthoringScoreBlastRadius = $("task-authoring-score-blast-radius");
+const $taskAuthoringScorePatternNovelty = $("task-authoring-score-pattern-novelty");
+const $taskAuthoringScoreSecurity = $("task-authoring-score-security");
+const $taskAuthoringScoreReversibility = $("task-authoring-score-reversibility");
+const $taskAuthoringDependencies = $("task-authoring-dependencies");
+const $taskAuthoringContextRefs = $("task-authoring-context-refs");
+const $taskAuthoringFileScope = $("task-authoring-file-scope");
+const $taskAuthoringPreviewButton = $("task-authoring-preview-button");
+const $taskAuthoringCreateButton = $("task-authoring-create-button");
+const $taskAuthoringResetButton = $("task-authoring-reset");
+const $taskAuthoringFeedback = $("task-authoring-feedback");
+const $taskAuthoringErrors = $("task-authoring-errors");
+const $taskAuthoringMeta = $("task-authoring-meta");
+const $taskAuthoringPromptPreview = $("task-authoring-prompt-preview");
+const $taskAuthoringStatusPreview = $("task-authoring-status-preview");
+
+const taskAuthoringState = {
+  metadata: null,
+  loading: false,
+  pendingAction: "",
+  preview: null,
+  previewFingerprint: "",
+  dirty: true,
+  lastTone: "neutral",
+  lastMessage: "Preview a task packet to inspect generated files.",
+};
 
 // ─── Repo Filter State ──────────────────────────────────────────────────────
 
@@ -524,7 +558,242 @@ function renderProjectSidebar(data) {
   `).join("");
 }
 
+function taskAuthoringFieldValue(element) {
+  return element ? String(element.value || "") : "";
+}
+
+function readTaskAuthoringFormPayload() {
+  return {
+    areaId: taskAuthoringFieldValue($taskAuthoringArea).trim(),
+    title: taskAuthoringFieldValue($taskAuthoringTitleInput).trim(),
+    mission: taskAuthoringFieldValue($taskAuthoringMission).trim(),
+    size: taskAuthoringFieldValue($taskAuthoringSize).trim().toUpperCase(),
+    reviewLevel: taskAuthoringFieldValue($taskAuthoringReviewLevel).trim(),
+    complexity: {
+      blastRadius: taskAuthoringFieldValue($taskAuthoringScoreBlastRadius),
+      patternNovelty: taskAuthoringFieldValue($taskAuthoringScorePatternNovelty),
+      security: taskAuthoringFieldValue($taskAuthoringScoreSecurity),
+      reversibility: taskAuthoringFieldValue($taskAuthoringScoreReversibility),
+    },
+    dependencies: taskAuthoringFieldValue($taskAuthoringDependencies),
+    contextRefs: taskAuthoringFieldValue($taskAuthoringContextRefs),
+    fileScope: taskAuthoringFieldValue($taskAuthoringFileScope),
+  };
+}
+
+function taskAuthoringFingerprint(payload) {
+  return JSON.stringify(payload || {});
+}
+
+function resetTaskAuthoringState() {
+  taskAuthoringState.metadata = null;
+  taskAuthoringState.loading = false;
+  taskAuthoringState.pendingAction = "";
+  taskAuthoringState.preview = null;
+  taskAuthoringState.previewFingerprint = "";
+  taskAuthoringState.dirty = true;
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Preview a task packet to inspect generated files.";
+
+  if ($taskAuthoringArea) $taskAuthoringArea.innerHTML = '<option value="">Loading…</option>';
+  if ($taskAuthoringTitleInput) $taskAuthoringTitleInput.value = "";
+  if ($taskAuthoringMission) $taskAuthoringMission.value = "";
+  if ($taskAuthoringSize) $taskAuthoringSize.value = "M";
+  if ($taskAuthoringReviewLevel) $taskAuthoringReviewLevel.value = "1";
+  if ($taskAuthoringScoreBlastRadius) $taskAuthoringScoreBlastRadius.value = "1";
+  if ($taskAuthoringScorePatternNovelty) $taskAuthoringScorePatternNovelty.value = "1";
+  if ($taskAuthoringScoreSecurity) $taskAuthoringScoreSecurity.value = "0";
+  if ($taskAuthoringScoreReversibility) $taskAuthoringScoreReversibility.value = "0";
+  if ($taskAuthoringDependencies) $taskAuthoringDependencies.value = "";
+  if ($taskAuthoringContextRefs) $taskAuthoringContextRefs.value = "";
+  if ($taskAuthoringFileScope) $taskAuthoringFileScope.value = "";
+}
+
+function applyTaskAuthoringMetadata(metadata) {
+  taskAuthoringState.metadata = metadata || null;
+  const areas = Array.isArray(metadata?.areas) ? metadata.areas : [];
+  if ($taskAuthoringArea) {
+    $taskAuthoringArea.innerHTML = areas.length > 0
+      ? areas.map((area) => `<option value="${escapeHtml(area.id)}">${escapeHtml(area.id)} · ${escapeHtml(area.nextTaskId || area.prefix || "pending")}</option>`).join("")
+      : '<option value="">No task areas</option>';
+  }
+  if ($taskAuthoringArea && metadata?.defaultAreaId) $taskAuthoringArea.value = metadata.defaultAreaId;
+  if ($taskAuthoringSize && metadata?.defaults?.size) $taskAuthoringSize.value = metadata.defaults.size;
+  if ($taskAuthoringReviewLevel && metadata?.defaults?.reviewLevel != null) $taskAuthoringReviewLevel.value = String(metadata.defaults.reviewLevel);
+  if ($taskAuthoringScoreBlastRadius && metadata?.defaults?.complexity?.blastRadius != null) $taskAuthoringScoreBlastRadius.value = String(metadata.defaults.complexity.blastRadius);
+  if ($taskAuthoringScorePatternNovelty && metadata?.defaults?.complexity?.patternNovelty != null) $taskAuthoringScorePatternNovelty.value = String(metadata.defaults.complexity.patternNovelty);
+  if ($taskAuthoringScoreSecurity && metadata?.defaults?.complexity?.security != null) $taskAuthoringScoreSecurity.value = String(metadata.defaults.complexity.security);
+  if ($taskAuthoringScoreReversibility && metadata?.defaults?.complexity?.reversibility != null) $taskAuthoringScoreReversibility.value = String(metadata.defaults.complexity.reversibility);
+}
+
+function renderTaskAuthoringPanel() {
+  if (!$taskAuthoringShell) return;
+  const preview = taskAuthoringState.preview;
+  const errors = Array.isArray(preview?.errors) ? preview.errors : [];
+  const currentFingerprint = taskAuthoringFingerprint(readTaskAuthoringFormPayload());
+  const createReady = preview?.ok === true && !taskAuthoringState.dirty && taskAuthoringState.previewFingerprint === currentFingerprint && !taskAuthoringState.pendingAction;
+  const areas = Array.isArray(taskAuthoringState.metadata?.areas) ? taskAuthoringState.metadata.areas : [];
+  const selectedArea = areas.find((area) => area.id === taskAuthoringFieldValue($taskAuthoringArea)) || areas[0] || null;
+
+  if ($taskAuthoringSubtitle) {
+    if (taskAuthoringState.loading) {
+      $taskAuthoringSubtitle.textContent = "Loading task authoring defaults…";
+    } else if (selectedArea?.nextTaskId) {
+      $taskAuthoringSubtitle.textContent = `Next ${selectedArea.id} task: ${selectedArea.nextTaskId}`;
+    } else {
+      $taskAuthoringSubtitle.textContent = "Draft a canonical Taskplane packet from the dashboard.";
+    }
+  }
+
+  if ($taskAuthoringPreviewButton) {
+    $taskAuthoringPreviewButton.disabled = taskAuthoringState.loading || taskAuthoringState.pendingAction === "create";
+    $taskAuthoringPreviewButton.textContent = taskAuthoringState.pendingAction === "preview" ? "Previewing…" : "Preview packet";
+  }
+  if ($taskAuthoringCreateButton) {
+    $taskAuthoringCreateButton.disabled = !createReady;
+    $taskAuthoringCreateButton.textContent = taskAuthoringState.pendingAction === "create" ? "Writing…" : "Write task packet";
+    $taskAuthoringCreateButton.title = createReady
+      ? "Write the previewed packet to disk"
+      : "Run Preview packet after your latest form edits before writing.";
+  }
+
+  if ($taskAuthoringFeedback) {
+    $taskAuthoringFeedback.className = `task-authoring-feedback tone-${taskAuthoringState.lastTone || "neutral"}`;
+    $taskAuthoringFeedback.textContent = taskAuthoringState.lastMessage || "Preview a task packet to inspect generated files.";
+  }
+
+  if ($taskAuthoringErrors) {
+    $taskAuthoringErrors.innerHTML = errors.length > 0
+      ? errors.map((error) => `<div class="task-authoring-error tone-${escapeHtml(error.kind === "server" ? "danger" : "warn")}"><span class="mono">${escapeHtml(error.field || "field")}</span> · ${escapeHtml(error.message || "Validation issue")}</div>`).join("")
+      : "";
+  }
+
+  if ($taskAuthoringMeta) {
+    const metaBits = [];
+    if (preview?.derived?.taskId) metaBits.push(`<span class="task-authoring-pill">${escapeHtml(preview.derived.taskId)}</span>`);
+    if (preview?.derived?.folderName) metaBits.push(`<span class="task-authoring-pill">${escapeHtml(preview.derived.folderName)}</span>`);
+    if (preview?.derived?.reviewLabel != null && preview?.derived?.scoreTotal != null) metaBits.push(`<span class="task-authoring-pill">Review ${escapeHtml(String(preview.derived.reviewLevel))} · Score ${escapeHtml(String(preview.derived.scoreTotal))}/8</span>`);
+    if (preview?.derived?.contextPath) metaBits.push(`<span class="task-authoring-pill mono">${escapeHtml(preview.derived.contextPath)}</span>`);
+    $taskAuthoringMeta.innerHTML = metaBits.join("");
+  }
+
+  if ($taskAuthoringPromptPreview) {
+    $taskAuthoringPromptPreview.textContent = preview?.preview?.promptMarkdown || "Preview a packet to inspect generated PROMPT.md.";
+  }
+  if ($taskAuthoringStatusPreview) {
+    $taskAuthoringStatusPreview.textContent = preview?.preview?.statusMarkdown || "Preview a packet to inspect generated STATUS.md.";
+  }
+}
+
+async function ensureTaskAuthoringMetadata(force = false) {
+  if (!$taskAuthoringShell) return;
+  if (taskAuthoringState.loading) return;
+  if (taskAuthoringState.metadata && !force) {
+    renderTaskAuthoringPanel();
+    return;
+  }
+  taskAuthoringState.loading = true;
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Loading task authoring defaults…";
+  renderTaskAuthoringPanel();
+  try {
+    const response = await fetch("/api/task-authoring");
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload?.error || "Task authoring metadata unavailable.");
+    applyTaskAuthoringMetadata(payload);
+    taskAuthoringState.lastMessage = "Fill the form, preview the packet, then write it to disk.";
+  } catch (err) {
+    taskAuthoringState.lastTone = "danger";
+    taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
+  } finally {
+    taskAuthoringState.loading = false;
+    renderTaskAuthoringPanel();
+  }
+}
+
+async function requestTaskAuthoringPreview() {
+  const payload = readTaskAuthoringFormPayload();
+  const fingerprint = taskAuthoringFingerprint(payload);
+  taskAuthoringState.pendingAction = "preview";
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Generating packet preview…";
+  renderTaskAuthoringPanel();
+  try {
+    const response = await fetch("/api/task-authoring/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const preview = await response.json();
+    taskAuthoringState.preview = preview;
+    taskAuthoringState.previewFingerprint = fingerprint;
+    taskAuthoringState.dirty = taskAuthoringFingerprint(readTaskAuthoringFormPayload()) !== fingerprint;
+    taskAuthoringState.lastTone = response.ok ? "success" : "warn";
+    taskAuthoringState.lastMessage = response.ok
+      ? `Preview ready for ${preview?.derived?.taskId || "new task"}.`
+      : (preview?.errors?.[0]?.message || "Fix the highlighted fields and preview again.");
+  } catch (err) {
+    taskAuthoringState.preview = null;
+    taskAuthoringState.previewFingerprint = "";
+    taskAuthoringState.lastTone = "danger";
+    taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
+  } finally {
+    taskAuthoringState.pendingAction = "";
+    renderTaskAuthoringPanel();
+  }
+}
+
+async function submitTaskAuthoringCreate() {
+  const payload = readTaskAuthoringFormPayload();
+  const fingerprint = taskAuthoringFingerprint(payload);
+  if (taskAuthoringState.dirty || taskAuthoringState.previewFingerprint !== fingerprint || taskAuthoringState.preview?.ok !== true) {
+    taskAuthoringState.lastTone = "warn";
+    taskAuthoringState.lastMessage = "Preview the current form values before writing the packet.";
+    renderTaskAuthoringPanel();
+    return;
+  }
+
+  taskAuthoringState.pendingAction = "create";
+  taskAuthoringState.lastTone = "neutral";
+  taskAuthoringState.lastMessage = "Writing task packet…";
+  renderTaskAuthoringPanel();
+  try {
+    const response = await fetch("/api/task-authoring/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok || !result?.ok) {
+      taskAuthoringState.preview = result?.preview || taskAuthoringState.preview;
+      taskAuthoringState.lastTone = "danger";
+      taskAuthoringState.lastMessage = result?.error?.message || "Task packet creation failed.";
+      renderTaskAuthoringPanel();
+      return;
+    }
+
+    taskAuthoringState.preview = result.preview || taskAuthoringState.preview;
+    taskAuthoringState.previewFingerprint = fingerprint;
+    taskAuthoringState.dirty = false;
+    taskAuthoringState.lastTone = "success";
+    taskAuthoringState.lastMessage = `Created ${result.created?.taskId || "task"} and advanced Next Task ID to ${result.created?.nextTaskId || "the next value"}.`;
+    await ensureTaskAuthoringMetadata(true);
+
+    const stateResponse = await fetch("/api/state");
+    const nextState = await stateResponse.json();
+    selectedBacklogTaskId = result.created?.taskId || selectedBacklogTaskId;
+    render(nextState);
+  } catch (err) {
+    taskAuthoringState.lastTone = "danger";
+    taskAuthoringState.lastMessage = err instanceof Error ? err.message : String(err);
+  } finally {
+    taskAuthoringState.pendingAction = "";
+    renderTaskAuthoringPanel();
+  }
+}
+
 function clearProjectScopedUiState(nextData) {
+  resetTaskAuthoringState();
   selectedRepo = "";
   if ($repoFilter) $repoFilter.value = "";
   selectedBacklogTaskId = null;
@@ -617,6 +886,34 @@ $backlogClearFilters?.addEventListener("click", () => {
   if ($backlogSearch) $backlogSearch.value = "";
   if ($backlogStatusFilter) $backlogStatusFilter.value = "";
   if (currentData) renderBacklog(currentData.backlog);
+});
+
+$taskAuthoringForm?.addEventListener("input", () => {
+  taskAuthoringState.dirty = true;
+  renderTaskAuthoringPanel();
+});
+
+$taskAuthoringForm?.addEventListener("change", () => {
+  taskAuthoringState.dirty = true;
+  renderTaskAuthoringPanel();
+});
+
+$taskAuthoringPreviewButton?.addEventListener("click", () => {
+  requestTaskAuthoringPreview();
+});
+
+$taskAuthoringForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  submitTaskAuthoringCreate();
+});
+
+$taskAuthoringResetButton?.addEventListener("click", () => {
+  resetTaskAuthoringState();
+  if (taskAuthoringState.metadata) {
+    applyTaskAuthoringMetadata(taskAuthoringState.metadata);
+    taskAuthoringState.lastMessage = "Task authoring form reset to project defaults.";
+  }
+  renderTaskAuthoringPanel();
 });
 
 function selectTask(taskId) {
@@ -2293,6 +2590,8 @@ function render(data) {
 
   $lastUpdate.textContent = new Date().toLocaleTimeString();
   renderProjectSidebar(data);
+  ensureTaskAuthoringMetadata();
+  renderTaskAuthoringPanel();
   syncPrimaryView(data);
   updateRepoFilter(resolveRepoSetForView(data));
   renderBacklog(data.backlog);

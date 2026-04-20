@@ -1,10 +1,10 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Step 3: UI implementation
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 8
+**Review Counter:** 10
 **Iteration:** 1
 **Size:** L
 
@@ -41,15 +41,15 @@
 ---
 
 ### Step 3: UI implementation
-**Status:** 🟨 In Progress
-- [ ] Add create-task form UI
-- [ ] Add preview UI
-- [ ] Add success/failure navigation and feedback
+**Status:** ✅ Complete
+- [x] Add create-task form UI
+- [x] Add preview UI
+- [x] Add success/failure navigation and feedback
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Test validation and duplicate cases
 - [ ] Verify generated packets are orch-launchable
 - [ ] Update docs if shipped
@@ -93,6 +93,7 @@
 | 2026-04-20 21:04 | Step 2 progress | Added create endpoint, counter update safeguards, duplicate blocking, and rollback/error handling tests |
 | 2026-04-20 21:06 | Review R008 | code Step 2 returned REVISE; rename-race cleanup must not delete concurrent writes |
 | 2026-04-20 21:10 | Step 2 revise | Added rename-race conflict handling and preserved concurrently-created folders |
+| 2026-04-20 21:24 | Step 3 progress | Added authoring form, preview surface, and create feedback that reselects the new task in backlog detail |
 
 ---
 
@@ -117,3 +118,6 @@ Preflight findings:
 - Step 2 review follow-up: write flow must surface duplicate/conflict/partial-write failures explicitly and keep preview/write output byte-aligned from the shared generator.
 - Step 2 implementation now exposes `/api/task-authoring/create`, writes packet files from the shared preview generator, stages files in a temp folder before final placement, and seeds an empty `.reviews/` directory in the created packet.
 - Code review follow-up for Step 2: rename collisions must return a recoverable conflict and must never delete a folder this request did not create.
+- Step 3 implementation adds a backlog-embedded task authoring form with area, mission, size, review, complexity, dependency, context, and file-scope inputs grounded in the shared server contract.
+| 2026-04-20 20:46 | Review R009 | code Step 2: APPROVE |
+| 2026-04-20 20:47 | Review R010 | plan Step 3: APPROVE |
