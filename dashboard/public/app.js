@@ -232,6 +232,10 @@ const $backlogSearch  = $("backlog-search");
 const $backlogStatusFilter = $("backlog-status-filter");
 const $backlogScopeLine = $("backlog-scope-line");
 const $backlogClearFilters = $("backlog-clear-filters");
+const $taskDetailPanel = $("task-detail-panel");
+const $taskDetailTitle = $("task-detail-title");
+const $taskDetailSubtitle = $("task-detail-subtitle");
+const $taskDetailBody = $("task-detail-body");
 
 // ─── Repo Filter State ──────────────────────────────────────────────────────
 
@@ -249,6 +253,7 @@ let preferredPrimaryView = null; // null = auto (batch-aware default)
 let selectedBacklogTaskId = null;
 let backlogSearchQuery = "";
 let backlogStatusKey = "";
+let activeHistoryEntry = null;
 
 // ─── Viewer State ───────────────────────────────────────────────────────────
 
@@ -506,6 +511,12 @@ $backlogClearFilters?.addEventListener("click", () => {
   if (currentData) renderBacklog(currentData.backlog);
 });
 
+function selectTask(taskId) {
+  if (!taskId) return;
+  selectedBacklogTaskId = taskId;
+  if (currentData) render(currentData);
+}
+
 $backlogBody?.addEventListener("click", (event) => {
   const viewStatusBtn = event.target.closest?.("[data-backlog-open-status]");
   if (viewStatusBtn) {
@@ -514,10 +525,37 @@ $backlogBody?.addEventListener("click", (event) => {
     return;
   }
 
+  const detailBtn = event.target.closest?.("[data-open-task-detail]");
+  if (detailBtn) {
+    const taskId = detailBtn.getAttribute("data-open-task-detail");
+    if (taskId) selectTask(taskId);
+    return;
+  }
+
   const card = event.target.closest?.(".backlog-card[data-task-id]");
   if (!card) return;
-  selectedBacklogTaskId = card.getAttribute("data-task-id");
-  if (currentData) renderBacklog(currentData.backlog);
+  selectTask(card.getAttribute("data-task-id"));
+});
+
+$lanesTasksBody?.addEventListener("click", (event) => {
+  const detailBtn = event.target.closest?.("[data-open-task-detail]");
+  if (!detailBtn) return;
+  const taskId = detailBtn.getAttribute("data-open-task-detail");
+  if (taskId) selectTask(taskId);
+});
+
+$historyBody?.addEventListener("click", (event) => {
+  const detailBtn = event.target.closest?.("[data-open-task-detail]");
+  if (!detailBtn) return;
+  const taskId = detailBtn.getAttribute("data-open-task-detail");
+  if (taskId) selectTask(taskId);
+});
+
+$taskDetailBody?.addEventListener("click", (event) => {
+  const viewStatusBtn = event.target.closest?.("[data-backlog-open-status]");
+  if (!viewStatusBtn) return;
+  const taskId = viewStatusBtn.getAttribute("data-backlog-open-status");
+  if (taskId) viewStatusMd(taskId);
 });
 
 // ─── Render: Header ─────────────────────────────────────────────────────────
@@ -977,11 +1015,12 @@ function renderLanesTasks(batch, sessions) {
       const eyeHtml = task.status !== 'pending'
         ? `<button class="viewer-eye-btn${isViewingStatus ? ' active' : ''}" onclick="viewStatusMd('${escapeHtml(task.taskId)}')" title="View STATUS.md">👁</button>`
         : '';
+      const detailHtml = `<button class="viewer-eye-btn" type="button" data-open-task-detail="${escapeHtml(task.taskId)}" title="Inspect task detail">ℹ</button>`;
 
       html += `
         <div class="task-row">
           <span class="task-icon"><span class="status-dot ${task.status}"></span></span>
-          <span class="task-actions">${eyeHtml}</span>
+          <span class="task-actions">${detailHtml}${eyeHtml}</span>
           <span class="task-id status-${task.status}">${escapeHtml(task.taskId)}${showRepos ? repoBadgeHtml(tRepo, "repo-badge-task") : ""}</span>
           <span><span class="status-badge status-${task.status}"><span class="status-dot ${task.status}"></span> ${task.status}</span></span>
           <span class="task-duration">${dur}</span>
@@ -1471,6 +1510,107 @@ function backlogSelectionHtml(item, outOfFilter) {
     </div>`;
 }
 
+function findBacklogItem(taskId) {
+  const items = Array.isArray(currentData?.backlog?.items) ? currentData.backlog.items : [];
+  return items.find((item) => item.taskId === taskId) || null;
+}
+
+function findLiveTask(taskId) {
+  const tasks = Array.isArray(currentData?.batch?.tasks) ? currentData.batch.tasks : [];
+  return tasks.find((task) => task.taskId === taskId) || null;
+}
+
+function findHistoryTask(taskId) {
+  const tasks = Array.isArray(activeHistoryEntry?.tasks) ? activeHistoryEntry.tasks : [];
+  return tasks.find((task) => task.taskId === taskId) || null;
+}
+
+function renderTaskDetail() {
+  if (!$taskDetailPanel || !$taskDetailBody || !$taskDetailTitle || !$taskDetailSubtitle) return;
+  const taskId = selectedBacklogTaskId;
+  const backlogItem = taskId ? findBacklogItem(taskId) : null;
+  const historyTask = taskId ? findHistoryTask(taskId) : null;
+  const liveTask = taskId ? findLiveTask(taskId) : null;
+
+  if (!taskId || (!backlogItem && !historyTask && !liveTask)) {
+    $taskDetailPanel.style.display = "none";
+    $taskDetailBody.innerHTML = "";
+    return;
+  }
+
+  const title = backlogItem?.title || historyTask?.taskId || liveTask?.taskId || taskId;
+  const mission = backlogItem?.detail?.mission || backlogItem?.summary || null;
+  const dependencies = Array.isArray(backlogItem?.detail?.dependencies) ? backlogItem.detail.dependencies : [];
+  const fileScope = Array.isArray(backlogItem?.detail?.fileScope) ? backlogItem.detail.fileScope : [];
+  const latestExecution = backlogItem?.detail?.latestExecution || null;
+  const currentStep = backlogItem?.detail?.currentStep || backlogItem?.status?.reason || null;
+  const lastActivityText = backlogItem?.lastActivityAt
+    ? `${relativeTime(backlogItem.lastActivityAt)} · ${backlogItem.lastActivitySummary || "Recent activity"}`
+    : (historyTask?.endedAt ? `${relativeTime(historyTask.endedAt)} · Completed in history` : "No recent activity captured");
+  const executionSummary = liveTask
+    ? `Live batch ${liveTask.batchId || currentData?.batch?.batchId || "—"} · ${liveTask.status || "unknown"}${liveTask.laneNumber != null ? ` · Lane ${liveTask.laneNumber}` : ""}`
+    : (historyTask
+      ? `History batch ${activeHistoryEntry?.batchId || "—"} · ${historyTask.status || "unknown"}${historyTask.wave != null ? ` · Wave ${historyTask.wave}` : ""}${historyTask.lane != null ? ` · Lane ${historyTask.lane}` : ""}`
+      : (backlogItem?.execution?.batchId ? `Active batch ${backlogItem.execution.batchId}` : "Not in active batch"));
+  const progressText = backlogItem?.detail?.progress != null && backlogItem?.counts
+    ? `${backlogItem.detail.progress}% · ${backlogItem.detail.currentStep || "Current step unavailable"}`
+    : (currentStep || "No step metadata yet");
+  const latestExecutionHtml = latestExecution
+    ? `<div class="task-detail-exec-log"><span class="label">Latest execution log</span><div>${escapeHtml(latestExecution.timestamp || "—")} · ${escapeHtml(latestExecution.action || "Update")} · ${escapeHtml(latestExecution.outcome || "—")}</div></div>`
+    : "";
+  const dependenciesHtml = dependencies.length > 0
+    ? `<ul class="task-detail-list">${dependencies.map((dep) => `<li>${escapeHtml(dep)}</li>`).join("")}</ul>`
+    : '<div class="task-detail-empty">No declared dependencies</div>';
+  const fileScopeHtml = fileScope.length > 0
+    ? `<ul class="task-detail-list">${fileScope.map((entry) => `<li><code>${escapeHtml(entry)}</code></li>`).join("")}</ul>`
+    : '<div class="task-detail-empty">No file scope listed in PROMPT.md</div>';
+  const canOpenStatus = backlogCanOpenStatus(backlogItem);
+  const statusAction = canOpenStatus
+    ? `<button class="session-view-btn" type="button" data-backlog-open-status="${escapeHtml(taskId)}">View STATUS.md</button>`
+    : '<span class="backlog-selection-hint">STATUS viewer available when this task is part of the active batch.</span>';
+
+  $taskDetailPanel.style.display = "";
+  $taskDetailTitle.textContent = `${taskId} — ${title}`;
+  $taskDetailSubtitle.textContent = backlogItem?.status?.label || historyTask?.status || liveTask?.status || "Task detail";
+  $taskDetailBody.innerHTML = `
+    <div class="task-detail-toolbar">
+      <div class="task-detail-badges">
+        ${backlogItem ? backlogStatusChip(backlogItem) : ""}
+        ${backlogItem?.repoId ? repoBadgeHtml(backlogItem.repoId, "backlog-repo-badge") : ""}
+        ${backlogItem?.readiness?.waitingOn ? `<span class="backlog-card-pill">${escapeHtml(backlogItem.readiness.waitingOn)}</span>` : ""}
+      </div>
+      <div class="task-detail-actions">${statusAction}</div>
+    </div>
+    <div class="task-detail-grid">
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Mission</div>
+        <div class="task-detail-copy">${mission ? escapeHtml(mission) : "Mission summary unavailable"}</div>
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Latest execution</div>
+        <div class="task-detail-copy">${escapeHtml(executionSummary)}</div>
+        <div class="task-detail-copy task-detail-muted">${escapeHtml(lastActivityText)}</div>
+        ${latestExecutionHtml}
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Prompt + status</div>
+        <div class="task-detail-kv"><span class="label">Current step</span><span>${escapeHtml(progressText)}</span></div>
+        <div class="task-detail-kv"><span class="label">Review level</span><span>${escapeHtml(backlogItem?.detail?.reviewLevel != null ? String(backlogItem.detail.reviewLevel) : "—")}</span></div>
+        <div class="task-detail-kv"><span class="label">Prompt</span><span class="mono">${escapeHtml(backlogItem?.navigation?.promptPath || backlogItem?.promptPath || "—")}</span></div>
+        <div class="task-detail-kv"><span class="label">Status</span><span class="mono">${escapeHtml(backlogItem?.navigation?.statusPath || backlogItem?.statusPath || "—")}</span></div>
+        <div class="task-detail-kv"><span class="label">Task folder</span><span class="mono">${escapeHtml(backlogItem?.navigation?.taskFolder || backlogItem?.taskFolder || "—")}</span></div>
+      </div>
+      <div class="task-detail-section">
+        <div class="task-detail-section-title">Dependencies</div>
+        ${dependenciesHtml}
+      </div>
+      <div class="task-detail-section task-detail-section-wide">
+        <div class="task-detail-section-title">File scope</div>
+        ${fileScopeHtml}
+      </div>
+    </div>`;
+}
+
 function renderBacklog(backlog) {
   if (!$backlogBody) return;
   if (!backlog) {
@@ -1929,6 +2069,7 @@ function render(data) {
   syncPrimaryView(data);
   updateRepoFilter(resolveRepoSetForView(data));
   renderBacklog(data.backlog);
+  renderTaskDetail();
 
   if (!batch) {
     // TP-178: Clear viewer when batch disappears (#487)
@@ -1954,6 +2095,7 @@ function render(data) {
   // Live batch is running — hide history panel, reset viewing state
   if (viewingHistoryId) {
     viewingHistoryId = null;
+    activeHistoryEntry = null;
     $historyPanel.style.display = "none";
     $historySelect.value = "";
   }
@@ -2702,7 +2844,9 @@ function renderHistoryDropdown() {
 function viewHistoryEntry(batchId) {
   if (!batchId) {
     viewingHistoryId = null;
+    activeHistoryEntry = null;
     $historyPanel.style.display = "none";
+    renderTaskDetail();
     return;
   }
   viewingHistoryId = batchId;
@@ -2710,15 +2854,23 @@ function viewHistoryEntry(batchId) {
     .then(r => r.json())
     .then(entry => {
       if (entry.error) {
+        activeHistoryEntry = null;
         $historyBody.innerHTML = `<div class="empty-state">${escapeHtml(entry.error)}</div>`;
       } else {
+        activeHistoryEntry = entry;
         renderHistorySummary(entry);
+        if (!selectedBacklogTaskId && Array.isArray(entry.tasks) && entry.tasks[0]?.taskId) {
+          selectedBacklogTaskId = entry.tasks[0].taskId;
+        }
+        renderTaskDetail();
       }
       $historyPanel.style.display = "";
     })
     .catch(() => {
+      activeHistoryEntry = null;
       $historyBody.innerHTML = '<div class="empty-state">Failed to load batch details</div>';
       $historyPanel.style.display = "";
+      renderTaskDetail();
     });
 }
 
@@ -2805,7 +2957,7 @@ function renderHistorySummary(entry) {
       let tTokenStr = `↑${formatTokens(tTotalIn)} ↓${formatTokens(tTok.output || 0)}`;
       const statusCls = `status-${t.status}`;
       html += `<tr>
-        <td>${escapeHtml(t.taskId)}</td>
+        <td><button class="history-task-link" type="button" data-open-task-detail="${escapeHtml(t.taskId)}">${escapeHtml(t.taskId)}</button></td>
         <td><span class="status-badge ${statusCls}">${t.status}</span></td>
         <td>W${t.wave}</td>
         <td>L${t.lane}</td>

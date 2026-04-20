@@ -160,6 +160,38 @@ function resolveTaskFolder(task, state) {
   return task.taskFolder;
 }
 
+function extractMarkdownSection(content, heading) {
+  if (!content || !heading) return "";
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = content.match(new RegExp(`^##\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|\\n---|\\n$)`, "m"));
+  return match ? match[1].trim() : "";
+}
+
+function parseMarkdownBulletLines(sectionText) {
+  if (!sectionText) return [];
+  return sectionText
+    .split("\n")
+    .map((line) => line.match(/^\s*[-*+]\s+(.*)$/)?.[1]?.trim() || "")
+    .filter(Boolean);
+}
+
+function parseStatusExecutionLog(content) {
+  const executionSection = extractMarkdownSection(content, "Execution Log");
+  if (!executionSection) return null;
+
+  const lines = executionSection.split("\n").map((line) => line.trim()).filter(Boolean);
+  const rows = [];
+  for (const line of lines) {
+    if (!line.startsWith("|")) continue;
+    const parts = line.split("|").slice(1, -1).map((part) => part.trim());
+    if (parts.length < 3) continue;
+    if (/^-+$/.test(parts[0].replace(/\s+/g, ""))) continue;
+    if (parts[0] === "Timestamp" && parts[1] === "Action") continue;
+    rows.push({ timestamp: parts[0], action: parts[1], outcome: parts[2] });
+  }
+  return rows.length > 0 ? rows[rows.length - 1] : null;
+}
+
 function parseStatusMd(taskFolder) {
   const candidates = [taskFolder];
   const taskId = path.basename(taskFolder);
@@ -174,6 +206,7 @@ function parseStatusMd(taskFolder) {
       const statusMatch = content.match(/\*\*Status:\*\*\s*(.+)/);
       const iterMatch = content.match(/\*\*Iteration:\*\*\s*(\d+)/);
       const reviewMatch = content.match(/\*\*Review Counter:\*\*\s*(\d+)/);
+      const reviewLevelMatch = content.match(/\*\*Review Level:\*\*\s*(\d+)/);
       const checked = (content.match(/- \[x\]/gi) || []).length;
       const unchecked = (content.match(/- \[ \]/g) || []).length;
       const total = checked + unchecked;
@@ -188,10 +221,12 @@ function parseStatusMd(taskFolder) {
         status: statusMatch ? statusMatch[1].trim() : "Unknown",
         iteration: iterMatch ? parseInt(iterMatch[1]) : 0,
         reviews: reviewMatch ? parseInt(reviewMatch[1]) : 0,
+        reviewLevel: reviewLevelMatch ? parseInt(reviewLevelMatch[1]) : 0,
         checked,
         total,
         progress: total > 0 ? Math.round((checked / total) * 100) : 0,
         updatedAt,
+        latestExecution: parseStatusExecutionLog(content),
       };
     } catch {
       continue;
@@ -1568,6 +1603,21 @@ function loadTaskplaneTaskAreas() {
   return {};
 }
 
+function extractBacklogSection(content, heading) {
+  if (!content || !heading) return "";
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = content.match(new RegExp(`^##\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|\\n---|\\n$)`, "m"));
+  return match ? match[1].trim() : "";
+}
+
+function parseBacklogBulletLines(sectionText) {
+  if (!sectionText) return [];
+  return sectionText
+    .split("\n")
+    .map((line) => line.match(/^\s*[-*+]\s+(.*)$/)?.[1]?.trim() || "")
+    .filter(Boolean);
+}
+
 function normalizeBacklogDependencyRef(raw) {
   const text = String(raw || "").trim();
   if (!text) return "";
@@ -1600,30 +1650,27 @@ function extractBacklogPromptMeta(promptPath, taskFolder, areaName) {
   }
 
   const title = (headingMatch?.[2] || folderName.replace(/^([A-Z]+-\d+)[-_]*/, "")).trim() || taskId;
-  const missionMatch = content.match(/^##\s+Mission\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
-  const summary = missionMatch
-    ? missionMatch[1]
+  const missionSection = extractBacklogSection(content, "Mission");
+  const summary = missionSection
+    ? missionSection
       .split(/\n{2,}/)
       .map((part) => part.replace(/\s+/g, " ").trim())
       .find(Boolean) || null
     : null;
 
   const dependencies = [];
-  const depSectionMatch = content.match(/^##\s+Dependencies\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
-  if (depSectionMatch) {
-    for (const line of depSectionMatch[1].split("\n")) {
-      const bulletMatch = line.match(/^\s*[-*+]\s+(.*)$/);
-      if (!bulletMatch) continue;
-      const depId = normalizeBacklogDependencyRef(bulletMatch[1]);
-      if (!depId || depId === taskId || dependencies.includes(depId)) continue;
-      dependencies.push(depId);
-    }
+  for (const depLine of parseBacklogBulletLines(extractBacklogSection(content, "Dependencies"))) {
+    const depId = normalizeBacklogDependencyRef(depLine);
+    if (!depId || depId === taskId || dependencies.includes(depId)) continue;
+    dependencies.push(depId);
   }
 
+  const fileScope = parseBacklogBulletLines(extractBacklogSection(content, "File Scope"));
+
   let promptRepoId = null;
-  const executionTargetMatch = content.match(/^##\s+Execution Target\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
+  const executionTargetMatch = extractBacklogSection(content, "Execution Target");
   if (executionTargetMatch) {
-    const repoLineMatch = executionTargetMatch[1].match(/^\s*(?:[-*+]\s+)?Repo:\s*(\S+)/im);
+    const repoLineMatch = executionTargetMatch.match(/^\s*(?:[-*+]\s+)?Repo:\s*(\S+)/im);
     if (repoLineMatch) promptRepoId = repoLineMatch[1].trim().toLowerCase();
   }
   if (!promptRepoId) {
@@ -1636,9 +1683,11 @@ function extractBacklogPromptMeta(promptPath, taskFolder, areaName) {
       taskId,
       title,
       summary,
+      mission: missionSection ? missionSection.replace(/\s+/g, " ").trim() : null,
       area: areaName,
       promptRepoId,
       dependencies,
+      fileScope,
       promptPath,
       statusPath: path.join(taskFolder, "STATUS.md"),
       taskFolder,
@@ -1967,6 +2016,19 @@ function buildBacklogItem(packet, context) {
       completedDependencyCount: completedDependencies.length,
       reviewCount: packet?.statusData?.reviews || 0,
       artifactCount: packet?.doneFileFound ? 3 : 2,
+    },
+    detail: {
+      mission: packet.mission || packet.summary || null,
+      dependencies: Array.isArray(packet.dependencies) ? packet.dependencies : [],
+      completedDependencies,
+      blockedDependencies,
+      fileScope: Array.isArray(packet.fileScope) ? packet.fileScope : [],
+      currentStep: packet?.statusData?.currentStep || null,
+      statusText: packet?.statusData?.status || null,
+      progress: packet?.statusData?.progress ?? null,
+      iteration: packet?.statusData?.iteration ?? null,
+      reviewLevel: packet?.statusData?.reviewLevel ?? null,
+      latestExecution: packet?.statusData?.latestExecution || null,
     },
     navigation: {
       kind: "task",

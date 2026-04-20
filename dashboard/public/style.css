@@ -770,6 +770,119 @@ body {
   margin-bottom: 2px;
 }
 
+.task-detail-panel-header {
+  align-items: flex-start;
+}
+
+.task-detail-subtitle {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.task-detail-panel-body {
+  padding: 16px;
+}
+
+.task-detail-toolbar,
+.task-detail-badges,
+.task-detail-actions,
+.task-detail-kv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-detail-toolbar {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.task-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.task-detail-section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-inset);
+  padding: 12px 14px;
+}
+
+.task-detail-section-wide {
+  grid-column: 1 / -1;
+}
+
+.task-detail-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.task-detail-copy,
+.task-detail-kv,
+.task-detail-empty,
+.task-detail-exec-log,
+.task-detail-list {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.task-detail-muted,
+.task-detail-empty,
+.task-detail-exec-log .label,
+.task-detail-kv .label {
+  color: var(--text-muted);
+}
+
+.task-detail-kv {
+  justify-content: space-between;
+  align-items: flex-start;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.task-detail-kv:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.task-detail-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.task-detail-list li + li {
+  margin-top: 6px;
+}
+
+.task-detail-exec-log {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.history-task-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.history-task-link:hover {
+  text-decoration: underline;
+}
+
 /* ─── Lane Group (lane header + nested task rows) ──────────────────────── */
 
 .lane-group {
