@@ -1,10 +1,10 @@
 # TP-189: Dashboard Query and Refresh Controls — Status
 
-**Current Step:** Step 2: Server/client implementation
+**Current Step:** Step 3: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -29,16 +29,16 @@
 ---
 
 ### Step 2: Server/client implementation
-**Status:** 🟨 In Progress
-- [ ] Add minimal server support for explicit manual refresh if needed
-- [ ] Add frontend control bar and manual refresh wiring
-- [ ] Add Pending vs All query filtering without breaking existing filters
-- [ ] Keep existing live behavior intact
+**Status:** ✅ Complete
+- [x] Add minimal server support for explicit manual refresh if needed
+- [x] Add frontend control bar and manual refresh wiring
+- [x] Add Pending vs All query filtering without breaking existing filters
+- [x] Keep existing live behavior intact
 
 ---
 
 ### Step 3: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Test task-file change refresh behavior
 - [ ] Test pending/all filtering
 - [ ] Test graceful error handling
@@ -66,6 +66,8 @@
 | Step 1 query contract: `Pending` means backlog items whose display status is not terminal (`succeeded` or `skipped`), and the new query toggle composes by intersecting with existing repo/search/status filters. | Implement `Pending/All` as a coarse local subset above existing filters; incompatible combinations should yield a clear empty-state message instead of silently changing the existing status filter. | `dashboard/public/app.js`, `dashboard/public/index.html` |
 | Step 1 feedback contract: manual refresh should expose idle/loading/success/error messages in the control bar, while backlog empty states should distinguish “no tasks exist”, “no tasks match current filters”, and “backlog scan failed”. | Reuse the current backlog `loadState` plus a small client-only request state so operators can tell whether a fresh snapshot is in flight or whether filters simply produced zero results. | `dashboard/public/app.js`, `dashboard/public/index.html` |
 | Final v1 contract maps directly to existing Taskplane behavior: one manual `/api/state` refresh action, one local `Pending/All` backlog query toggle, and no separate plan-refresh control unless it is later surfaced with explicit `orch-plan --refresh` semantics. | Implementation can stay minimal, preserve SSE, and avoid suggesting unsupported background discovery or plan orchestration in the dashboard. | `dashboard/server.cjs`, `dashboard/public/app.js`, `extensions/taskplane/extension.ts` |
+| `/api/state` now responds with `Cache-Control: no-store`, which makes the manual refresh path explicitly request a fresh snapshot without changing the existing state-building code path. | Keep manual refresh grounded in the same server route SSE already reflects, rather than adding a second discovery endpoint. | `dashboard/server.cjs` |
+| The backlog header now includes a dedicated control bar with `Pending/All` query buttons, `Refresh now`, and inline status text, while `renderBacklog()` applies the query toggle as an intersection with repo/search/status filters. | Preserve existing backlog filters while making the new control semantics visible and testable in the UI. | `dashboard/public/index.html`, `dashboard/public/app.js`, `dashboard/public/style.css` |
 
 ---
 
@@ -84,6 +86,10 @@
 | 2026-04-20 21:29 | Defined Pending/All semantics | `Pending` = backlog items not in terminal `succeeded`/`skipped` states; query toggle intersects with repo/search/status filters |
 | 2026-04-20 21:31 | Defined feedback states | Manual refresh will show loading/success/error messages; backlog empty states will differentiate empty repo, empty filter result, and scan failure |
 | 2026-04-20 21:33 | Validated v1 scope against real behavior | Finalized a one-action refresh + local Pending/All contract and deferred plan refresh to avoid unsupported dashboard semantics |
+| 2026-04-20 21:46 | Added manual refresh server support | Marked `/api/state` as `no-store` so explicit refreshes request a fresh snapshot without introducing a duplicate endpoint |
+| 2026-04-20 21:47 | Added backlog control bar | Added Pending/All toggle, Refresh button, and inline refresh feedback wiring in dashboard UI |
+| 2026-04-20 21:48 | Added query filter composition | Pending query now intersects with repo/search/status filters and improves empty-state guidance for narrow combinations |
+| 2026-04-20 21:50 | Ran targeted dashboard tests | `dashboard-backlog-ui`, `dashboard-query-refresh-controls`, and `dashboard-operator-actions` passed, confirming new controls did not break existing dashboard action/live wiring |
 
 ---
 
@@ -105,5 +111,7 @@ Adds UI-side query/refresh affordances for normal operator use.
 - `Pending` is a coarse local backlog query for non-terminal tasks (`ready`, `blocked`, `running`, `waiting`, `failed`, `stalled`); repo/search/status filters still apply afterward, even if that yields an intentionally empty intersection.
 - Operator feedback should be explicit: `Refreshing…` while `/api/state` is in flight, a brief success indicator when a fresh snapshot lands, and an inline error when the manual request fails while SSE/live updates remain connected or reconnecting independently.
 - Backlog rendering should keep three distinct zero-data cases: source empty (`No task packets found`), filter empty (`No tasks match current query/filter`), and load failure (`Backlog scan failed`).
+- Implementation note: manual refresh can stay on the existing `/api/state` route as long as the response is explicitly non-cacheable and the client shows request-state feedback.
 | 2026-04-20 21:07 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 21:09 | Review R002 | plan Step 1: APPROVE |
+| 2026-04-20 21:11 | Review R003 | plan Step 2: APPROVE |

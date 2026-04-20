@@ -671,8 +671,19 @@ body {
   justify-content: flex-end;
 }
 
+.backlog-query-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-inset);
+}
+
+.backlog-query-btn,
 .backlog-search,
 .backlog-filter-select,
+.backlog-refresh-btn,
 .backlog-clear-btn {
   background: var(--bg-inset);
   border: 1px solid var(--border);
@@ -682,20 +693,60 @@ body {
   font-size: 0.78rem;
 }
 
+.backlog-query-btn {
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  min-width: 74px;
+  cursor: pointer;
+}
+
+.backlog-query-btn:last-child {
+  border-right: 0;
+}
+
+.backlog-query-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.backlog-refresh-btn,
 .backlog-clear-btn {
   cursor: pointer;
 }
 
-.backlog-clear-btn:hover {
+.backlog-refresh-btn:hover,
+.backlog-clear-btn:hover,
+.backlog-query-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
+.backlog-refresh-btn:disabled,
 .backlog-clear-btn:disabled {
   opacity: 0.55;
   cursor: default;
   border-color: var(--border);
   color: var(--text-muted);
+}
+
+.backlog-refresh-status {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  min-width: 150px;
+  text-align: left;
+}
+
+.backlog-refresh-status.tone-success {
+  color: var(--green);
+}
+
+.backlog-refresh-status.tone-danger {
+  color: var(--red);
+}
+
+.backlog-refresh-status.tone-info {
+  color: var(--accent);
 }
 
 .backlog-panel-body {

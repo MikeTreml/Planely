@@ -18,6 +18,10 @@ describe("TP-182 dashboard backlog UI", () => {
 		expect(html).toContain('id="backlog-panel"');
 		expect(html).toContain('id="backlog-search"');
 		expect(html).toContain('id="backlog-status-filter"');
+		expect(html).toContain('id="backlog-query-pending"');
+		expect(html).toContain('id="backlog-query-all"');
+		expect(html).toContain('id="backlog-refresh-button"');
+		expect(html).toContain('id="backlog-refresh-status"');
 		expect(html).toContain('id="backlog-scope-line"');
 		expect(html).toContain('id="backlog-clear-filters"');
 	});
@@ -27,11 +31,14 @@ describe("TP-182 dashboard backlog UI", () => {
 		expect(app).toContain("function syncPrimaryView(data)");
 		expect(app).toContain("function applyPrimaryViewVisibility(data)");
 		expect(app).toContain("function renderBacklog(backlog)");
+		expect(app).toContain("function renderBacklogControls()");
+		expect(app).toContain("function backlogMatchesQueryMode(item, queryMode)");
 		expect(app).toContain("function backlogScopeText(backlog)");
 		expect(app).toContain("function backlogCanOpenStatus(item)");
 		expect(app).toContain("function backlogSelectionHtml(item, outOfFilter)");
 		expect(app).toContain("STATUS viewer available when this task is part of the active batch");
-		expect(app).toContain("$backlogClearFilters?.addEventListener");
+		expect(app).toContain("$backlogRefreshButton?.addEventListener");
+		expect(app).toContain("$backlogQueryPending?.addEventListener");
 		expect(app).toContain("renderSummary(null, data.backlog)");
 		expect(app).toContain("configuredRepoIds");
 	});

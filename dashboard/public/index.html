@@ -74,6 +74,12 @@
             <div class="backlog-scope-line" id="backlog-scope-line">Loading backlog…</div>
           </div>
           <div class="backlog-header-controls">
+            <div class="backlog-query-toggle" role="group" aria-label="Backlog query mode">
+              <button class="backlog-query-btn" id="backlog-query-pending" type="button" aria-pressed="false">Pending</button>
+              <button class="backlog-query-btn active" id="backlog-query-all" type="button" aria-pressed="true">All</button>
+            </div>
+            <button class="backlog-refresh-btn" id="backlog-refresh-button" type="button">Refresh now</button>
+            <span class="backlog-refresh-status" id="backlog-refresh-status" aria-live="polite">Live updates on</span>
             <input class="backlog-search" id="backlog-search" type="search" placeholder="Search tasks" aria-label="Search backlog tasks">
             <select class="backlog-filter-select" id="backlog-status-filter" aria-label="Filter backlog by status">
               <option value="">All statuses</option>

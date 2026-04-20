@@ -233,6 +233,10 @@ const $backlogPanel   = $("backlog-panel");
 const $backlogBody    = $("backlog-body");
 const $backlogSearch  = $("backlog-search");
 const $backlogStatusFilter = $("backlog-status-filter");
+const $backlogQueryPending = $("backlog-query-pending");
+const $backlogQueryAll = $("backlog-query-all");
+const $backlogRefreshButton = $("backlog-refresh-button");
+const $backlogRefreshStatus = $("backlog-refresh-status");
 const $backlogScopeLine = $("backlog-scope-line");
 const $backlogClearFilters = $("backlog-clear-filters");
 const $taskDetailPanel = $("task-detail-panel");
@@ -290,6 +294,12 @@ let preferredPrimaryView = null; // null = auto (batch-aware default)
 let selectedBacklogTaskId = null;
 let backlogSearchQuery = "";
 let backlogStatusKey = "";
+let backlogQueryMode = "all";
+const backlogRefreshState = {
+  pending: false,
+  tone: "neutral",
+  message: "Live updates on",
+};
 let activeHistoryEntry = null;
 let selectedProjectId = null;
 let projectSwitchInFlight = false;
@@ -505,6 +515,36 @@ function applyPrimaryViewVisibility(data) {
   if ($historyPanel && showBacklog && hasBatch) {
     $historyPanel.style.display = "none";
   }
+}
+
+function renderBacklogControls() {
+  if ($backlogQueryPending) {
+    const active = backlogQueryMode === "pending";
+    $backlogQueryPending.classList.toggle("active", active);
+    $backlogQueryPending.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+  if ($backlogQueryAll) {
+    const active = backlogQueryMode === "all";
+    $backlogQueryAll.classList.toggle("active", active);
+    $backlogQueryAll.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+  if ($backlogRefreshButton) {
+    $backlogRefreshButton.disabled = backlogRefreshState.pending;
+    $backlogRefreshButton.textContent = backlogRefreshState.pending ? "Refreshing…" : "Refresh now";
+  }
+  if ($backlogRefreshStatus) {
+    $backlogRefreshStatus.textContent = backlogRefreshState.message;
+    $backlogRefreshStatus.className = `backlog-refresh-status tone-${backlogRefreshState.tone || "neutral"}`;
+  }
+}
+
+function isTerminalBacklogStatus(statusKey) {
+  return ["succeeded", "skipped"].includes(String(statusKey || ""));
+}
+
+function backlogMatchesQueryMode(item, queryMode) {
+  if (queryMode !== "pending") return true;
+  return !isTerminalBacklogStatus(item?.status?.key);
 }
 
 function projectBadgeHtml(badge) {
@@ -807,8 +847,13 @@ function clearProjectScopedUiState(nextData) {
   selectedBacklogTaskId = null;
   backlogSearchQuery = "";
   backlogStatusKey = "";
+  backlogQueryMode = "all";
+  backlogRefreshState.pending = false;
+  backlogRefreshState.tone = "neutral";
+  backlogRefreshState.message = "Live updates on";
   if ($backlogSearch) $backlogSearch.value = "";
   if ($backlogStatusFilter) $backlogStatusFilter.value = "";
+  renderBacklogControls();
   viewingHistoryId = null;
   activeHistoryEntry = null;
   if ($historySelect) $historySelect.value = "";
@@ -888,11 +933,51 @@ $backlogStatusFilter?.addEventListener("change", (e) => {
   if (currentData) renderBacklog(currentData.backlog);
 });
 
+$backlogQueryPending?.addEventListener("click", () => {
+  backlogQueryMode = "pending";
+  renderBacklogControls();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogQueryAll?.addEventListener("click", () => {
+  backlogQueryMode = "all";
+  renderBacklogControls();
+  if (currentData) renderBacklog(currentData.backlog);
+});
+
+$backlogRefreshButton?.addEventListener("click", async () => {
+  if (backlogRefreshState.pending) return;
+  backlogRefreshState.pending = true;
+  backlogRefreshState.tone = "info";
+  backlogRefreshState.message = "Requesting a fresh snapshot…";
+  renderBacklogControls();
+
+  try {
+    const response = await fetch(`/api/state?manualRefresh=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Refresh failed (${response.status})`);
+    }
+    const nextState = await response.json();
+    backlogRefreshState.tone = "success";
+    backlogRefreshState.message = "Fresh snapshot loaded";
+    render(nextState);
+  } catch (err) {
+    backlogRefreshState.tone = "danger";
+    backlogRefreshState.message = err instanceof Error ? err.message : String(err);
+    renderBacklogControls();
+  } finally {
+    backlogRefreshState.pending = false;
+    renderBacklogControls();
+  }
+});
+
 $backlogClearFilters?.addEventListener("click", () => {
   backlogSearchQuery = "";
   backlogStatusKey = "";
+  backlogQueryMode = "all";
   if ($backlogSearch) $backlogSearch.value = "";
   if ($backlogStatusFilter) $backlogStatusFilter.value = "";
+  renderBacklogControls();
   if (currentData) renderBacklog(currentData.backlog);
 });
 
@@ -2141,6 +2226,7 @@ function renderTaskDetail() {
 
 function renderBacklog(backlog) {
   if (!$backlogBody) return;
+  renderBacklogControls();
   if (!backlog) {
     if ($backlogScopeLine) $backlogScopeLine.textContent = "Backlog unavailable";
     $backlogBody.innerHTML = '<div class="empty-state">Backlog unavailable</div>';
@@ -2159,6 +2245,7 @@ function renderBacklog(backlog) {
   }
 
   const filtered = items.filter((item) => {
+    const queryOk = backlogMatchesQueryMode(item, backlogQueryMode);
     const repoOk = !selectedRepo || item.repoId === selectedRepo;
     const statusOk = !backlogStatusKey || item.status?.key === backlogStatusKey;
     const haystack = [item.taskId, item.title, item.summary, item.area, item.repoId, item.status?.label]
@@ -2166,7 +2253,7 @@ function renderBacklog(backlog) {
       .join(" ")
       .toLowerCase();
     const textOk = !backlogSearchQuery || haystack.includes(backlogSearchQuery);
-    return repoOk && statusOk && textOk;
+    return queryOk && repoOk && statusOk && textOk;
   });
 
   const selectedItemInAll = items.find((item) => item.taskId === selectedBacklogTaskId) || null;
@@ -2177,6 +2264,7 @@ function renderBacklog(backlog) {
   const selectedOutOfFilter = Boolean(selectedItem && !filtered.some((item) => item.taskId === selectedItem.taskId));
 
   const activeFilterSummary = [];
+  if (backlogQueryMode === "pending") activeFilterSummary.push("query: pending");
   if (selectedRepo) activeFilterSummary.push(`repo: ${selectedRepo}`);
   if (backlogStatusKey) activeFilterSummary.push(`status: ${backlogStatusKey}`);
   if (backlogSearchQuery) activeFilterSummary.push(`search: “${backlogSearchQuery}”`);
@@ -2228,7 +2316,7 @@ function renderBacklog(backlog) {
     const hint = loadState.kind === "error"
       ? (loadState.message || "Backlog scan failed")
       : activeFilterSummary.length > 0
-        ? "Try clearing one or more filters to widen the backlog view."
+        ? "Try switching to All or clearing one or more filters to widen the backlog view."
         : loadState.kind === "partial"
           ? "Only malformed task packets were found during the scan."
           : (loadState.message || "No backlog items found.");

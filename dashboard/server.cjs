@@ -3414,6 +3414,7 @@ function createServer() {
       const state = buildDashboardState();
       res.writeHead(200, {
         "Content-Type": "application/json",
+        "Cache-Control": "no-store",
         "Access-Control-Allow-Origin": "*",
       });
       res.end(JSON.stringify(state));
