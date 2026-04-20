@@ -1,25 +1,25 @@
 # TP-184: Task Creation Form and Packet Preview — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
-**Last Updated:** 2026-04-19
+**Current Step:** Step 1: Creation data model and preview contract
+**Status:** 🟡 In Progress
+**Last Updated:** 2026-04-20
 **Review Level:** 2
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** L
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Read packet creation skill and examples
-- [ ] Define minimum task-authoring fields
-- [ ] Decide preview/write architecture
+**Status:** ✅ Complete
+- [x] Read packet creation skill and examples
+- [x] Define minimum task-authoring fields
+- [x] Decide preview/write architecture
 
 ---
 
 ### Step 1: Creation data model and preview contract
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define form and preview shapes
 - [ ] Define validation rules
 - [ ] Preserve packet compatibility
@@ -70,6 +70,10 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 20:18 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 20:18 | Step 0 started | Preflight |
+| 2026-04-20 20:24 | Step 0 completed | Packet inputs, preview/write approach, and safety rules scoped |
+| 2026-04-20 20:24 | Step 1 started | Creation data model and preview contract |
 
 ---
 
@@ -82,3 +86,8 @@
 ## Notes
 
 Brings structured task authoring into the Operator Console.
+
+Preflight findings:
+- Minimum authoring inputs should cover area, title, mission, size, review level, optional dependencies, optional context refs, and optional file scope; server can derive task ID, folder slug, timestamps, score labels, canonical paths, and initial STATUS scaffolding.
+- Preview/write should be server-authored from a shared generator so the dashboard does not fork packet formatting; client submits form data, server returns rendered PROMPT.md/STATUS.md preview plus derived task metadata, then a confirmed write uses the same generation path.
+- Safety rules should include reading area config from `.pi/taskplane-config.json`, reserving the current `Next Task ID` from `CONTEXT.md`, rejecting duplicate task IDs/folder names, creating the new folder only when absent, writing canonical files explicitly, and updating `Next Task ID` only after successful packet creation.
