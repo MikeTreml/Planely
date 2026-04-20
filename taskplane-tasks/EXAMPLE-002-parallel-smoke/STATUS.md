@@ -64,6 +64,8 @@
 | 2026-04-20 16:37 | Step 1 completed | Created `hello-taskplane-2.md` in project root |
 | 2026-04-20 16:37 | Step 2 completed | Verified file exists and content matches prompt |
 | 2026-04-20 16:37 | Step 3 completed | Task ready for delivery |
+| 2026-04-20 16:38 | Worker iter 1 | done in 90s, tools: 23 |
+| 2026-04-20 16:38 | Task complete | .DONE created |
 
 ---
 
