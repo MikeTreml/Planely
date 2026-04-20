@@ -72,6 +72,13 @@ When no batch is active, the dashboard lands on **Backlog** and keeps batch
 history available as secondary context. When a batch is active, it defaults to
 **Live Batch** with one-click switching back to Backlog.
 
+The **Backlog** header now includes a lightweight control bar for common
+operator queries: **Refresh now** requests a fresh `/api/state` snapshot (which
+also re-reads backlog discovery), **Pending/All** toggles the backlog between
+non-terminal tasks and the full list, and the inline status text tells you when
+that manual refresh request is loading, succeeded, or failed. These controls
+complement live SSE updates; they do not replace the existing automatic feed.
+
 Use the **Projects** sidebar to switch roots. The current project stays pinned
 at the top of the active list, recent projects are ordered by the latest known
 open/batch activity, and archived projects stay available in a muted section.
@@ -87,6 +94,11 @@ it will write, and **Write task packet** stays disabled until the preview
 matches the current form. After a successful write, the backlog refreshes,
 `Next Task ID` advances, and the new task is selected in the shared detail
 panel.
+
+The existing repo/search/status controls still work the same way. The new
+**Pending/All** query is applied as an additional local filter on top of those
+controls, so combinations can intentionally produce an empty state when nothing
+matches the current query.
 
 Select a task from **Backlog**, **Live Batch**, or **Batch Summary** to open the
 shared **Task Detail** panel. The panel surfaces the task mission, dependency

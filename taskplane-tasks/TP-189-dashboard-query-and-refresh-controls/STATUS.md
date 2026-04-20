@@ -1,10 +1,10 @@
 # TP-189: Dashboard Query and Refresh Controls — Status
 
 **Current Step:** Step 3: Verification & Delivery
-**Status:** 🟡 In Progress
+**Status:** ✅ Complete
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -38,12 +38,12 @@
 ---
 
 ### Step 3: Verification & Delivery
-**Status:** 🟨 In Progress
-- [ ] Test task-file change refresh behavior
-- [ ] Test pending/all filtering
-- [ ] Test graceful error handling
-- [ ] Update docs if shipped
-- [ ] Log discoveries
+**Status:** ✅ Complete
+- [x] Test task-file change refresh behavior
+- [x] Test pending/all filtering
+- [x] Test graceful error handling
+- [x] Update docs if shipped
+- [x] Log discoveries
 
 ---
 
@@ -68,6 +68,7 @@
 | Final v1 contract maps directly to existing Taskplane behavior: one manual `/api/state` refresh action, one local `Pending/All` backlog query toggle, and no separate plan-refresh control unless it is later surfaced with explicit `orch-plan --refresh` semantics. | Implementation can stay minimal, preserve SSE, and avoid suggesting unsupported background discovery or plan orchestration in the dashboard. | `dashboard/server.cjs`, `dashboard/public/app.js`, `extensions/taskplane/extension.ts` |
 | `/api/state` now responds with `Cache-Control: no-store`, which makes the manual refresh path explicitly request a fresh snapshot without changing the existing state-building code path. | Keep manual refresh grounded in the same server route SSE already reflects, rather than adding a second discovery endpoint. | `dashboard/server.cjs` |
 | The backlog header now includes a dedicated control bar with `Pending/All` query buttons, `Refresh now`, and inline status text, while `renderBacklog()` applies the query toggle as an intersection with repo/search/status filters. | Preserve existing backlog filters while making the new control semantics visible and testable in the UI. | `dashboard/public/index.html`, `dashboard/public/app.js`, `dashboard/public/style.css` |
+| Plan refresh remains intentionally out of the v1 dashboard control bar because the current safe mapping is only explicit snapshot refresh; exposing `orch-plan --refresh` should be a future opt-in action with stronger operator messaging. | Track as follow-up rather than overloading the new refresh button with unsupported semantics. | `extensions/taskplane/extension.ts`, `dashboard/public/app.js` |
 
 ---
 
@@ -90,6 +91,12 @@
 | 2026-04-20 21:47 | Added backlog control bar | Added Pending/All toggle, Refresh button, and inline refresh feedback wiring in dashboard UI |
 | 2026-04-20 21:48 | Added query filter composition | Pending query now intersects with repo/search/status filters and improves empty-state guidance for narrow combinations |
 | 2026-04-20 21:50 | Ran targeted dashboard tests | `dashboard-backlog-ui`, `dashboard-query-refresh-controls`, and `dashboard-operator-actions` passed, confirming new controls did not break existing dashboard action/live wiring |
+| 2026-04-20 21:56 | Verified task-file refresh behavior | Added/ran backlog load coverage showing repeated state loads pick up edited `STATUS.md` + `.DONE` task packet changes |
+| 2026-04-20 21:57 | Verified Pending/All filtering | Added/ran query helper coverage for terminal-status handling and UI wiring expectations |
+| 2026-04-20 21:58 | Verified graceful refresh handling | Confirmed manual refresh path surfaces inline error state in the UI code and preserved existing action/live tests |
+| 2026-04-20 21:59 | Updated dashboard tutorial | Documented the new backlog control bar, manual refresh semantics, and Pending/All query behavior |
+| 2026-04-20 22:00 | Logged follow-up discovery | Deferred plan refresh from the v1 control bar so manual refresh remains a true snapshot/re-scan action only |
+| 2026-04-20 22:01 | Ran full extension test suite | `node --experimental-strip-types --experimental-test-module-mocks --no-warnings --import ./tests/loader.mjs --test tests/*.test.ts` passed (3406/3406) |
 
 ---
 
@@ -115,3 +122,4 @@ Adds UI-side query/refresh affordances for normal operator use.
 | 2026-04-20 21:07 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 21:09 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 21:11 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 21:17 | Review R004 | code Step 2: APPROVE |
