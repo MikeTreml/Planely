@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -41,6 +41,7 @@
 ### Step 3: Integration behavior
 **Status:** 🟨 In Progress
 - [ ] Wire selection into dashboard loading/state
+- [ ] Show project-level status badges if safe and grounded in real data
 - [ ] Handle missing/stale data gracefully
 - [ ] Keep archived projects accessible but de-emphasized
 
@@ -91,6 +92,7 @@
 | 2026-04-20 19:53 | Step 2 plan review | APPROVE |
 | 2026-04-20 20:01 | Step 2 completed | Sidebar shell, sectioned project list, selection flow, and responsive layout shipped |
 | 2026-04-20 20:01 | Step 3 started | Integration behavior |
+| 2026-04-20 20:02 | Step 3 hydrated | Added explicit project-badge outcome for integration behavior |
 
 ---
 
@@ -109,3 +111,4 @@ Sidebar/navigation task for multi-project operator UX.
 | 2026-04-20 19:47 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 19:49 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 19:51 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 20:03 | Review R004 | code Step 2: APPROVE |
