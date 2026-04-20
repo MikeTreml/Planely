@@ -107,6 +107,8 @@
 | 2026-04-20 20:12 | Step 4 verification | Full extensions test suite passed; dashboard server/app syntax checks passed |
 | 2026-04-20 20:12 | Step 4 docs | Updated dashboard tutorial for sidebar/project switching |
 | 2026-04-20 20:12 | Step 4 completed | Verification, docs, and discoveries logged |
+| 2026-04-20 20:16 | Worker iter 1 | done in 1931s, tools: 201 |
+| 2026-04-20 20:16 | Task complete | .DONE created |
 
 ---
 
