@@ -1459,6 +1459,17 @@ function resolveDashboardConfigRoot() {
   return REPO_ROOT;
 }
 
+function resolveDashboardTaskAreaBaseRoot() {
+  const configRoot = resolveDashboardConfigRoot();
+  const configFiles = ["taskplane-config.json", "task-runner.yaml", "task-orchestrator.yaml"];
+  const hasStandardLayout = configFiles.some((fileName) => fs.existsSync(path.join(configRoot, ".pi", fileName)));
+  const hasFlatLayout = configFiles.some((fileName) => fs.existsSync(path.join(configRoot, fileName)));
+  if (!hasStandardLayout && hasFlatLayout && configRoot !== REPO_ROOT) {
+    return path.dirname(configRoot);
+  }
+  return configRoot;
+}
+
 function resolveDashboardConfigPath(fileName) {
   const configRoot = resolveDashboardConfigRoot();
   const candidates = [
@@ -1689,6 +1700,7 @@ function computeBacklogSummary(items) {
 
 function loadBacklogData(state, history) {
   const taskAreas = loadTaskplaneTaskAreas();
+  const taskAreaBaseRoot = resolveDashboardTaskAreaBaseRoot();
   const packets = [];
   const errors = [];
   const activeTaskById = new Map();
@@ -1698,7 +1710,7 @@ function loadBacklogData(state, history) {
 
   for (const [areaName, area] of Object.entries(taskAreas)) {
     if (!area || !area.path) continue;
-    const areaPath = path.resolve(REPO_ROOT, area.path);
+    const areaPath = path.resolve(taskAreaBaseRoot, area.path);
     if (!fs.existsSync(areaPath)) {
       errors.push({ path: areaPath, message: `Task area not found: ${area.path}` });
       continue;

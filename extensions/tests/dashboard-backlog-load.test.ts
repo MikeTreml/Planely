@@ -263,7 +263,7 @@ describe("TP-182 dashboard backlog loading", () => {
 			}, null, 2));
 
 			writeTaskPacket(
-				root,
+				configRepo,
 				"TP-270-pointer-task",
 				"# Task: TP-270 - Pointer task\n\n## Mission\nPointer-resolved config.\n",
 				"**Status:** ⬜ Not Started\n",
@@ -333,7 +333,7 @@ describe("TP-182 dashboard backlog loading", () => {
 				},
 			}, null, 2));
 			writeTaskPacket(
-				root,
+				configRepo,
 				"TP-280-should-not-load",
 				"# Task: TP-280 - Hidden pointer task\n\n## Mission\nJSON workspace metadata wins.\n",
 				"**Status:** ⬜ Not Started\n",
