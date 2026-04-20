@@ -1,10 +1,10 @@
 # TP-187: Project Sidebar and Navigation — Status
 
-**Current Step:** Step 2: UI implementation
+**Current Step:** Step 3: Integration behavior
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 2
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -29,17 +29,17 @@
 ---
 
 ### Step 2: UI implementation
-**Status:** 🟨 In Progress
-- [ ] Add sidebar shell/layout
-- [ ] Render sectioned project list
-- [ ] Add project selection behavior
-- [ ] Ensure the main content area responds correctly when switching projects
-- [ ] Preserve narrower-layout usability
+**Status:** ✅ Complete
+- [x] Add sidebar shell/layout
+- [x] Render sectioned project list
+- [x] Add project selection behavior
+- [x] Ensure the main content area responds correctly when switching projects
+- [x] Preserve narrower-layout usability
 
 ---
 
 ### Step 3: Integration behavior
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Wire selection into dashboard loading/state
 - [ ] Handle missing/stale data gracefully
 - [ ] Keep archived projects accessible but de-emphasized
@@ -61,6 +61,7 @@
 |---|------|------|---------|------|
 | 1 | Plan | 1 | REVISE | `.reviews/R001-plan-step1.md` |
 | 2 | Plan | 1 | APPROVE | n/a |
+| 3 | Plan | 2 | APPROVE | n/a |
 
 ---
 
@@ -87,6 +88,9 @@
 | 2026-04-20 19:52 | Step 1 completed | Sidebar contract documented in UX IA and view models |
 | 2026-04-20 19:52 | Step 2 started | UI implementation |
 | 2026-04-20 19:53 | Step 2 hydrated | Added explicit main-content switching outcome before UI implementation |
+| 2026-04-20 19:53 | Step 2 plan review | APPROVE |
+| 2026-04-20 20:01 | Step 2 completed | Sidebar shell, sectioned project list, selection flow, and responsive layout shipped |
+| 2026-04-20 20:01 | Step 3 started | Integration behavior |
 
 ---
 
@@ -104,3 +108,4 @@ Sidebar/navigation task for multi-project operator UX.
 - Reviewer suggestions for Step 1: keep row content anchored to registry-grounded fields (`id`, `name`, `rootPath`/`configPath`, `archived`, `lastOpenedAt`, `lastBatchAt`), use ordering consistent with the project-registry spec (current project first, then active recents, then other active, archived collapsed/de-emphasized), and explicitly justify any Recent deferment if the payload is not ready yet.
 | 2026-04-20 19:47 | Review R001 | plan Step 1: REVISE |
 | 2026-04-20 19:49 | Review R002 | plan Step 1: APPROVE |
+| 2026-04-20 19:51 | Review R003 | plan Step 2: APPROVE |

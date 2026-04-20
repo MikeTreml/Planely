@@ -221,6 +221,9 @@ const $errorsPanel    = $("errors-panel");
 const $errorsBody     = $("errors-body");
 const $footerInfo     = $("footer-info");
 const $content        = $("content");
+const $projectSidebar = $("project-sidebar");
+const $projectSidebarBody = $("project-sidebar-body");
+const $projectSidebarSubtitle = $("project-sidebar-subtitle");
 const $historySelect  = $("history-select");
 const $historyPanel   = $("history-panel");
 const $historyBody    = $("history-body");
@@ -254,6 +257,8 @@ let selectedBacklogTaskId = null;
 let backlogSearchQuery = "";
 let backlogStatusKey = "";
 let activeHistoryEntry = null;
+let selectedProjectId = null;
+let projectSwitchInFlight = false;
 
 // ─── Viewer State ───────────────────────────────────────────────────────────
 
@@ -468,6 +473,102 @@ function applyPrimaryViewVisibility(data) {
   }
 }
 
+function projectBadgeHtml(badge) {
+  if (!badge?.label) return "";
+  const tone = escapeHtml(badge.tone || "neutral");
+  return `<span class="project-badge tone-${tone}">${escapeHtml(badge.label)}</span>`;
+}
+
+function projectMetaText(item) {
+  if (item?.warnings?.length) return item.warnings[0];
+  if (item?.lastActivityAt) return relativeTime(item.lastActivityAt);
+  if (item?.configPath) return item.mode === "workspace" ? "Workspace project" : "Repo project";
+  return item?.rootPath || "Known project";
+}
+
+function renderProjectSidebar(data) {
+  if (!$projectSidebarBody) return;
+  const sidebar = data?.projectSidebar || null;
+  selectedProjectId = sidebar?.selectedProjectId || data?.currentProject?.id || selectedProjectId;
+  if ($projectSidebarSubtitle) {
+    $projectSidebarSubtitle.textContent = data?.currentProject?.name
+      ? `${data.currentProject.name}${projectSwitchInFlight ? " · switching…" : ""}`
+      : (projectSwitchInFlight ? "Switching projects…" : "Current workspace");
+  }
+
+  if (!sidebar || !Array.isArray(sidebar.sections) || sidebar.sections.length === 0) {
+    $projectSidebarBody.innerHTML = `<div class="empty-state">${escapeHtml(sidebar?.emptyMessage || "No known Taskplane projects yet.")}</div>`;
+    return;
+  }
+
+  $projectSidebarBody.innerHTML = sidebar.sections.map((section) => `
+    <section class="project-section project-section-${escapeHtml(section.key || "other")}">
+      <div class="project-section-header">${escapeHtml(section.label || "Projects")}</div>
+      <div class="project-section-list">
+        ${(section.items || []).map((item) => `
+          <button
+            class="project-row${item.selected ? " selected" : ""}${item.archived ? " archived" : ""}${item.warnings?.length ? " warning" : ""}"
+            type="button"
+            data-project-id="${escapeHtml(item.id || "")}"
+            ${projectSwitchInFlight ? "disabled" : ""}
+          >
+            <div class="project-row-main">
+              <span class="project-row-name">${escapeHtml(item.name || item.rootPath || "Project")}</span>
+              <span class="project-row-meta">${escapeHtml(projectMetaText(item))}</span>
+            </div>
+            <div class="project-row-badges">${(item.badges || []).map(projectBadgeHtml).join("")}</div>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `).join("");
+}
+
+function clearProjectScopedUiState(nextData) {
+  selectedRepo = "";
+  if ($repoFilter) $repoFilter.value = "";
+  selectedBacklogTaskId = null;
+  backlogSearchQuery = "";
+  backlogStatusKey = "";
+  if ($backlogSearch) $backlogSearch.value = "";
+  if ($backlogStatusFilter) $backlogStatusFilter.value = "";
+  viewingHistoryId = null;
+  activeHistoryEntry = null;
+  if ($historySelect) $historySelect.value = "";
+  if (viewerMode) closeViewer();
+  if (!nextData?.batch && preferredPrimaryView === "live") {
+    preferredPrimaryView = "backlog";
+  }
+}
+
+async function selectProject(projectId) {
+  if (!projectId || projectSwitchInFlight || projectId === selectedProjectId) return;
+  projectSwitchInFlight = true;
+  if ($projectSidebarSubtitle) $projectSidebarSubtitle.textContent = "Switching projects…";
+  try {
+    const response = await fetch("/api/projects/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.state) {
+      throw new Error(payload?.error || "Project switch failed.");
+    }
+    clearProjectScopedUiState(payload.state);
+    selectedProjectId = projectId;
+    historyList = [];
+    render(payload.state);
+    loadHistoryList();
+  } catch (err) {
+    console.error("Failed to switch project:", err);
+    if ($projectSidebarSubtitle) $projectSidebarSubtitle.textContent = err?.message || "Project switch failed";
+  } finally {
+    projectSwitchInFlight = false;
+    if (currentData) renderProjectSidebar(currentData);
+  }
+}
+
 // Repo filter change handler
 $repoFilter.addEventListener("change", (e) => {
   selectedRepo = e.target.value;
@@ -491,6 +592,13 @@ $viewTabBacklog?.addEventListener("click", () => {
 $viewTabLive?.addEventListener("click", () => {
   preferredPrimaryView = "live";
   if (currentData) render(currentData);
+});
+
+$projectSidebarBody?.addEventListener("click", (event) => {
+  const button = event.target.closest?.("[data-project-id]");
+  if (!button) return;
+  const projectId = button.getAttribute("data-project-id");
+  if (projectId) selectProject(projectId);
 });
 
 $backlogSearch?.addEventListener("input", (e) => {
@@ -2184,6 +2292,7 @@ function render(data) {
   const sessions = data.sessions ?? data.tmuxSessions ?? [];
 
   $lastUpdate.textContent = new Date().toLocaleTimeString();
+  renderProjectSidebar(data);
   syncPrimaryView(data);
   updateRepoFilter(resolveRepoSetForView(data));
   renderBacklog(data.backlog);
