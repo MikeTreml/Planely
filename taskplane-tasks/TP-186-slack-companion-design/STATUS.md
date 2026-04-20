@@ -1,25 +1,25 @@
 # TP-186: Slack Companion Design — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
-**Last Updated:** 2026-04-19
+**Current Step:** Step 1: Slack companion scope
+**Status:** 🟡 In Progress
+**Last Updated:** 2026-04-20
 **Review Level:** 1
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** M
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Read TP-180/TP-185 outputs and OpenClaw Slack docs
-- [ ] Classify safe vs deferred Slack actions
-- [ ] Identify dashboard deep-link needs
+**Status:** ✅ Complete
+- [x] Read TP-180/TP-185 outputs and OpenClaw Slack docs
+- [x] Classify safe vs deferred Slack actions
+- [x] Identify dashboard deep-link needs
 
 ---
 
 ### Step 1: Slack companion scope
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define goals, non-goals, and v1 actions
 - [ ] Define notification categories
 - [ ] Define source-of-truth relationship to dashboard/orchestrator
@@ -69,6 +69,12 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 16:38 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 16:38 | Step 0 started | Preflight |
+| 2026-04-20 16:49 | Preflight sources read | Reviewed TP-180/TP-185 prompts, statuses, operator-console docs, and OpenClaw Slack/web control-plane guidance |
+| 2026-04-20 16:53 | Slack action triage | Safe v1 candidates: notifications, status lookup, approve/reject, and bounded cancel/pause-abort requests; defer retry/skip/force-merge/resume/start until web-first flows and stronger context/confirmation exist |
+| 2026-04-20 16:55 | Deep-link scan | Current dashboard exposes batch history and STATUS.md/task views via API, so the minimum Slack-linkable targets are live batch, historical batch, task detail/status, and approval-focused views encoded as future dashboard URLs rather than Slack-owned state |
+| 2026-04-20 16:56 | Step 0 complete | Ready to draft Slack companion scope docs |
 
 ---
 
@@ -81,3 +87,10 @@
 ## Notes
 
 Slack is intentionally secondary; this task defines bounded companion behavior.
+
+Preflight findings:
+- TP-180 positions the web console as the primary operator surface and Slack as a lightweight companion for awareness, quick approvals, and links back to richer context.
+- TP-185 establishes `.taskplane/project/planning/*.json` as future canonical planning context, while task packets, batches, runs, approvals, and artifacts remain the execution truth.
+- OpenClaw's relevant guidance matches that posture: Slack should provide notifications, quick status, approve/reject, and cancel, but not own canonical state or complex recovery flows.
+- Safe v1 Slack actions should stay low-risk and map cleanly to existing operator intents: view status, acknowledge/approve/reject a pending decision, and request a bounded batch/task stop. More destructive or recovery-heavy controls such as start, resume, retry, skip, and force-merge should stay deferred to the dashboard until identity, confirmation, and broader context are stronger.
+- Minimum dashboard deep-link targets for Slack are: a live batch view (`batchId`), a historical batch summary (`history/<batchId>`), a task-focused view (`taskId`, likely opening STATUS/task detail), and an approval-focused landing state (`approvalId` plus related batch/task IDs). The links should only identify canonical objects and desired focus; the dashboard should resolve current state from Taskplane files/APIs.
