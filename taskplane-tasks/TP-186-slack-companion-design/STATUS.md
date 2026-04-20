@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -37,8 +37,9 @@
 
 ### Step 3: Safety model
 **Status:** 🟨 In Progress
-- [ ] Define audit and confirmation rules
-- [ ] Define forbidden/deferred actions
+- [ ] Define audit, authorization, and confirmation rules
+- [ ] Define rate limiting and forbidden/deferred actions
+- [ ] Explain why Slack cannot own canonical run state
 - [ ] Define failure/fallback behavior
 
 ---
@@ -57,6 +58,8 @@
 |---|------|------|---------|------|
 | R001 | plan | 1 | APPROVE | `.reviews/R001-plan-step1.md` |
 | R002 | plan | 2 | REVISE | `.reviews/R002-plan-step2.md` |
+| R003 | plan | 2 | APPROVE | `.reviews/R003-plan-step2.md` |
+| R004 | plan | 3 | REVISE | `.reviews/R004-plan-step3.md` |
 
 ---
 
@@ -88,6 +91,7 @@
 | 2026-04-20 17:15 | Lightweight control boundary defined | Documented bounded `request_stop` contract and explicitly kept retry/skip/resume/force-merge outside Slack v1 |
 | 2026-04-20 17:16 | Deep-link rules defined | Spec now covers batch/task/approval link targets plus duplicate delivery, repeated click, and stale action idempotency cases |
 | 2026-04-20 17:16 | Step 2 complete | Ready to define Slack safety and fallback rules |
+| 2026-04-20 17:18 | Review R004 | plan Step 3 returned REVISE; expanded Step 3 outcomes for authorization, rate limiting, and canonical-state guardrails |
 
 ---
 
@@ -111,4 +115,6 @@ Preflight findings:
 Reviewer notes:
 - Step 2 must define compact status lookup contracts, not just push notifications and approvals.
 - Step 2 must either define the bounded stop/cancel request contract or explicitly mark what is deferred pending the Step 3 safety model.
+- Step 3 must cover rate limiting, Slack identity/authorization constraints, and restate why Slack can never own canonical run state.
 | 2026-04-20 16:46 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 16:50 | Review R004 | plan Step 3: REVISE |
