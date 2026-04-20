@@ -1399,34 +1399,39 @@ function parseWorkspaceReposYaml(raw) {
   return repos;
 }
 
+function loadDashboardWorkspaceRepos() {
+  const repos = {};
+  const workspaceJson = readDashboardJsonConfig(REPO_ROOT);
+  const rawJsonRepos = workspaceJson?.workspace?.repos;
+  if (rawJsonRepos && typeof rawJsonRepos === "object") {
+    for (const [repoId, repo] of Object.entries(rawJsonRepos)) {
+      if (!repo || typeof repo !== "object") continue;
+      if (typeof repo.path !== "string" || !repo.path.trim()) continue;
+      repos[repoId] = { path: path.resolve(REPO_ROOT, repo.path.trim()) };
+    }
+  }
+  if (Object.keys(repos).length > 0) return repos;
+
+  const workspaceConfigCandidates = [
+    path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),
+    path.join(REPO_ROOT, "taskplane-workspace.yaml"),
+  ];
+  const workspaceConfigPath = workspaceConfigCandidates.find((candidate) => fs.existsSync(candidate));
+  if (!workspaceConfigPath) return repos;
+  try {
+    const workspaceRaw = fs.readFileSync(workspaceConfigPath, "utf-8");
+    return parseWorkspaceReposYaml(workspaceRaw);
+  } catch {
+    return repos;
+  }
+}
+
 function resolveDashboardPointerConfigRoot() {
   const pointerPath = path.join(REPO_ROOT, ".pi", "taskplane-pointer.json");
   if (!fs.existsSync(pointerPath)) return null;
 
   try {
-    let repos = {};
-    const workspaceJson = readDashboardJsonConfig(REPO_ROOT);
-    const rawJsonRepos = workspaceJson?.workspace?.repos;
-    if (rawJsonRepos && typeof rawJsonRepos === "object") {
-      for (const [repoId, repo] of Object.entries(rawJsonRepos)) {
-        if (!repo || typeof repo !== "object") continue;
-        if (typeof repo.path !== "string" || !repo.path.trim()) continue;
-        repos[repoId] = { path: path.resolve(REPO_ROOT, repo.path.trim()) };
-      }
-    }
-
-    if (Object.keys(repos).length === 0) {
-      const workspaceConfigCandidates = [
-        path.join(REPO_ROOT, ".pi", "taskplane-workspace.yaml"),
-        path.join(REPO_ROOT, "taskplane-workspace.yaml"),
-      ];
-      const workspaceConfigPath = workspaceConfigCandidates.find((candidate) => fs.existsSync(candidate));
-      if (workspaceConfigPath) {
-        const workspaceRaw = fs.readFileSync(workspaceConfigPath, "utf-8");
-        repos = parseWorkspaceReposYaml(workspaceRaw);
-      }
-    }
-
+    const repos = loadDashboardWorkspaceRepos();
     const pointer = JSON.parse(fs.readFileSync(pointerPath, "utf-8"));
     const repoId = typeof pointer?.config_repo === "string" ? pointer.config_repo.trim() : "";
     const configPath = typeof pointer?.config_path === "string" ? pointer.config_path.trim() : "";
@@ -1751,6 +1756,9 @@ function loadBacklogData(state, history) {
   }).sort((a, b) => a.taskId.localeCompare(b.taskId));
 
   const repoIds = [...new Set(items.map((item) => item.repoId).filter(Boolean))].sort();
+  const workspaceRepos = loadDashboardWorkspaceRepos();
+  const inferredMode = state?.mode
+    || (Object.keys(workspaceRepos).length > 0 || resolveDashboardPointerConfigRoot() ? "workspace" : "repo");
   let loadState = { kind: "ready", message: null };
   if (items.length === 0 && errors.length > 0) {
     loadState = { kind: "error", message: "Backlog scan failed" };
@@ -1764,8 +1772,9 @@ function loadBacklogData(state, history) {
     items,
     summary: computeBacklogSummary(items),
     scope: {
-      mode: state?.mode || "repo",
+      mode: inferredMode,
       repoIds,
+      configuredRepoIds: Object.keys(workspaceRepos).sort(),
       taskAreaCount: Object.keys(taskAreas).length,
     },
     errors,

@@ -297,6 +297,8 @@ describe("TP-182 dashboard backlog loading", () => {
 			const backlog = loadBacklogData(null, []);
 			expect(backlog.items).toHaveLength(1);
 			expect(backlog.items[0].taskId).toBe("TP-270");
+			expect(backlog.scope.mode).toBe("workspace");
+			expect(backlog.scope.configuredRepoIds).toContain("config");
 			expect(backlog.loadState.kind).toBe("ready");
 		} finally {
 			rmSync(root, { recursive: true, force: true });
