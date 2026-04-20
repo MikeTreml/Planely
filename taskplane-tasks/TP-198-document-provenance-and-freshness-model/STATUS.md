@@ -1,10 +1,10 @@
 # TP-198: Document Provenance and Freshness Model — Status
 
-**Current Step:** Step 1: Provenance model
+**Current Step:** Step 2: Freshness model
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 0
+**Review Counter:** 1
 **Iteration:** 1
 **Size:** M
 
@@ -19,15 +19,15 @@
 ---
 
 ### Step 1: Provenance model
-**Status:** 🟨 In Progress
-- [ ] Define provenance fields and meanings
-- [ ] Define required vs optional fields
-- [ ] Cover special-case docs cleanly
+**Status:** ✅ Complete
+- [x] Define provenance fields and meanings
+- [x] Define required vs optional fields
+- [x] Cover special-case docs cleanly
 
 ---
 
 ### Step 2: Freshness model
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Define task-distance freshness rules
 - [ ] Define review windows by doc type
 - [ ] Define derived freshness states
@@ -53,6 +53,7 @@
 
 | # | Type | Step | Verdict | File |
 |---|------|------|---------|------|
+| 1 | Plan | 1 | APPROVE | _inline_ |
 
 ---
 
@@ -72,6 +73,9 @@
 | 2026-04-20 20:18 | Step 0 started | Preflight |
 | 2026-04-20 20:24 | Step 0 completed | Reviewed TP-197 policy, current doc types, metadata options, and README special cases |
 | 2026-04-20 20:24 | Step 1 started | Provenance model |
+| 2026-04-20 20:25 | Review R001 | plan Step 1: APPROVE |
+| 2026-04-20 20:31 | Step 1 completed | Documented provenance fields, required/optional rules, encoding guidance, and README-safe handling |
+| 2026-04-20 20:31 | Step 2 started | Freshness model |
 
 ---
 
@@ -84,3 +88,4 @@
 ## Notes
 
 Provenance/freshness design task for document lifecycle metadata and review heuristics.
+| 2026-04-20 20:19 | Review R001 | plan Step 1: APPROVE |
