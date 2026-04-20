@@ -1,25 +1,25 @@
 # TP-183: Dashboard Task Detail and Operator Actions — Status
 
-**Current Step:** Not Started
-**Status:** 🔵 Ready for Execution
-**Last Updated:** 2026-04-19
+**Current Step:** Step 1: Task detail view
+**Status:** 🟡 In Progress
+**Last Updated:** 2026-04-20
 **Review Level:** 2
 **Review Counter:** 0
-**Iteration:** 0
+**Iteration:** 1
 **Size:** L
 
 ---
 
 ### Step 0: Preflight
-**Status:** ⬜ Not Started
-- [ ] Read TP-182 output and command semantics
-- [ ] Define safe action surface and fallbacks
-- [ ] Identify required server glue
+**Status:** ✅ Complete
+- [x] Read TP-182 output and command semantics
+- [x] Define safe action surface and fallbacks
+- [x] Identify required server glue
 
 ---
 
 ### Step 1: Task detail view
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Add detail pane/modal/view
 - [ ] Render key PROMPT/STATUS-derived information
 - [ ] Support navigation into detail view
@@ -70,6 +70,10 @@
 | Timestamp | Action | Outcome |
 |-----------|--------|---------|
 | 2026-04-19 | Task staged | PROMPT.md and STATUS.md created |
+| 2026-04-20 19:11 | Task started | Runtime V2 lane-runner execution |
+| 2026-04-20 19:11 | Step 0 started | Preflight |
+| 2026-04-20 19:33 | Step 0 completed | Preflight findings logged in Notes |
+| 2026-04-20 19:33 | Step 1 started | Task detail view |
 
 ---
 
@@ -82,3 +86,7 @@
 ## Notes
 
 Builds the first true operator-control interactions into the dashboard.
+- 2026-04-20 preflight: TP-182 backlog view currently lives in `dashboard/server.cjs` backlog packet builders (`loadBacklogData`, `buildBacklogItem`) and `dashboard/public/app.js` backlog card rendering/filter state; task cards already expose selection and STATUS.md viewing hooks but no task detail surface yet.
+- 2026-04-20 preflight: existing operator semantics come from extension handlers, not dashboard logic: `/orch` start is async batch launch; retry only permits failed/stalled tasks when batch phase is not launching/executing/merging/planning; skip only permits failed/stalled/pending under the same paused/stopped/failed constraint; integrate only applies to completed batches/branches and uses guarded existing paths.
+- 2026-04-20 preflight: safest v1 dashboard action surface is command-mediated POST endpoints that shell into existing `taskplane`/`pi` command paths instead of mutating batch files directly. Direct-trigger candidates: start selected tasks (via `/orch <paths>`/equivalent CLI entry) and integrate completed batch. Riskier recovery actions (retry/skip) need stronger gating and a confirmation layer because they modify persisted batch state; if direct invocation proves brittle, fallback should be a copyable command string shown in the detail/action UI.
+- 2026-04-20 preflight: required server glue is minimal but concrete: enrich `/api/state` backlog/live/history items with task-detail payloads already derivable from PROMPT/STATUS parsing, add a POST action endpoint with allowlisted action names + payload validation, resolve task selections to packet paths/IDs on the server, and return `supported/disabled/reason/commandPreview` metadata so the frontend can render guarded buttons even when direct execution is unavailable.
