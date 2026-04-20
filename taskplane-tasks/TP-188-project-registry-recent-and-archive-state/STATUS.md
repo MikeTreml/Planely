@@ -1,10 +1,10 @@
 # TP-188: Project Registry, Recent, and Archive State — Status
 
-**Current Step:** Step 3: Adoption and behavior notes
+**Current Step:** Step 4: Verification & Delivery
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 4
+**Review Counter:** 5
 **Iteration:** 1
 **Size:** M
 
@@ -37,16 +37,16 @@
 ---
 
 ### Step 3: Adoption and behavior notes
-**Status:** 🟨 In Progress
-- [ ] Define existing-project discovery/addition path
-- [ ] Define archive/unarchive behavior
-- [ ] Define recent tracking/pruning
-- [ ] Capture out-of-scope items
+**Status:** ✅ Complete
+- [x] Define existing-project discovery/addition path
+- [x] Define archive/unarchive behavior
+- [x] Define recent tracking/pruning
+- [x] Capture out-of-scope items
 
 ---
 
 ### Step 4: Verification & Delivery
-**Status:** ⬜ Not Started
+**Status:** 🟨 In Progress
 - [ ] Verify support for TP-187 sidebar needs
 - [ ] Verify local-first inspectable design
 - [ ] Log discoveries
@@ -61,6 +61,7 @@
 | R002 | Plan | 1 | APPROVE | n/a |
 | R003 | Plan | 2 | REVISE | `.reviews/R003-plan-step2.md` |
 | R004 | Plan | 2 | APPROVE | n/a |
+| R005 | Plan | 3 | APPROVE | n/a |
 
 ---
 
@@ -88,6 +89,9 @@
 | 2026-04-20 16:49 | Step 2 plan reviewed | R003 revise, then R004 approve after adding storage-scope and recovery outcomes |
 | 2026-04-20 16:52 | Step 2 completed | `project-registry-storage.md` drafted |
 | 2026-04-20 16:52 | Step 3 started | Adoption and behavior notes |
+| 2026-04-20 16:53 | Step 3 plan reviewed | R005 approve |
+| 2026-04-20 16:55 | Step 3 completed | `project-registry-adoption.md` drafted |
+| 2026-04-20 16:55 | Step 4 started | Verification & Delivery |
 
 ---
 
@@ -117,3 +121,4 @@ Minimum registry requirements:
 | 2026-04-20 16:42 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 16:45 | Review R003 | plan Step 2: REVISE |
 | 2026-04-20 16:46 | Review R004 | plan Step 2: APPROVE |
+| 2026-04-20 16:49 | Review R005 | plan Step 3: APPROVE |
