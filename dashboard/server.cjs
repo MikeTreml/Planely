@@ -177,6 +177,12 @@ function parseStatusMd(taskFolder) {
       const checked = (content.match(/- \[x\]/gi) || []).length;
       const unchecked = (content.match(/- \[ \]/g) || []).length;
       const total = checked + unchecked;
+      let updatedAt = null;
+      try {
+        updatedAt = fs.statSync(statusPath).mtimeMs;
+      } catch {
+        updatedAt = null;
+      }
       return {
         currentStep: stepMatch ? stepMatch[1].trim() : "Unknown",
         status: statusMatch ? statusMatch[1].trim() : "Unknown",
@@ -185,6 +191,7 @@ function parseStatusMd(taskFolder) {
         checked,
         total,
         progress: total > 0 ? Math.round((checked / total) * 100) : 0,
+        updatedAt,
       };
     } catch {
       continue;
@@ -1085,6 +1092,8 @@ function buildDashboardState() {
   const telemetry = loadTelemetryData(state);
   const batchTotalCost = computeBatchTotalCost(laneStates, telemetry);
   const supervisor = loadSupervisorData(state);
+  const history = loadHistory();
+  const backlog = loadBacklogData(state, history);
 
   if (!state) {
     return {
@@ -1095,6 +1104,7 @@ function buildDashboardState() {
       telemetry: {},
       batchTotalCost: 0,
       supervisor: null,
+      backlog,
       timestamp: Date.now(),
     };
   }
@@ -1184,6 +1194,7 @@ function buildDashboardState() {
     // TP-164: Merge agent snapshots for live dashboard telemetry.
     runtimeMergeSnapshots,
     mailbox: mailboxData,
+    backlog,
     batch: {
       batchId: state.batchId,
       phase: state.phase,
@@ -1316,6 +1327,242 @@ function broadcastState() {
 // ─── Batch History API ──────────────────────────────────────────────────────
 
 // BATCH_HISTORY_PATH is initialized in main() alongside REPO_ROOT.
+
+function loadTaskplaneTaskAreas() {
+  try {
+    const configPath = path.join(REPO_ROOT, ".pi", "taskplane-config.json");
+    if (!fs.existsSync(configPath)) return {};
+    const raw = fs.readFileSync(configPath, "utf-8");
+    const config = JSON.parse(raw);
+    const areas = config?.taskRunner?.taskAreas;
+    return areas && typeof areas === "object" ? areas : {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeBacklogDependencyRef(raw) {
+  const text = String(raw || "").trim();
+  if (!text) return "";
+  const qualifiedMatch = text.match(/^(?:[a-z0-9-]+\/)?([A-Z]+-\d+)$/i);
+  if (qualifiedMatch) return qualifiedMatch[1].toUpperCase();
+  const inlineMatch = text.match(/([A-Z]+-\d+)/i);
+  return inlineMatch ? inlineMatch[1].toUpperCase() : text.toUpperCase();
+}
+
+function extractBacklogPromptMeta(promptPath, taskFolder, areaName) {
+  let content = "";
+  try {
+    content = fs.readFileSync(promptPath, "utf-8");
+  } catch {
+    return {
+      packet: null,
+      error: { path: promptPath, message: "Cannot read PROMPT.md" },
+    };
+  }
+
+  const folderName = path.basename(taskFolder);
+  const headingMatch = content.match(/^#\s+Task:\s+([A-Z]+-\d+)\s*[-—]\s*(.+)$/m);
+  const folderMatch = folderName.match(/^([A-Z]+-\d+)/);
+  const taskId = headingMatch?.[1] || folderMatch?.[1] || null;
+  if (!taskId) {
+    return {
+      packet: null,
+      error: { path: promptPath, message: "Task ID missing from PROMPT.md or folder name" },
+    };
+  }
+
+  const title = (headingMatch?.[2] || folderName.replace(/^([A-Z]+-\d+)[-_]*/, "")).trim() || taskId;
+  const missionMatch = content.match(/^##\s+Mission\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
+  const summary = missionMatch
+    ? missionMatch[1]
+      .split(/\n{2,}/)
+      .map((part) => part.replace(/\s+/g, " ").trim())
+      .find(Boolean) || null
+    : null;
+
+  const dependencies = [];
+  const depSectionMatch = content.match(/^##\s+Dependencies\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
+  if (depSectionMatch) {
+    for (const line of depSectionMatch[1].split("\n")) {
+      const bulletMatch = line.match(/^\s*[-*+]\s+(.*)$/);
+      if (!bulletMatch) continue;
+      const depId = normalizeBacklogDependencyRef(bulletMatch[1]);
+      if (!depId || depId === taskId || dependencies.includes(depId)) continue;
+      dependencies.push(depId);
+    }
+  }
+
+  let promptRepoId = null;
+  const executionTargetMatch = content.match(/^##\s+Execution Target\s*\n([\s\S]*?)(?=\n##\s|\n---|\n$)/m);
+  if (executionTargetMatch) {
+    const repoLineMatch = executionTargetMatch[1].match(/^\s*(?:[-*+]\s+)?Repo:\s*(\S+)/im);
+    if (repoLineMatch) promptRepoId = repoLineMatch[1].trim().toLowerCase();
+  }
+  if (!promptRepoId) {
+    const inlineRepoMatch = content.match(/^\*\*(?:Repo|Workspace):\*\*\s+(\S+)/m);
+    if (inlineRepoMatch) promptRepoId = inlineRepoMatch[1].trim().toLowerCase();
+  }
+
+  return {
+    packet: {
+      taskId,
+      title,
+      summary,
+      area: areaName,
+      promptRepoId,
+      dependencies,
+      promptPath,
+      statusPath: path.join(taskFolder, "STATUS.md"),
+      taskFolder,
+    },
+    error: null,
+  };
+}
+
+function isBacklogPacketComplete(packet) {
+  const statusText = String(packet?.statusData?.status || "").trim();
+  return Boolean(
+    packet?.doneFileFound
+      || packet?.activeTask?.status === "succeeded"
+      || /^✅/.test(statusText)
+      || /complete/i.test(statusText),
+  );
+}
+
+function buildBacklogDependencyLink(depId, packetById) {
+  const depPacket = packetById.get(depId) || null;
+  return {
+    kind: "task",
+    id: depId,
+    label: depId,
+    href: depPacket?.taskFolder || null,
+    exists: Boolean(depPacket),
+  };
+}
+
+function findTaskHistoryEntry(history, taskId) {
+  if (!Array.isArray(history) || !taskId) return null;
+  for (const entry of history) {
+    if (!entry || !Array.isArray(entry.tasks)) continue;
+    if (entry.tasks.some((task) => task?.taskId === taskId)) return entry;
+  }
+  return null;
+}
+
+function computeBacklogSummary(items) {
+  const summary = {
+    total: items.length,
+    ready: 0,
+    blocked: 0,
+    running: 0,
+    waiting: 0,
+    succeeded: 0,
+    failed: 0,
+    stalled: 0,
+    skipped: 0,
+    unknown: 0,
+  };
+  for (const item of items) {
+    const key = item?.status?.key || "unknown";
+    if (key in summary) summary[key] += 1;
+    else summary.unknown += 1;
+  }
+  return summary;
+}
+
+function loadBacklogData(state, history) {
+  const taskAreas = loadTaskplaneTaskAreas();
+  const packets = [];
+  const errors = [];
+  const activeTaskById = new Map();
+  for (const task of (state?.tasks || [])) {
+    if (task?.taskId) activeTaskById.set(task.taskId, task);
+  }
+
+  for (const [areaName, area] of Object.entries(taskAreas)) {
+    if (!area || !area.path) continue;
+    const areaPath = path.resolve(REPO_ROOT, area.path);
+    if (!fs.existsSync(areaPath)) {
+      errors.push({ path: areaPath, message: `Task area not found: ${area.path}` });
+      continue;
+    }
+
+    let entries = [];
+    try {
+      entries = fs.readdirSync(areaPath, { withFileTypes: true });
+    } catch {
+      errors.push({ path: areaPath, message: `Cannot read task area: ${area.path}` });
+      continue;
+    }
+
+    for (const entry of entries) {
+      if (!entry?.isDirectory?.()) continue;
+      if (entry.name === "archive") continue;
+      const taskFolder = path.join(areaPath, entry.name);
+      const promptPath = path.join(taskFolder, "PROMPT.md");
+      if (!fs.existsSync(promptPath)) continue;
+
+      const parsed = extractBacklogPromptMeta(promptPath, taskFolder, areaName);
+      if (parsed.error || !parsed.packet) {
+        errors.push(parsed.error || { path: promptPath, message: "Malformed task packet" });
+        continue;
+      }
+
+      const activeTask = activeTaskById.get(parsed.packet.taskId) || null;
+      packets.push({
+        ...parsed.packet,
+        repoId: activeTask?.resolvedRepoId || activeTask?.repoId || parsed.packet.promptRepoId || area.repoId || null,
+        statusData: parseStatusMd(taskFolder),
+        doneFileFound: checkDoneFile(taskFolder),
+        activeTask,
+      });
+    }
+  }
+
+  const packetById = new Map(packets.map((packet) => [packet.taskId, packet]));
+  const items = packets.map((packet) => {
+    const blockedDependencies = [];
+    const completedDependencies = [];
+    for (const rawDep of packet.dependencies || []) {
+      const depId = normalizeBacklogDependencyRef(rawDep);
+      if (!depId || depId === packet.taskId) continue;
+      const link = buildBacklogDependencyLink(depId, packetById);
+      const depPacket = packetById.get(depId) || null;
+      if (depPacket && isBacklogPacketComplete(depPacket)) completedDependencies.push(link);
+      else blockedDependencies.push(link);
+    }
+
+    return buildBacklogItem(packet, {
+      activeTask: packet.activeTask,
+      blockedDependencies,
+      completedDependencies,
+      historyEntry: findTaskHistoryEntry(history, packet.taskId),
+    });
+  }).sort((a, b) => a.taskId.localeCompare(b.taskId));
+
+  const repoIds = [...new Set(items.map((item) => item.repoId).filter(Boolean))].sort();
+  let loadState = { kind: "ready", message: null };
+  if (items.length === 0 && errors.length > 0) {
+    loadState = { kind: "error", message: "Backlog scan failed" };
+  } else if (items.length === 0) {
+    loadState = { kind: "empty", message: "No task packets found" };
+  } else if (errors.length > 0) {
+    loadState = { kind: "partial", message: "Some task packets could not be parsed" };
+  }
+
+  return {
+    items,
+    summary: computeBacklogSummary(items),
+    scope: {
+      mode: state?.mode || "repo",
+      repoIds,
+      taskAreaCount: Object.keys(taskAreas).length,
+    },
+    errors,
+    loadState,
+  };
+}
 
 function buildBacklogDisplayStatus(packet, context) {
   const blockedDependencies = Array.isArray(context?.blockedDependencies)
