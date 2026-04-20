@@ -1,10 +1,10 @@
 # TP-180: Operator Console Product Brief — Status
 
-**Current Step:** Step 2: Domain model
+**Current Step:** Step 3: Phased roadmap
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 3
+**Review Counter:** 4
 **Iteration:** 1
 **Size:** M
 
@@ -39,10 +39,10 @@
 ---
 
 ### Step 3: Phased roadmap
-**Status:** ⬜ Not Started
-- [ ] Draft phase sequence and rationale
-- [ ] Add milestones and acceptance criteria
-- [ ] Capture risks and deferrals
+**Status:** ✅ Complete
+- [x] Draft phase sequence and rationale
+- [x] Add milestones and acceptance criteria
+- [x] Capture risks and deferrals
 
 ---
 
@@ -85,6 +85,7 @@
 | 2026-04-20 01:57 | Review R001 | plan Step 1 returned REVISE; added explicit product-brief outcomes and grounding guardrails |
 | 2026-04-20 02:02 | Product brief drafted | Created `docs/specifications/operator-console/product-brief.md` with current-state summary, problem statement, personas, rationale, scope, and success criteria |
 | 2026-04-20 02:05 | Domain model drafted | Created `docs/specifications/operator-console/domain-model.md` covering core entities, planning/execution boundaries, and relationships |
+| 2026-04-20 02:08 | Roadmap drafted | Created `docs/specifications/operator-console/roadmap.md` with phased sequence, milestones, acceptance criteria, and risk framing |
 
 ---
 
@@ -105,3 +106,4 @@ Preflight summary:
 - Reviewer suggestion: open the brief with the preflight strengths/gaps/non-goals summary and tie personas/use cases back to concrete Taskplane concepts such as task packets, batches, lanes, reviews, and dashboard state.
 | 2026-04-20 01:44 | Review R002 | plan Step 1: APPROVE |
 | 2026-04-20 01:47 | Review R003 | plan Step 2: APPROVE |
+| 2026-04-20 01:49 | Review R004 | plan Step 3: APPROVE |
