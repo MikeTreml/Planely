@@ -4,7 +4,7 @@
 **Status:** 🟡 In Progress
 **Last Updated:** 2026-04-20
 **Review Level:** 1
-**Review Counter:** 2
+**Review Counter:** 3
 **Iteration:** 1
 **Size:** M
 
@@ -39,6 +39,7 @@
 **Status:** 🟨 In Progress
 - [ ] Define visual-flow to Taskplane mapping
 - [ ] Define representation/compile format
+- [ ] Define multi-agent role assignment without a second runtime
 - [ ] Define safe loop and parallel semantics
 - [ ] Define guardrails
 
@@ -91,5 +92,7 @@ This task defines the first bounded spec for workflow blocks / Flow Composer.
 Preflight fit summary:
 - Clean fit today: template-driven flow setup, bounded block composition, human approvals, and multi-agent execution that compiles down to existing task packets, orchestrator plans, waves/lanes, and review boundaries.
 - Needs deferral: arbitrary canvas automation, runtime-mutating scripts, unconstrained branching, dynamic fan-out loops, and any model where the UI becomes a second execution scheduler or state authority.
+- R003 suggestion logged: keep saved-flow definition, bounded intermediate JSON, and launch-time Taskplane artifacts as separate concepts in the compile model.
 | 2026-04-20 19:14 | Review R001 | plan Step 1: APPROVE |
 | 2026-04-20 19:16 | Review R002 | plan Step 2: APPROVE |
+| 2026-04-20 19:18 | Review R003 | plan Step 3: REVISE |
